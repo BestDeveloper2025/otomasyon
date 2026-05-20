@@ -93,7 +93,7 @@ public partial class Form1 : Form
             }
 
             _scene = _sceneBuilder.Build(doc);
-            _txtCoordinates.Text = CoordinatesTextFormatter.FormatCorners(_scene);
+            _txtCoordinates.Text = SceneResultsTextFormatter.Format(_scene);
             _txtCoordinates.SelectionStart = 0;
             _txtCoordinates.ScrollToCaret();
             RefreshResultsUi();
@@ -114,8 +114,9 @@ public partial class Form1 : Form
     {
         var s = _scene.Statistics;
         _lblResults.Text = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-            "Toplam Kenar: {0} | Yay: {1} | Daire: {2} | Toplam Entity: {3}",
-            s.EdgeLineAndPolySegments,
+            "Kontur kenar: {0} | Radius: {1} | Yay: {2} | Daire: {3} | Entity: {4}",
+            s.ContourEdgeCount,
+            s.RadiusFeatureCount,
             s.ArcCount,
             s.CircleCount,
             s.TrackedEntityCount);

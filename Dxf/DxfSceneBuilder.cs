@@ -1,5 +1,6 @@
 using netDxf;
 using netDxf.Entities;
+using otomasyon.Analysis;
 using otomasyon.Geometry;
 using otomasyon.Models;
 
@@ -10,6 +11,7 @@ namespace otomasyon.Dxf;
 /// </summary>
 public sealed class DxfSceneBuilder
 {
+    private readonly RadiusFeatureExtractor _radiusExtractor = new();
     private readonly List<EntityObject> _entities = new();
     private readonly List<List<(double X, double Y)>> _pointLists = new();
     private double _minX, _maxX, _minY, _maxY;
@@ -49,19 +51,37 @@ public sealed class DxfSceneBuilder
             ? new SceneBoundingBox { MinX = _minX, MaxX = _maxX, MinY = _minY, MaxY = _maxY, HasBounds = true }
             : SceneBoundingBox.Empty;
 
+        var pointListsReadOnly = new List<IReadOnlyList<(double X, double Y)>>(_pointLists.Count);
+        foreach (var pl in _pointLists)
+            pointListsReadOnly.Add(pl);
+
+        var draft = new DxfScene(
+            _entities,
+            pointListsReadOnly,
+            bounds,
+            SceneStatistics.Zero,
+            Array.Empty<RadiusFeature>(),
+            Array.Empty<ContourEdge>());
+
+        var analysis = _radiusExtractor.Extract(draft);
+
         var stats = new SceneStatistics
         {
             EdgeLineAndPolySegments = _edgeLineAndPolySegments,
             ArcCount = _arcCount,
             CircleCount = _circleCount,
+            RadiusFeatureCount = analysis.RadiusFeatures.Count,
+            ContourEdgeCount = analysis.ContourEdges.Count,
             TrackedEntityCount = _trackedEntityCount
         };
 
-        var pointListsReadOnly = new List<IReadOnlyList<(double X, double Y)>>(_pointLists.Count);
-        foreach (var pl in _pointLists)
-            pointListsReadOnly.Add(pl);
-
-        return new DxfScene(_entities, pointListsReadOnly, bounds, stats);
+        return new DxfScene(
+            _entities,
+            pointListsReadOnly,
+            bounds,
+            stats,
+            analysis.RadiusFeatures,
+            analysis.ContourEdges);
     }
 
     private void Reset()

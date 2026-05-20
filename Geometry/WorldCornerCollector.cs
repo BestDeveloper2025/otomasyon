@@ -39,11 +39,64 @@ public static class WorldCornerCollector
     }
 
     /// <summary>
+    /// Köşe etiketleri için: tepe noktaları + polyline explode (yay uçları dahil).
+    /// </summary>
+    public static void CollectForDisplay(EntityObject entity, ICollection<(double X, double Y)> dest)
+    {
+        Collect(entity, dest);
+
+        if (entity is Polyline2D poly)
+            CollectPolyline2DExploded(poly, dest);
+    }
+
+    private static void CollectPolyline2DExploded(Polyline2D poly, ICollection<(double X, double Y)> dest)
+    {
+        try
+        {
+            foreach (var fragment in poly.Explode())
+            {
+                switch (fragment)
+                {
+                    case Line ln:
+                        dest.Add((ln.StartPoint.X, ln.StartPoint.Y));
+                        dest.Add((ln.EndPoint.X, ln.EndPoint.Y));
+                        break;
+                    case Arc arc:
+                        ArcSampler.GetArcEndpointXY(arc, out double sx, out double sy, out double ex, out double ey);
+                        dest.Add((sx, sy));
+                        dest.Add((ex, ey));
+                        break;
+                }
+            }
+        }
+        catch
+        {
+            // Explode başarısızsa tepe noktaları yeterli.
+        }
+    }
+
+    /// <summary>
     /// Paylaşılan köşelerde tekrarlayan etiketleri azaltmak için birleştirir.
     /// </summary>
     public static List<(double X, double Y)> MergeClosePoints(IReadOnlyList<(double X, double Y)> raw, double spanForTolerance)
+        => MergeClosePoints(raw, spanForTolerance, forDisplayLabels: false);
+
+    /// <summary>
+    /// Çizim etiketleri için birleştirme; büyük parçalarda köşelerin yanlışlıkla tek noktada toplanmasını önler.
+    /// </summary>
+    public static List<(double X, double Y)> MergeClosePointsForDisplay(
+        IReadOnlyList<(double X, double Y)> raw,
+        double spanForTolerance)
+        => MergeClosePoints(raw, spanForTolerance, forDisplayLabels: true);
+
+    private static List<(double X, double Y)> MergeClosePoints(
+        IReadOnlyList<(double X, double Y)> raw,
+        double spanForTolerance,
+        bool forDisplayLabels)
     {
-        double mergeEps = Math.Max(1e-9, spanForTolerance * 1e-10);
+        double mergeEps = forDisplayLabels
+            ? Math.Max(1e-9, Math.Min(1e-3, spanForTolerance * 1e-11))
+            : Math.Max(1e-9, spanForTolerance * 1e-10);
         var unique = new List<(double X, double Y)>(raw.Count);
         foreach (var p in raw)
         {

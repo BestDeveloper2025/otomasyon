@@ -11,6 +11,8 @@ namespace otomasyon.Rendering;
 /// </summary>
 public sealed class DxfSceneRenderer
 {
+    private readonly RadiusFeatureRenderer _radiusRenderer = new();
+
     public void Paint(Graphics graphics, DxfScene scene, Rectangle clip, in WorldToScreenTransform transform)
     {
         ArgumentNullException.ThrowIfNull(graphics);
@@ -50,6 +52,7 @@ public sealed class DxfSceneRenderer
         }
 
         DrawCornerLabels(graphics, clip, scene, transform);
+        _radiusRenderer.Paint(graphics, scene.RadiusFeatures, clip, transform);
     }
 
     private static void DrawWorldAxes(Graphics g, Rectangle clip, double offsetX, double offsetY)
@@ -66,36 +69,65 @@ public sealed class DxfSceneRenderer
 
     private static void DrawCornerLabels(Graphics g, Rectangle clip, DxfScene scene, in WorldToScreenTransform transform)
     {
-        if (!scene.Bounds.HasBounds || scene.Entities.Count == 0)
+        var corners = CornerDisplayCollector.Collect(scene);
+        if (corners.Count == 0)
             return;
 
-        var raw = new List<(double X, double Y)>(32);
-        foreach (var entity in scene.Entities)
-            WorldCornerCollector.Collect(entity, raw);
-
-        if (raw.Count == 0)
-            return;
-
-        double span = Math.Max(scene.Bounds.Width, scene.Bounds.Height);
-        var unique = WorldCornerCollector.MergeClosePoints(raw, span);
+        double cx = (scene.Bounds.MinX + scene.Bounds.MaxX) * 0.5;
+        double cy = (scene.Bounds.MinY + scene.Bounds.MaxY) * 0.5;
 
         g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
         using var font = new Font("Segoe UI", 8f, FontStyle.Regular, GraphicsUnit.Point);
         using var textBrush = new SolidBrush(Color.FromArgb(0, 51, 102));
         using var haloBrush = new SolidBrush(Color.FromArgb(235, 255, 255, 255));
         using var outlinePen = new Pen(Color.FromArgb(180, 160, 160, 160), 1f);
+        using var pointBrush = new SolidBrush(Color.FromArgb(0, 51, 102));
 
-        foreach (var p in unique)
+        for (int i = 0; i < corners.Count; i++)
         {
-            var screenPt = transform.ToScreen(p.X, p.Y);
-            string text = string.Format(CultureInfo.InvariantCulture, "{0:G6} , {1:G6}", p.X, p.Y);
+            var corner = corners[i];
+            string text = corner.CornerIndex is int k
+                ? string.Format(CultureInfo.InvariantCulture, "K{0}\r\n{1:G6} , {2:G6}", k, corner.X, corner.Y)
+                : string.Format(CultureInfo.InvariantCulture, "{0:G6} , {1:G6}", corner.X, corner.Y);
+
+            var screenPt = transform.ToScreen(corner.X, corner.Y);
+            const float pointRadius = 3f;
+            g.FillEllipse(pointBrush,
+                screenPt.X - pointRadius,
+                screenPt.Y - pointRadius,
+                pointRadius * 2f,
+                pointRadius * 2f);
+
+            double dx = corner.X - cx;
+            double dy = corner.Y - cy;
+            double len = Math.Sqrt(dx * dx + dy * dy);
+            if (len < 1e-9)
+            {
+                dx = 1;
+                dy = 0;
+                len = 1;
+            }
+
+            float nx = (float)(dx / len);
+            float ny = (float)(dy / len);
+            float offset = 10f + (i % 3) * 2f;
+
             SizeF sz = g.MeasureString(text, font);
-            float lx = screenPt.X + 6f;
-            float ly = screenPt.Y - sz.Height - 4f;
-            if (lx + sz.Width > clip.Right - 2) lx = screenPt.X - sz.Width - 6f;
-            if (ly < clip.Top + 2) ly = screenPt.Y + 8f;
-            if (lx < clip.Left + 2) lx = clip.Left + 2f;
-            if (ly + sz.Height > clip.Bottom - 2) ly = clip.Bottom - sz.Height - 2f;
+            float lx = screenPt.X + nx * offset;
+            float ly = screenPt.Y - ny * offset - sz.Height;
+
+            if (!clip.Contains((int)screenPt.X, (int)screenPt.Y))
+            {
+                lx = Math.Clamp(lx, clip.Left + 2f, clip.Right - sz.Width - 2f);
+                ly = Math.Clamp(ly, clip.Top + 2f, clip.Bottom - sz.Height - 2f);
+            }
+            else
+            {
+                if (lx + sz.Width > clip.Right - 2) lx = screenPt.X - sz.Width - offset;
+                if (lx < clip.Left + 2) lx = clip.Left + 2f;
+                if (ly < clip.Top + 2) ly = screenPt.Y + offset;
+                if (ly + sz.Height > clip.Bottom - 2) ly = clip.Bottom - sz.Height - 2f;
+            }
 
             var bg = new RectangleF(lx - 2f, ly - 1f, sz.Width + 4f, sz.Height + 2f);
             g.FillRectangle(haloBrush, bg);

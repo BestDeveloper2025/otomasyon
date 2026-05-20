@@ -10,5 +10,7 @@ public readonly struct SceneStatistics
     public int EdgeLineAndPolySegments { get; init; }
     public int ArcCount { get; init; }
     public int CircleCount { get; init; }
+    public int RadiusFeatureCount { get; init; }
+    public int ContourEdgeCount { get; init; }
     public int TrackedEntityCount { get; init; }
 }

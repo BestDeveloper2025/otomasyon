@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("otomasyon")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+42a9fdc09c465aaf5a8f4f82e3871344abb2cf9e")]
 [assembly: System.Reflection.AssemblyProductAttribute("otomasyon")]
 [assembly: System.Reflection.AssemblyTitleAttribute("otomasyon")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

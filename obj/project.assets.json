@@ -46,11 +46,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\Erp2\\Desktop\\otomasyon\\otomasyon\\otomasyon\\otomasyon.csproj",
+      "projectUniqueName": "C:\\Users\\Erp2\\Desktop\\otomasyon\\otomasyon\\otomasyon\\otomasyon.csproj",
       "projectName": "otomasyon",
-      "projectPath": "c:\\Users\\Erp2\\Desktop\\otomasyon\\otomasyon\\otomasyon\\otomasyon.csproj",
+      "projectPath": "C:\\Users\\Erp2\\Desktop\\otomasyon\\otomasyon\\otomasyon\\otomasyon.csproj",
       "packagesPath": "C:\\Users\\Erp2\\.nuget\\packages\\",
-      "outputPath": "c:\\Users\\Erp2\\Desktop\\otomasyon\\otomasyon\\otomasyon\\obj\\",
+      "outputPath": "C:\\Users\\Erp2\\Desktop\\otomasyon\\otomasyon\\otomasyon\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Erp2\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -103,24 +103,6 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
-        "downloadDependencies": [
-          {
-            "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[8.0.27, 8.0.27]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Host.win-x64",
-            "version": "[8.0.27, 8.0.27]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Ref",
-            "version": "[8.0.27, 8.0.27]"
-          },
-          {
-            "name": "Microsoft.WindowsDesktop.App.Ref",
-            "version": "[8.0.27, 8.0.27]"
-          }
-        ],
         "frameworkReferences": {
           "Microsoft.NETCore.App": {
             "privateAssets": "all"
