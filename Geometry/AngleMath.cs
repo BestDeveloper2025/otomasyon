@@ -42,4 +42,47 @@ public static class AngleMath
     /// <summary>DXF yayında CCW ilerleme için uç noktadaki teğet yönü (derece).</summary>
     public static double ArcTangentDeg(double angleFromCenterDeg, bool ccwAlongArc)
         => Normalize360(angleFromCenterDeg + (ccwAlongArc ? 90.0 : -90.0));
+
+    /// <summary>
+    /// İki ışın arasında, referans noktası (malzeme içi) hangi dilimdeyse o dilimin açısı.
+    /// Teğet–kenar köşesinde geniş veya dar açıyı doğru seçer.
+    /// </summary>
+    public static double InteriorAngleBetweenRaysDeg(
+        double ray1DirDeg,
+        double ray2DirDeg,
+        double cornerX,
+        double cornerY,
+        double interiorRefX,
+        double interiorRefY)
+    {
+        if (double.IsNaN(ray1DirDeg) || double.IsNaN(ray2DirDeg))
+            return double.NaN;
+
+        double from = Normalize360(ray1DirDeg);
+        double to = Normalize360(ray2DirDeg);
+        double sweepCcw = to - from;
+        if (sweepCcw < 0)
+            sweepCcw += 360.0;
+
+        double sweepCw = 360.0 - sweepCcw;
+        if (sweepCcw < 1e-6 || sweepCw < 1e-6)
+            return 0;
+
+        double refDir = DirectionDeg(interiorRefX - cornerX, interiorRefY - cornerY);
+        if (double.IsNaN(refDir))
+            return Math.Min(sweepCcw, sweepCw);
+
+        if (IsInWedgeCcw(from, sweepCcw, refDir))
+            return sweepCcw;
+
+        return sweepCw;
+    }
+
+    private static bool IsInWedgeCcw(double fromDeg, double sweepDeg, double testDeg)
+    {
+        double rel = Normalize360(testDeg) - fromDeg;
+        if (rel < 0)
+            rel += 360.0;
+        return rel <= sweepDeg + 1e-3;
+    }
 }

@@ -24,7 +24,7 @@ public sealed class RadiusFeatureExtractor
                 if (seg.IsArc)
                 {
                     radiusNum++;
-                    var feature = BuildFromSegment(segments, si, radiusNum);
+                    var feature = BuildFromSegment(scene, segments, si, radiusNum);
                     if (feature is not null)
                     {
                         radii.Add(feature);
@@ -45,14 +45,23 @@ public sealed class RadiusFeatureExtractor
                 });
             }
 
-            return RadiusTraversalOrderer.Apply(new RadiusAnalysisResult(radii, edges));
+            return RadiusTraversalOrderer.Apply(FinalizeResult(radii, edges));
         }
 
         ExtractFallbackEntityOrder(scene, radii, edges);
-        return RadiusTraversalOrderer.Apply(new RadiusAnalysisResult(radii, edges));
+        return RadiusTraversalOrderer.Apply(FinalizeResult(radii, edges));
+    }
+
+    private static RadiusAnalysisResult FinalizeResult(List<RadiusFeature> radii, List<ContourEdge> edges)
+    {
+        for (int i = 0; i < radii.Count; i++)
+            radii[i] = RadiusEndpointOrienter.Orient(radii[i]);
+
+        return new RadiusAnalysisResult(radii, edges);
     }
 
     private static RadiusFeature? BuildFromSegment(
+        DxfScene scene,
         List<ContourPathOrderer.OrderedSegment> segments,
         int index,
         int radiusIndex)
@@ -76,7 +85,11 @@ public sealed class RadiusFeatureExtractor
         if (double.IsNaN(line2Dir))
             line2Dir = tanAtEnd;
 
-        var angles = RadiusCornerAngles.Compute(line1Dir, line2Dir, tanAtStart, tanAtEnd);
+        double mcx = (scene.Bounds.MinX + scene.Bounds.MaxX) * 0.5;
+        double mcy = (scene.Bounds.MinY + scene.Bounds.MaxY) * 0.5;
+        var angles = RadiusCornerAngles.Compute(
+            line1Dir, line2Dir, tanAtStart, tanAtEnd,
+            seg.StartX, seg.StartY, seg.EndX, seg.EndY, mcx, mcy);
 
         return new RadiusFeature
         {
@@ -119,10 +132,10 @@ public sealed class RadiusFeatureExtractor
             switch (entity)
             {
                 case Polyline2D poly when poly.IsClosed:
-                    ExtractPolylineFallback(poly, ref edgeNum, ref radiusNum, radii, edges);
+                    ExtractPolylineFallback(scene, poly, ref edgeNum, ref radiusNum, radii, edges);
                     break;
                 case Arc arc:
-                    if (TryAddStandaloneArc(arc, ref radiusNum, radii))
+                    if (TryAddStandaloneArc(scene, arc, ref radiusNum, radii))
                     {
                         ArcSampler.GetArcEndpointXY(arc, out double sx, out double sy, out double ex, out double ey);
                         edges.Add(new ContourEdge
@@ -143,6 +156,7 @@ public sealed class RadiusFeatureExtractor
     }
 
     private static void ExtractPolylineFallback(
+        DxfScene scene,
         Polyline2D poly,
         ref int edgeNum,
         ref int radiusNum,
@@ -173,6 +187,7 @@ public sealed class RadiusFeatureExtractor
                     Bulge = bulge
                 };
                 var feature = BuildFromSegment(
+                    scene,
                     new List<ContourPathOrderer.OrderedSegment> { seg },
                     0,
                     radiusNum);
@@ -195,21 +210,43 @@ public sealed class RadiusFeatureExtractor
         }
     }
 
-    private static bool TryAddStandaloneArc(Arc arc, ref int radiusNum, List<RadiusFeature> radii)
+    private static bool TryAddStandaloneArc(DxfScene scene, Arc arc, ref int radiusNum, List<RadiusFeature> radii)
     {
         if (!BulgeArcConverter.TryFromArcEntity(arc,
                 out double cx, out double cy, out double r,
-                out double startAng, out double endAng, out double bulge))
+                out _, out _, out double bulge))
             return false;
 
         ArcSampler.GetArcEndpointXY(arc, out double sx, out double sy, out double ex, out double ey);
-        bool ccw = bulge > 0;
-        double tanStart = AngleMath.ArcTangentDeg(startAng, ccw);
-        double tanEnd = AngleMath.ArcTangentDeg(endAng, ccw);
 
-        double line1 = OppositeDirection(tanStart);
-        double line2 = tanEnd;
-        var angles = RadiusCornerAngles.Compute(line1, line2, tanStart, tanEnd);
+        double ax = sx, ay = sy, bx = ex, by = ey;
+        TryFindAdjacentLineDirections(scene, sx, sy, ex, ey,
+            out double lineAtSx, out double lineAtEx);
+
+        bool swapped = RadiusEndpointOrienter.ShouldSwapForCcw(ax, ay, bx, by);
+        if (swapped)
+        {
+            (ax, ay, bx, by) = (bx, by, ax, ay);
+            (lineAtSx, lineAtEx) = (lineAtEx, lineAtSx);
+        }
+
+        bool forwardCcw = swapped ? bulge < 0 : bulge > 0;
+        double angA = AngleMath.DirectionDeg(ax - cx, ay - cy);
+        double angB = AngleMath.DirectionDeg(bx - cx, by - cy);
+        double tanAtStart = AngleMath.ArcTangentDeg(angA, forwardCcw);
+        double tanAtEnd = AngleMath.ArcTangentDeg(angB, forwardCcw);
+
+        double line1 = lineAtSx;
+        if (double.IsNaN(line1))
+            line1 = OppositeDirection(tanAtStart);
+
+        double line2 = lineAtEx;
+        if (double.IsNaN(line2))
+            line2 = tanAtEnd;
+
+        double mcx = (scene.Bounds.MinX + scene.Bounds.MaxX) * 0.5;
+        double mcy = (scene.Bounds.MinY + scene.Bounds.MaxY) * 0.5;
+        var angles = RadiusCornerAngles.Compute(line1, line2, tanAtStart, tanAtEnd, ax, ay, bx, by, mcx, mcy);
 
         radiusNum++;
         radii.Add(new RadiusFeature
@@ -220,10 +257,10 @@ public sealed class RadiusFeatureExtractor
             CenterY = cy,
             Radius = r,
             Convexity = RadiusConvexityClassifier.ClassifyForCcwTraversal(bulge),
-            StartX = sx,
-            StartY = sy,
-            EndX = ex,
-            EndY = ey,
+            StartX = ax,
+            StartY = ay,
+            EndX = bx,
+            EndY = by,
             Line1DirectionDeg = line1,
             Line2DirectionDeg = line2,
             CornerAngleDeg = angles.VirtualCornerAngleDeg,
@@ -237,6 +274,42 @@ public sealed class RadiusFeatureExtractor
         });
         return true;
     }
+
+    private static void TryFindAdjacentLineDirections(
+        DxfScene scene,
+        double arcStartX, double arcStartY,
+        double arcEndX, double arcEndY,
+        out double lineIntoArcStart,
+        out double lineOutOfArcEnd)
+    {
+        lineIntoArcStart = double.NaN;
+        lineOutOfArcEnd = double.NaN;
+
+        if (!scene.Bounds.HasBounds)
+            return;
+
+        double span = Math.Max(scene.Bounds.Width, scene.Bounds.Height);
+        double eps = Math.Max(1e-4, span * 1e-6);
+
+        foreach (var entity in scene.Entities)
+        {
+            if (entity is not Line line)
+                continue;
+
+            double x0 = line.StartPoint.X, y0 = line.StartPoint.Y;
+            double x1 = line.EndPoint.X, y1 = line.EndPoint.Y;
+            double dx = x1 - x0, dy = y1 - y0;
+
+            if (PointsNear(x1, y1, arcStartX, arcStartY, eps) || PointsNear(x0, y0, arcStartX, arcStartY, eps))
+                lineIntoArcStart = AngleMath.DirectionDeg(dx, dy);
+
+            if (PointsNear(x0, y0, arcEndX, arcEndY, eps) || PointsNear(x1, y1, arcEndX, arcEndY, eps))
+                lineOutOfArcEnd = AngleMath.DirectionDeg(dx, dy);
+        }
+    }
+
+    private static bool PointsNear(double x1, double y1, double x2, double y2, double eps)
+        => Math.Abs(x1 - x2) <= eps && Math.Abs(y1 - y2) <= eps;
 
     private static double TryAdjacentLineDirection(
         List<ContourPathOrderer.OrderedSegment> segments,

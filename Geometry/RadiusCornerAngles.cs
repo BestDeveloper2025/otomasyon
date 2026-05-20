@@ -1,7 +1,7 @@
 namespace otomasyon.Geometry;
 
 /// <summary>
-/// Radius uç köşelerindeki açı değerlerini hesaplar.
+/// Radius uç köşelerinde: teğet çizgisi ile bitişik düz kenar arasındaki açı.
 /// </summary>
 public static class RadiusCornerAngles
 {
@@ -20,9 +20,26 @@ public static class RadiusCornerAngles
         double line1DirectionDeg,
         double line2DirectionDeg,
         double tangentAtStartDeg,
-        double tangentAtEndDeg)
+        double tangentAtEndDeg,
+        double arcStartX,
+        double arcStartY,
+        double arcEndX,
+        double arcEndY,
+        double materialCenterX,
+        double materialCenterY)
     {
         double virtualCorner = AngleMath.OpeningAngleDeg(line1DirectionDeg, line2DirectionDeg);
+
+        double lineOutAtStart = AngleMath.Normalize360(line1DirectionDeg + 180.0);
+        double arcBackAtEnd = AngleMath.DirectionDeg(arcStartX - arcEndX, arcStartY - arcEndY);
+
+        double startCorner = AngleMath.InteriorAngleBetweenRaysDeg(
+            lineOutAtStart, tangentAtStartDeg,
+            arcStartX, arcStartY, materialCenterX, materialCenterY);
+
+        double endCorner = AngleMath.InteriorAngleBetweenRaysDeg(
+            arcBackAtEnd, line2DirectionDeg,
+            arcEndX, arcEndY, materialCenterX, materialCenterY);
 
         return new Result
         {
@@ -30,8 +47,8 @@ public static class RadiusCornerAngles
             EndEdgeAngleDeg = line2DirectionDeg,
             StartTangentAngleDeg = tangentAtStartDeg,
             EndTangentAngleDeg = tangentAtEndDeg,
-            StartCornerAngleDeg = virtualCorner,
-            EndCornerAngleDeg = virtualCorner,
+            StartCornerAngleDeg = startCorner,
+            EndCornerAngleDeg = endCorner,
             VirtualCornerAngleDeg = virtualCorner
         };
     }

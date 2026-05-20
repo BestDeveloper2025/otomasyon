@@ -52,7 +52,7 @@ public sealed class DxfSceneRenderer
         }
 
         DrawCornerLabels(graphics, clip, scene, transform);
-        _radiusRenderer.Paint(graphics, scene.RadiusFeatures, clip, transform);
+        _radiusRenderer.Paint(graphics, scene, scene.RadiusFeatures, clip, transform);
     }
 
     private static void DrawWorldAxes(Graphics g, Rectangle clip, double offsetX, double offsetY)
