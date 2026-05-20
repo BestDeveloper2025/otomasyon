@@ -42,18 +42,11 @@ public static class RadiusEndpointOrienter
 
     public static bool ShouldSwapForCcw(double startX, double startY, double endX, double endY)
     {
-        double ps = CcwAngleFromPositiveX(startX, startY);
-        double pe = CcwAngleFromPositiveX(endX, endY);
+        double ps = AngleMath.CcwAngleFromPositiveX(startX, startY);
+        double pe = AngleMath.CcwAngleFromPositiveX(endX, endY);
         double diff = pe - ps;
         if (diff > Math.PI) diff -= 2.0 * Math.PI;
         if (diff < -Math.PI) diff += 2.0 * Math.PI;
         return diff < -1e-6;
-    }
-
-    private static double CcwAngleFromPositiveX(double x, double y)
-    {
-        double a = Math.Atan2(y, x);
-        if (a < 0) a += 2.0 * Math.PI;
-        return a;
     }
 }

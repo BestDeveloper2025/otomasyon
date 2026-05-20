@@ -1,3 +1,4 @@
+using otomasyon.Geometry;
 using otomasyon.Models;
 
 namespace otomasyon.Analysis;
@@ -12,8 +13,8 @@ public static class RadiusTraversalOrderer
     /// </summary>
     public static double GetEntryCcwParameter(RadiusFeature feature)
     {
-        double pStart = CcwAngleFromPositiveX(feature.StartX, feature.StartY);
-        double pEnd = CcwAngleFromPositiveX(feature.EndX, feature.EndY);
+        double pStart = AngleMath.CcwAngleFromPositiveX(feature.StartX, feature.StartY);
+        double pEnd = AngleMath.CcwAngleFromPositiveX(feature.EndX, feature.EndY);
 
         if (feature.Bulge > 0)
             return Math.Min(pStart, pEnd);
@@ -62,21 +63,14 @@ public static class RadiusTraversalOrderer
                 EndX = e.EndX,
                 EndY = e.EndY,
                 IsRadiusSegment = e.IsRadiusSegment,
-                RadiusIndex = radiusIndex
+                RadiusIndex = radiusIndex,
+                Bulge = e.Bulge,
+                LengthMm = e.LengthMm
             });
         }
 
         return new RadiusAnalysisResult(renumbered, edges);
     }
-
-    private static double CcwAngleFromPositiveX(double x, double y)
-    {
-        double a = Math.Atan2(y, x);
-        if (a < 0)
-            a += 2.0 * Math.PI;
-        return a;
-    }
-
     private static RadiusFeature CopyWithIndex(RadiusFeature f, int index) => new()
     {
         Index = index,

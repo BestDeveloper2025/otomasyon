@@ -15,4 +15,6 @@ public sealed class ContourEdge
 
     public bool IsRadiusSegment { get; init; }
     public int? RadiusIndex { get; init; }
+    public double Bulge { get; init; }
+    public double LengthMm { get; init; }
 }

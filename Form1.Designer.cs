@@ -11,6 +11,7 @@ namespace otomasyon
 
         private Panel _topPanel = null!;
         private Button _btnSelectFile = null!;
+        private Button _btnSimulation = null!;
         private Label _lblFilePath = null!;
 
         private DrawingPanel _drawPanel = null!;
@@ -63,17 +64,27 @@ namespace otomasyon
                 Anchor = AnchorStyles.Left | AnchorStyles.Top
             };
 
+            _btnSimulation = new Button
+            {
+                Text = "Simülasyon",
+                Location = new Point(118, 10),
+                Size = new Size(110, 30),
+                Enabled = false,
+                Anchor = AnchorStyles.Left | AnchorStyles.Top
+            };
+
             _lblFilePath = new Label
             {
-                Location = new Point(120, 14),
+                Location = new Point(236, 14),
                 AutoSize = false,
-                Size = new Size(860, 22),
+                Size = new Size(744, 22),
                 AutoEllipsis = true,
                 Text = "Henüz dosya seçilmedi.",
                 Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
             };
 
             _topPanel.Controls.Add(_btnSelectFile);
+            _topPanel.Controls.Add(_btnSimulation);
             _topPanel.Controls.Add(_lblFilePath);
 
             // --- Alt: özet ---

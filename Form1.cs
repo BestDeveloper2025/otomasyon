@@ -1,8 +1,11 @@
 using netDxf;
+using otomasyon.Analysis;
 using otomasyon.Dxf;
 using otomasyon.Geometry;
 using otomasyon.Models;
 using otomasyon.Rendering;
+using otomasyon.Simulation;
+using otomasyon.UI;
 
 namespace otomasyon;
 
@@ -22,6 +25,7 @@ public partial class Form1 : Form
     {
         InitializeComponent();
         _btnSelectFile.Click += BtnSelectFile_Click;
+        _btnSimulation.Click += BtnSimulation_Click;
         _drawPanel.Paint += DrawPanel_Paint;
     }
 
@@ -120,6 +124,44 @@ public partial class Form1 : Form
             s.ArcCount,
             s.CircleCount,
             s.TrackedEntityCount);
+
+        _btnSimulation.Enabled = ContourPathOrderer.HasSimulatableContour(_scene);
+    }
+
+    private void BtnSimulation_Click(object? sender, EventArgs e)
+    {
+        if (!ContourPathOrderer.HasSimulatableContour(_scene))
+        {
+            MessageBox.Show(this,
+                "Simülasyon için kapalı bir kontur gerekir (kapalı polyline veya birleşen çizgiler).\n" +
+                "Dikdörtgen gibi şekiller 4 LINE olarak da tanınır.",
+                "Simülasyon",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+            return;
+        }
+
+        using var setup = new SimulationSetupDialog(_scene);
+        if (setup.ShowDialog(this) != DialogResult.OK ||
+            setup.ThicknessByEdge is null ||
+            setup.Tool is null)
+            return;
+
+        if (!SimulationJobFactory.TryCreate(
+                _scene,
+                _lblFilePath.Text,
+                setup.ThicknessByEdge,
+                setup.Tool,
+                out var job,
+                out string? error))
+        {
+            MessageBox.Show(this, error ?? "Simülasyon oluşturulamadı.", "Simülasyon",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        using var sim = new SimulationForm(job!);
+        sim.ShowDialog(this);
     }
 
     private void DrawPanel_Paint(object? sender, PaintEventArgs e)

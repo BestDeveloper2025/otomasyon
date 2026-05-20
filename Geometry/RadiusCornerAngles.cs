@@ -31,15 +31,21 @@ public static class RadiusCornerAngles
         double virtualCorner = AngleMath.OpeningAngleDeg(line1DirectionDeg, line2DirectionDeg);
 
         double lineOutAtStart = AngleMath.Normalize360(line1DirectionDeg + 180.0);
-        double arcBackAtEnd = AngleMath.DirectionDeg(arcStartX - arcEndX, arcStartY - arcEndY);
+        
+        // line2DirectionDeg points backwards from the next segment into the end junction.
+        // So lineIntoAtEnd is literally line2DirectionDeg.
+        double lineIntoAtEnd = line2DirectionDeg;
 
-        double startCorner = AngleMath.InteriorAngleBetweenRaysDeg(
-            lineOutAtStart, tangentAtStartDeg,
-            arcStartX, arcStartY, materialCenterX, materialCenterY);
+        // Interior angle of a CCW contour at any corner: Normalize360(vBackwards - vForwards)
+        // At start junction: vBackwards = lineOutAtStart, vForwards = tangentAtStartDeg
+        double startCorner = AngleMath.Normalize360(lineOutAtStart - tangentAtStartDeg);
 
-        double endCorner = AngleMath.InteriorAngleBetweenRaysDeg(
-            arcBackAtEnd, line2DirectionDeg,
-            arcEndX, arcEndY, materialCenterX, materialCenterY);
+        // At end junction: vBackwards = tangentAtEndDeg + 180
+        // vForwards = lineIntoAtEnd + 180 (because it points backwards, adding 180 points forward)
+        // Interior = (tangentAtEndDeg + 180) - (lineIntoAtEnd + 180) = tangentAtEndDeg - lineIntoAtEnd
+        double endCorner = AngleMath.Normalize360(tangentAtEndDeg - lineIntoAtEnd);
+
+        double tangentIntoArcAtEnd = AngleMath.Normalize360(tangentAtEndDeg + 180.0);
 
         return new Result
         {

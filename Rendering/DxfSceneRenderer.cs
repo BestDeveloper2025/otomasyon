@@ -13,7 +13,7 @@ public sealed class DxfSceneRenderer
 {
     private readonly RadiusFeatureRenderer _radiusRenderer = new();
 
-    public void Paint(Graphics graphics, DxfScene scene, Rectangle clip, in WorldToScreenTransform transform)
+    public void Paint(Graphics graphics, DxfScene scene, Rectangle clip, in WorldToScreenTransform transform, bool drawEdgeLabels = true)
     {
         ArgumentNullException.ThrowIfNull(graphics);
         ArgumentNullException.ThrowIfNull(scene);
@@ -52,6 +52,8 @@ public sealed class DxfSceneRenderer
         }
 
         DrawCornerLabels(graphics, clip, scene, transform);
+        if (drawEdgeLabels)
+            EdgeLabelRenderer.DrawForScene(graphics, scene, transform);
         _radiusRenderer.Paint(graphics, scene, scene.RadiusFeatures, clip, transform);
     }
 

@@ -1,6 +1,7 @@
 using netDxf.Entities;
 using otomasyon.Geometry;
 using otomasyon.Models;
+using static otomasyon.Geometry.GeometryHelper;
 
 namespace otomasyon.Analysis;
 
@@ -41,18 +42,21 @@ public sealed class RadiusFeatureExtractor
                     EndX = seg.EndX,
                     EndY = seg.EndY,
                     IsRadiusSegment = seg.IsArc,
-                    RadiusIndex = radiusIndex
+                    RadiusIndex = radiusIndex,
+                    Bulge = seg.Bulge,
+                    LengthMm = Geometry.SegmentLength.FromBulgeMm(
+                        seg.StartX, seg.StartY, seg.EndX, seg.EndY, seg.Bulge)
                 });
             }
 
-            return RadiusTraversalOrderer.Apply(FinalizeResult(radii, edges));
+            return new RadiusAnalysisResult(radii, edges);
         }
 
         ExtractFallbackEntityOrder(scene, radii, edges);
-        return RadiusTraversalOrderer.Apply(FinalizeResult(radii, edges));
+        return RadiusTraversalOrderer.Apply(FinalizeFallbackResult(radii, edges));
     }
 
-    private static RadiusAnalysisResult FinalizeResult(List<RadiusFeature> radii, List<ContourEdge> edges)
+    private static RadiusAnalysisResult FinalizeFallbackResult(List<RadiusFeature> radii, List<ContourEdge> edges)
     {
         for (int i = 0; i < radii.Count; i++)
             radii[i] = RadiusEndpointOrienter.Orient(radii[i]);
@@ -72,18 +76,20 @@ public sealed class RadiusFeatureExtractor
                 out double cx, out double cy, out double r,
                 out double startAng, out double endAng))
             return null;
-
         bool ccwAlongPath = seg.Bulge > 0;
-        double tanAtStart = AngleMath.ArcTangentDeg(startAng, ccwAlongPath);
-        double tanAtEnd = AngleMath.ArcTangentDeg(endAng, ccwAlongPath);
+        double startAngDeg = Math.Atan2(seg.StartY - cy, seg.StartX - cx) * 180.0 / Math.PI;
+        double endAngDeg = Math.Atan2(seg.EndY - cy, seg.EndX - cx) * 180.0 / Math.PI;
+        
+        double tanAtStart = AngleMath.ArcTangentDeg(startAngDeg, ccwAlongPath);
+        double tanAtEnd = AngleMath.ArcTangentDeg(endAngDeg, ccwAlongPath);
 
-        double line1Dir = TryAdjacentLineDirection(segments, index - 1, forward: true);
+        double line1Dir = TryAdjacentLineDirection(segments, index, atArcStart: true);
         if (double.IsNaN(line1Dir))
-            line1Dir = OppositeDirection(tanAtStart);
+            line1Dir = tanAtStart;
 
-        double line2Dir = TryAdjacentLineDirection(segments, index + 1, forward: true);
+        double line2Dir = TryAdjacentLineDirection(segments, index, atArcStart: false);
         if (double.IsNaN(line2Dir))
-            line2Dir = tanAtEnd;
+            line2Dir = OppositeDirection(tanAtEnd);
 
         double mcx = (scene.Bounds.MinX + scene.Bounds.MaxX) * 0.5;
         double mcy = (scene.Bounds.MinY + scene.Bounds.MaxY) * 0.5;
@@ -147,7 +153,9 @@ public sealed class RadiusFeatureExtractor
                             EndX = ex,
                             EndY = ey,
                             IsRadiusSegment = true,
-                            RadiusIndex = radiusNum
+                            RadiusIndex = radiusNum,
+                            Bulge = 0,
+                            LengthMm = Geometry.SegmentLength.LineMm(sx, sy, ex, ey)
                         });
                     }
                     break;
@@ -205,7 +213,9 @@ public sealed class RadiusFeatureExtractor
                 EndX = p1.X,
                 EndY = p1.Y,
                 IsRadiusSegment = Math.Abs(bulge) >= 1e-12,
-                RadiusIndex = radiusIndex
+                RadiusIndex = radiusIndex,
+                Bulge = bulge,
+                LengthMm = Geometry.SegmentLength.FromBulgeMm(p0.X, p0.Y, p1.X, p1.Y, bulge)
             });
         }
     }
@@ -300,30 +310,48 @@ public sealed class RadiusFeatureExtractor
             double x1 = line.EndPoint.X, y1 = line.EndPoint.Y;
             double dx = x1 - x0, dy = y1 - y0;
 
-            if (PointsNear(x1, y1, arcStartX, arcStartY, eps) || PointsNear(x0, y0, arcStartX, arcStartY, eps))
+            // Yön her zaman junction noktasına doğru olmalı
+            if (PointsNear(x1, y1, arcStartX, arcStartY, eps))
                 lineIntoArcStart = AngleMath.DirectionDeg(dx, dy);
+            else if (PointsNear(x0, y0, arcStartX, arcStartY, eps))
+                lineIntoArcStart = AngleMath.DirectionDeg(-dx, -dy);
 
-            if (PointsNear(x0, y0, arcEndX, arcEndY, eps) || PointsNear(x1, y1, arcEndX, arcEndY, eps))
+            if (PointsNear(x1, y1, arcEndX, arcEndY, eps))
                 lineOutOfArcEnd = AngleMath.DirectionDeg(dx, dy);
+            else if (PointsNear(x0, y0, arcEndX, arcEndY, eps))
+                lineOutOfArcEnd = AngleMath.DirectionDeg(-dx, -dy);
         }
     }
 
-    private static bool PointsNear(double x1, double y1, double x2, double y2, double eps)
-        => Math.Abs(x1 - x2) <= eps && Math.Abs(y1 - y2) <= eps;
-
     private static double TryAdjacentLineDirection(
         List<ContourPathOrderer.OrderedSegment> segments,
-        int index,
-        bool forward)
+        int arcIndex,
+        bool atArcStart)
     {
-        if (index < 0 || index >= segments.Count)
-            return double.NaN;
+        int n = segments.Count;
+        if (n < 2) return double.NaN;
 
-        var adj = segments[index];
+        // Kapalı kontürde sarmalama: son→ilk, ilk→son
+        int adjIndex = atArcStart
+            ? (arcIndex - 1 + n) % n
+            : (arcIndex + 1) % n;
+
+        var arc = segments[arcIndex];
+        var adj = segments[adjIndex];
         if (adj.IsArc)
             return double.NaN;
 
-        return AngleMath.DirectionDeg(adj.EndX - adj.StartX, adj.EndY - adj.StartY);
+        double jx = atArcStart ? arc.StartX : arc.EndX;
+        double jy = atArcStart ? arc.StartY : arc.EndY;
+        const double eps = 1e-6;
+
+        if (PointsNear(adj.EndX, adj.EndY, jx, jy, eps))
+            return AngleMath.DirectionDeg(adj.EndX - adj.StartX, adj.EndY - adj.StartY);
+
+        if (PointsNear(adj.StartX, adj.StartY, jx, jy, eps))
+            return AngleMath.DirectionDeg(adj.StartX - adj.EndX, adj.StartY - adj.EndY);
+
+        return double.NaN;
     }
 
     private static double OppositeDirection(double dirDeg)

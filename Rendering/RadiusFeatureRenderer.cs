@@ -44,7 +44,7 @@ public sealed class RadiusFeatureRenderer
         foreach (var f in features)
         {
             double lineOutAtStart = AngleMath.Normalize360(f.Line1DirectionDeg + 180.0);
-            double arcBackAtEnd = AngleMath.DirectionDeg(f.StartX - f.EndX, f.StartY - f.EndY);
+            double lineIntoAtEnd = AngleMath.Normalize360(f.Line2DirectionDeg + 180.0);
 
             AngleAnnotationDrawer.DrawCornerAngle(
                 graphics, clip, transform,
@@ -54,10 +54,11 @@ public sealed class RadiusFeatureRenderer
                 string.Format(Inv, "R{0} baş {1:0.0}°", f.Index, f.StartCornerAngleDeg),
                 angleFont, angleBrush, angleHalo, anglePen, cx, cy);
 
+            double tangentIntoArcAtEnd = AngleMath.Normalize360(f.EndTangentAngleDeg + 180.0);
             AngleAnnotationDrawer.DrawCornerAngle(
                 graphics, clip, transform,
                 f.EndX, f.EndY,
-                arcBackAtEnd, f.Line2DirectionDeg,
+                lineIntoAtEnd, tangentIntoArcAtEnd,
                 f.EndCornerAngleDeg,
                 string.Format(Inv, "R{0} bit {1:0.0}°", f.Index, f.EndCornerAngleDeg),
                 angleFont, angleBrush, angleHalo, anglePen, cx, cy);

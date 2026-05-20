@@ -85,4 +85,12 @@ public static class AngleMath
             rel += 360.0;
         return rel <= sweepDeg + 1e-3;
     }
+
+    /// <summary>(0,0) referansından +X eksenine göre CCW açı (radyan, 0–2π).</summary>
+    public static double CcwAngleFromPositiveX(double x, double y)
+    {
+        double a = Math.Atan2(y, x);
+        if (a < 0) a += 2.0 * Math.PI;
+        return a;
+    }
 }
