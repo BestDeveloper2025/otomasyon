@@ -16,6 +16,7 @@ public sealed class SimulationEngine
     private int _segmentIndex;
     private double _distanceOnEdgeMm;
     private double _totalTraversedMm;
+    private double _totalCuttingMm;
     private bool _pendingTourLift = true;
 
     public SimulationEngine(ContourPath path, MachiningPlan plan)
@@ -34,6 +35,7 @@ public sealed class SimulationEngine
         _segmentIndex = 0;
         _distanceOnEdgeMm = 0;
         _totalTraversedMm = 0;
+        _totalCuttingMm = 0;
         _pendingTourLift = _totalTourCount > 0;
     }
 
@@ -46,8 +48,14 @@ public sealed class SimulationEngine
             _pendingTourLift = false;
 
         var seg = _path.Segments[_segmentIndex];
+        bool cutting = MachiningTourPlanner.IsCuttingOnEdge(_plan, seg.EdgeIndex, _tourIndex);
+        double depth = cutting ? MachiningTourPlanner.GetDepthOnEdge(_plan, seg.EdgeIndex, _tourIndex) : 0;
+        bool lift = (!cutting && depth < 1e-6) || NeedsLiftAtCorner();
+        
         _distanceOnEdgeMm += stepMm;
         _totalTraversedMm += stepMm;
+        if (cutting && !lift)
+            _totalCuttingMm += stepMm;
 
         if (_distanceOnEdgeMm < seg.LengthMm - 1e-6)
             return true;
@@ -75,6 +83,7 @@ public sealed class SimulationEngine
             {
                 IsFinished = true,
                 TotalTraversedMm = _totalTraversedMm,
+                TotalCuttingMm = _totalCuttingMm,
                 TourCount = _totalTourCount,
                 StatusText = "Simülasyon tamamlandı."
             };
@@ -121,6 +130,7 @@ public sealed class SimulationEngine
             DistanceOnEdgeMm = dist,
             EdgeLengthMm = seg.LengthMm,
             TotalTraversedMm = _totalTraversedMm,
+            TotalCuttingMm = _totalCuttingMm,
             ToolX = pt.X,
             ToolY = pt.Y,
             InwardNormalDeg = pt.InwardNormalDirDeg,

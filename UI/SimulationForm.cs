@@ -130,10 +130,15 @@ public sealed class SimulationForm : Form
         _txtLog.AppendText(Environment.NewLine + Environment.NewLine + "--- Simülasyon ---" + Environment.NewLine);
     }
 
+    private Bitmap? _trailBitmap;
+    private PointF _lastToolTip;
+    private bool _reportShown;
+
     private void RefreshUi()
     {
         var snap = _engine.Current;
         _lblStatus.Text = snap.StatusText;
+        UpdateTrailBitmap(snap);
         _drawPanel.Invalidate();
 
         string line = SimulationLogFormatter.FormatSnapshot(snap);
@@ -143,6 +148,74 @@ public sealed class SimulationForm : Form
             _txtLog.AppendText(line + Environment.NewLine);
             _txtLog.SelectionStart = _txtLog.Text.Length;
             _txtLog.ScrollToCaret();
+        }
+
+        if (snap.IsFinished && !_reportShown)
+        {
+            _reportShown = true;
+            string report = SimulationReportBuilder.BuildReport(_job, snap);
+            _txtLog.AppendText(Environment.NewLine + report);
+            _txtLog.SelectionStart = _txtLog.Text.Length;
+            _txtLog.ScrollToCaret();
+            MessageBox.Show(this, "Simülasyon tamamlandı. Log ekranından detaylı raporu inceleyebilirsiniz.", 
+                            "Bitti", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+    }
+
+    private void UpdateTrailBitmap(SimulationSnapshot snap)
+    {
+        if (snap.IsFinished) return;
+        
+        var rect = _drawPanel.ClientRectangle;
+        if (rect.Width <= 0 || rect.Height <= 0) return;
+
+        if (!WorldToScreenTransform.TryCreate(rect, _job.Scene.Bounds, PaddingPixels, out var transform))
+            return;
+
+        if (_trailBitmap == null || _trailBitmap.Width != rect.Width || _trailBitmap.Height != rect.Height)
+        {
+            _trailBitmap?.Dispose();
+            _trailBitmap = new Bitmap(rect.Width, rect.Height);
+            _lastToolTip = PointF.Empty;
+        }
+
+        if (snap.ToolIsEngaged && snap.PassDepthMm > 1e-6)
+        {
+            double rad = snap.InwardNormalDeg * Math.PI / 180.0;
+            double nx = Math.Cos(rad);
+            double ny = Math.Sin(rad);
+            
+            double shiftMm = snap.PassDepthMm - (_job.Tool.StoneWidthMm / 2.0);
+            double cx = snap.ToolX + nx * shiftMm;
+            double cy = snap.ToolY + ny * shiftMm;
+            
+            var tip = transform.ToScreen(cx, cy);
+            
+            // Draw a thick line from last tip to current tip to form a continuous swath
+            using var g = Graphics.FromImage(_trailBitmap);
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            
+            float scaledStoneR = (float)((_job.Tool.StoneWidthMm / 2.0) * transform.Scale);
+            if (scaledStoneR < 1f) scaledStoneR = 1f;
+
+            using var brush = new SolidBrush(Color.FromArgb(120, 0, 150, 136)); // Semi-transparent teal
+            g.FillEllipse(brush, tip.X - scaledStoneR, tip.Y - scaledStoneR, scaledStoneR * 2, scaledStoneR * 2);
+
+            if (!_lastToolTip.IsEmpty)
+            {
+                using var pen = new Pen(Color.FromArgb(120, 0, 150, 136), scaledStoneR * 2)
+                {
+                    StartCap = System.Drawing.Drawing2D.LineCap.Round,
+                    EndCap = System.Drawing.Drawing2D.LineCap.Round
+                };
+                g.DrawLine(pen, _lastToolTip, tip);
+            }
+            
+            _lastToolTip = tip;
+        }
+        else
+        {
+            _lastToolTip = PointF.Empty;
         }
     }
 
@@ -155,6 +228,12 @@ public sealed class SimulationForm : Form
             return;
         }
 
-        _renderer.Paint(e.Graphics, _job, _engine.Current, rect, transform);
+        if (_trailBitmap != null)
+        {
+            // The renderer clears the background, so we must draw the base scene, THEN the trail overlay, THEN the tool
+            // But _renderer.Paint calls _baseRenderer.Paint which clears the graphics.
+            // We should modify how we call it, or have SimulationSceneRenderer accept the trail bitmap.
+        }
+        _renderer.Paint(e.Graphics, _job, _engine.Current, rect, transform, _trailBitmap);
     }
 }

@@ -22,21 +22,28 @@ public static class OffsetPassPlanner
             throw new ArgumentOutOfRangeException(nameof(bindirmeMm));
 
         var depths = new List<double>();
-        double depth = Math.Min(stoneWidthMm, targetThicknessMm);
-        depths.Add(depth);
+        double stepDistance = stoneWidthMm - bindirmeMm;
+        double currentDepth = stoneWidthMm;
 
-        while (depth > bindirmeMm + 1e-6)
+        if (currentDepth >= targetThicknessMm)
         {
-            double next = depth - bindirmeMm;
-            if (next <= 1e-6)
-                break;
-            depth = next;
-            if (depth <= targetThicknessMm + 1e-6)
-                depths.Add(depth);
-        }
-
-        if (depths[^1] > targetThicknessMm + 1e-3 && targetThicknessMm > 1e-6)
             depths.Add(targetThicknessMm);
+        }
+        else
+        {
+            depths.Add(currentDepth);
+            
+            while (currentDepth < targetThicknessMm - 1e-3)
+            {
+                currentDepth += stepDistance;
+                if (currentDepth >= targetThicknessMm)
+                {
+                    depths.Add(targetThicknessMm);
+                    break;
+                }
+                depths.Add(currentDepth);
+            }
+        }
 
         var passes = new MachiningPass[depths.Count];
         for (int i = 0; i < depths.Count; i++)

@@ -14,13 +14,19 @@ public sealed class SimulationSceneRenderer
         SimulationJob job,
         SimulationSnapshot snapshot,
         Rectangle clip,
-        in WorldToScreenTransform transform)
+        in WorldToScreenTransform transform,
+        Bitmap? trailOverlay = null)
     {
         _baseRenderer.Paint(g, job.Scene, clip, transform, drawEdgeLabels: false);
 
+        if (trailOverlay != null)
+        {
+            g.DrawImage(trailOverlay, 0, 0);
+        }
+
         EdgeLabelRenderer.DrawForPath(g, job.Path, transform, snapshot.IsFinished ? null : snapshot.EdgeIndex);
         HighlightActiveEdge(g, job, snapshot, transform);
-        DrawTool(g, snapshot, transform);
+        DrawTool(g, snapshot, job, transform);
     }
 
     private static void HighlightActiveEdge(
@@ -86,13 +92,28 @@ public sealed class SimulationSceneRenderer
         return deg;
     }
 
-    private static void DrawTool(Graphics g, SimulationSnapshot snapshot, in WorldToScreenTransform transform)
+    private static void DrawTool(Graphics g, SimulationSnapshot snapshot, SimulationJob job, in WorldToScreenTransform transform)
     {
         if (snapshot.IsFinished)
             return;
 
-        var tip = transform.ToScreen(snapshot.ToolX, snapshot.ToolY);
-        const float r = 7f;
+        double shiftMm = 0;
+        if (snapshot.ToolIsEngaged && snapshot.PassDepthMm > 1e-6)
+        {
+            shiftMm = snapshot.PassDepthMm - (job.Tool.StoneWidthMm / 2.0);
+        }
+
+        double rad = snapshot.InwardNormalDeg * Math.PI / 180.0;
+        double nx = Math.Cos(rad);
+        double ny = Math.Sin(rad);
+
+        double cx = snapshot.ToolX + nx * shiftMm;
+        double cy = snapshot.ToolY + ny * shiftMm;
+
+        var tip = transform.ToScreen(cx, cy);
+        float r = (float)((job.Tool.StoneWidthMm / 2.0) * transform.Scale);
+        if (r < 3f) r = 3f;
+
         bool engaged = snapshot.ToolIsEngaged;
         using var brush = new SolidBrush(engaged
             ? Color.FromArgb(230, 0, 140, 220)
@@ -101,15 +122,9 @@ public sealed class SimulationSceneRenderer
 
         if (engaged && snapshot.PassDepthMm > 1e-6)
         {
-            double rad = snapshot.InwardNormalDeg * Math.PI / 180.0;
-            double nx = Math.Cos(rad);
-            double ny = Math.Sin(rad);
-            var nEnd = transform.ToScreen(
-                snapshot.ToolX + nx * snapshot.PassDepthMm,
-                snapshot.ToolY + ny * snapshot.PassDepthMm);
+            var edgePoint = transform.ToScreen(snapshot.ToolX, snapshot.ToolY);
             using var pen = new Pen(Color.FromArgb(180, 0, 120, 200), 1.5f) { DashStyle = DashStyle.Dash };
-            g.DrawLine(pen, tip, nEnd);
+            g.DrawLine(pen, tip, edgePoint);
         }
-
     }
 }

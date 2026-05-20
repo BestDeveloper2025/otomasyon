@@ -15,6 +15,7 @@ public sealed class SimulationSnapshot
     public double DistanceOnEdgeMm { get; init; }
     public double EdgeLengthMm { get; init; }
     public double TotalTraversedMm { get; init; }
+    public double TotalCuttingMm { get; init; }
     public double ToolX { get; init; }
     public double ToolY { get; init; }
     public double InwardNormalDeg { get; init; }
