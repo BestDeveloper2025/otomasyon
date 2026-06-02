@@ -50,6 +50,12 @@ public static class ContourPathOrderer
             return segments.Count > 0;
         }
 
+        if (CircleContourBuilder.TryBuild(scene, out var fromCircle))
+        {
+            segments = fromCircle;
+            return segments.Count > 0;
+        }
+
         return false;
     }
 

@@ -18,7 +18,8 @@ public sealed class SimulationForm : Form
     private readonly System.Windows.Forms.Timer _timer = new();
     private readonly TrackBar _trackSpeed = new();
     private bool _running;
-    private string? _lastLoggedLine;
+    private int _lastLoggedTour = -1;
+    private int _lastLoggedSegment = -1;
 
     public SimulationForm(SimulationJob job)
     {
@@ -47,7 +48,17 @@ public sealed class SimulationForm : Form
         btnPlay.Click += (_, _) => { _running = true; _timer.Start(); };
         btnPause.Click += (_, _) => { _running = false; _timer.Stop(); };
         btnStep.Click += (_, _) => { DoStep(); };
-        btnReset.Click += (_, _) => { _running = false; _timer.Stop(); _engine.Reset(); RefreshUi(); };
+        btnReset.Click += (_, _) =>
+        {
+            _running = false;
+            _timer.Stop();
+            _engine.Reset();
+            _reportShown = false;
+            _lastLoggedTour = -1;
+            _lastLoggedSegment = -1;
+            AppendPlanToLog();
+            RefreshUi();
+        };
 
         _trackSpeed.Location = new Point(380, 14);
         _trackSpeed.Size = new Size(200, 32);
@@ -130,25 +141,15 @@ public sealed class SimulationForm : Form
         _txtLog.AppendText(Environment.NewLine + Environment.NewLine + "--- Simülasyon ---" + Environment.NewLine);
     }
 
-    private Bitmap? _trailBitmap;
-    private PointF _lastToolTip;
     private bool _reportShown;
 
     private void RefreshUi()
     {
         var snap = _engine.Current;
         _lblStatus.Text = snap.StatusText;
-        UpdateTrailBitmap(snap);
         _drawPanel.Invalidate();
 
-        string line = SimulationLogFormatter.FormatSnapshot(snap);
-        if (line != _lastLoggedLine)
-        {
-            _lastLoggedLine = line;
-            _txtLog.AppendText(line + Environment.NewLine);
-            _txtLog.SelectionStart = _txtLog.Text.Length;
-            _txtLog.ScrollToCaret();
-        }
+        LogEdgeEntryIfChanged(snap);
 
         if (snap.IsFinished && !_reportShown)
         {
@@ -162,61 +163,31 @@ public sealed class SimulationForm : Form
         }
     }
 
-    private void UpdateTrailBitmap(SimulationSnapshot snap)
+    private void LogEdgeEntryIfChanged(SimulationSnapshot snap)
     {
-        if (snap.IsFinished) return;
-        
-        var rect = _drawPanel.ClientRectangle;
-        if (rect.Width <= 0 || rect.Height <= 0) return;
-
-        if (!WorldToScreenTransform.TryCreate(rect, _job.Scene.Bounds, PaddingPixels, out var transform))
+        if (snap.IsFinished)
             return;
 
-        if (_trailBitmap == null || _trailBitmap.Width != rect.Width || _trailBitmap.Height != rect.Height)
-        {
-            _trailBitmap?.Dispose();
-            _trailBitmap = new Bitmap(rect.Width, rect.Height);
-            _lastToolTip = PointF.Empty;
-        }
+        if (snap.TourIndex == _lastLoggedTour && snap.SegmentIndex == _lastLoggedSegment)
+            return;
 
-        if (snap.ToolIsEngaged && snap.PassDepthMm > 1e-6)
-        {
-            double rad = snap.InwardNormalDeg * Math.PI / 180.0;
-            double nx = Math.Cos(rad);
-            double ny = Math.Sin(rad);
-            
-            double shiftMm = snap.PassDepthMm - (_job.Tool.StoneWidthMm / 2.0);
-            double cx = snap.ToolX + nx * shiftMm;
-            double cy = snap.ToolY + ny * shiftMm;
-            
-            var tip = transform.ToScreen(cx, cy);
-            
-            // Draw a thick line from last tip to current tip to form a continuous swath
-            using var g = Graphics.FromImage(_trailBitmap);
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            
-            float scaledStoneR = (float)((_job.Tool.StoneWidthMm / 2.0) * transform.Scale);
-            if (scaledStoneR < 1f) scaledStoneR = 1f;
+        bool newTour = snap.TourIndex != _lastLoggedTour;
+        _lastLoggedTour = snap.TourIndex;
+        _lastLoggedSegment = snap.SegmentIndex;
 
-            using var brush = new SolidBrush(Color.FromArgb(120, 0, 150, 136)); // Semi-transparent teal
-            g.FillEllipse(brush, tip.X - scaledStoneR, tip.Y - scaledStoneR, scaledStoneR * 2, scaledStoneR * 2);
+        if (snap.SegmentIndex < 0 || snap.SegmentIndex >= _job.Path.Segments.Count)
+            return;
 
-            if (!_lastToolTip.IsEmpty)
-            {
-                using var pen = new Pen(Color.FromArgb(120, 0, 150, 136), scaledStoneR * 2)
-                {
-                    StartCap = System.Drawing.Drawing2D.LineCap.Round,
-                    EndCap = System.Drawing.Drawing2D.LineCap.Round
-                };
-                g.DrawLine(pen, _lastToolTip, tip);
-            }
-            
-            _lastToolTip = tip;
-        }
-        else
-        {
-            _lastToolTip = PointF.Empty;
-        }
+        var seg = _job.Path.Segments[snap.SegmentIndex];
+        bool cutting = MachiningTourPlanner.IsCuttingOnEdge(_job.Plan, seg.EdgeIndex, snap.TourIndex);
+        double depth = MachiningTourPlanner.GetDepthOnEdge(_job.Plan, seg.EdgeIndex, snap.TourIndex);
+
+        if (newTour)
+            _txtLog.AppendText(Environment.NewLine + $"=== Tur {snap.TourIndex + 1}/{snap.TourCount} (tam kontur, CCW) ===" + Environment.NewLine);
+
+        _txtLog.AppendText(SimulationLogFormatter.FormatEdgeEntry(snap, seg, cutting, depth) + Environment.NewLine);
+        _txtLog.SelectionStart = _txtLog.Text.Length;
+        _txtLog.ScrollToCaret();
     }
 
     private void DrawPanel_Paint(object? sender, PaintEventArgs e)
@@ -228,12 +199,6 @@ public sealed class SimulationForm : Form
             return;
         }
 
-        if (_trailBitmap != null)
-        {
-            // The renderer clears the background, so we must draw the base scene, THEN the trail overlay, THEN the tool
-            // But _renderer.Paint calls _baseRenderer.Paint which clears the graphics.
-            // We should modify how we call it, or have SimulationSceneRenderer accept the trail bitmap.
-        }
-        _renderer.Paint(e.Graphics, _job, _engine.Current, rect, transform, _trailBitmap);
+        _renderer.Paint(e.Graphics, _job, _engine.Current, rect, transform);
     }
 }

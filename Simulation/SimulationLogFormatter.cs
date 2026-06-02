@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using otomasyon.Geometry;
 using otomasyon.Models.Simulation;
 
 namespace otomasyon.Simulation;
@@ -54,5 +55,24 @@ public static class SimulationLogFormatter
             "{0}\nTaş: ({1:G4}, {2:G4}) {3}",
             s.StatusText, s.ToolX, s.ToolY,
             s.ToolIsEngaged ? "[açık]" : "[kalkık]");
+    }
+
+    /// <summary>
+    /// Bir kenara girerken tek satırlık doğrulama logu: tur, kenar/köşe, baş→bit koordinat,
+    /// yön ve kesim/kalkık durumu. "Doğru yerden mi geçiyoruz" kontrolü için.
+    /// </summary>
+    public static string FormatEdgeEntry(SimulationSnapshot s, ContourPathSegment seg, bool cutting, double depth)
+    {
+        string shape = seg.IsArc ? "yay" : "düz";
+        double dir = AngleMath.DirectionDeg(seg.EndX - seg.StartX, seg.EndY - seg.StartY);
+        string dirText = double.IsNaN(dir) ? "-" : $"{dir:F1}°";
+        string mode = cutting
+            ? string.Format(CultureInfo.InvariantCulture, "KESİM (derinlik {0:G4} mm)", depth)
+            : "KALKIK (rapid)";
+
+        return string.Format(CultureInfo.InvariantCulture,
+            "Tur {0}/{1} | L{2} K{3} ({4}): ({5:0.##}, {6:0.##}) → ({7:0.##}, {8:0.##}) | uz {9:0.##} mm | yön {10} | {11}",
+            s.TourIndex + 1, s.TourCount, seg.EdgeIndex, seg.CornerIndex, shape,
+            seg.StartX, seg.StartY, seg.EndX, seg.EndY, seg.LengthMm, dirText, mode);
     }
 }

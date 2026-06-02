@@ -38,8 +38,18 @@ public static class SimulationReportBuilder
             }
 
             sb.AppendLine($"L{edgePlan.EdgeIndex}: Hedef Kalınlık = {edgePlan.TargetThicknessMm:N1} mm");
+
+            var seg = FindSegment(job, edgePlan.EdgeIndex);
+            if (seg is not null)
+            {
+                string shape = seg.IsArc ? "yay" : "düz";
+                sb.AppendLine(string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                    "   Konum ({0}): ({1:0.##}, {2:0.##}) → ({3:0.##}, {4:0.##}) | uzunluk {5:0.##} mm",
+                    shape, seg.StartX, seg.StartY, seg.EndX, seg.EndY, seg.LengthMm));
+            }
+
             sb.AppendLine($"   -> Toplam Tur (Pass): {passes.Count}");
-            
+
             for (int i = 0; i < passes.Count; i++)
             {
                 sb.AppendLine($"      Tur {i + 1}: Derinlik {passes[i].DepthFromContourMm:N2} mm");
@@ -50,5 +60,16 @@ public static class SimulationReportBuilder
         sb.AppendLine("Not: Hedefi tamamlanan kenarlarda makine taşı kaldırarak (rapid) diğer kenarlara devam etmiştir.");
 
         return sb.ToString();
+    }
+
+    private static ContourPathSegment? FindSegment(SimulationJob job, int edgeIndex)
+    {
+        foreach (var seg in job.Path.Segments)
+        {
+            if (seg.EdgeIndex == edgeIndex)
+                return seg;
+        }
+
+        return null;
     }
 }
