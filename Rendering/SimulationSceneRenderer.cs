@@ -59,20 +59,20 @@ public sealed class SimulationSceneRenderer
             if (completedPasses > edgePlan.Passes.Count)
                 completedPasses = edgePlan.Passes.Count;
 
-            // Her turu farklı renkte göstermek için, tamamlanan tüm turların bantlarını ayrı ayrı çiz.
+            // Her tur yalnızca o turun taradığı halkayı gösterir (önceki derinlik → bu turun derinliği).
             for (int t = 0; t < completedPasses; t++)
             {
-                double depth = edgePlan.Passes[t].DepthFromContourMm;
+                GetPassRing(edgePlan, t, out double outer, out double inner);
                 using var brush = new SolidBrush(GetTourColor(t));
-                FillMachinedSwath(g, brush, seg, depth, transform);
+                FillMachinedSwath(g, brush, seg, outer, inner, transform);
             }
 
             bool isCurrent = !snapshot.IsFinished && i == snapshot.SegmentIndex && snapshot.ToolIsEngaged;
             if (isCurrent && completedPasses < edgePlan.Passes.Count)
             {
-                double depth = edgePlan.Passes[completedPasses].DepthFromContourMm;
+                GetPassRing(edgePlan, completedPasses, out double outer, out double inner);
                 using var brush = new SolidBrush(GetTourColor(completedPasses));
-                FillMachinedSwath(g, brush, seg, depth, transform, snapshot.DistanceOnEdgeMm);
+                FillMachinedSwath(g, brush, seg, outer, inner, transform, snapshot.DistanceOnEdgeMm);
             }
         }
     }
@@ -80,20 +80,30 @@ public sealed class SimulationSceneRenderer
     private static Color GetTourColor(int tourIndex)
         => TourPalette[tourIndex % TourPalette.Length];
 
-    /// <summary>Konturdan içeri <paramref name="depth"/> kadar kaldırılan malzeme bandını doldurur.</summary>
+    private static void GetPassRing(EdgeMachiningPlan edgePlan, int passIndex, out double outerMm, out double innerMm)
+    {
+        innerMm = edgePlan.Passes[passIndex].DepthFromContourMm;
+        outerMm = passIndex == 0 ? 0 : edgePlan.Passes[passIndex - 1].DepthFromContourMm;
+    }
+
+    /// <summary>
+    /// Konturdan <paramref name="outerOffsetMm"/> ile <paramref name="innerOffsetMm"/> arasındaki
+    /// malzeme şeridini doldurur (yalnızca o turun taradığı halka).
+    /// </summary>
     private static void FillMachinedSwath(
-        Graphics g, Brush brush, ContourPathSegment seg, double depth,
+        Graphics g, Brush brush, ContourPathSegment seg,
+        double outerOffsetMm, double innerOffsetMm,
         in WorldToScreenTransform transform, double limitDistance = -1)
     {
-        if (depth < 1e-6)
+        if (innerOffsetMm - outerOffsetMm < 1e-6)
             return;
 
         double toMm = limitDistance >= 0 ? Math.Min(limitDistance, seg.LengthMm) : seg.LengthMm;
         if (toMm < 1e-6)
             return;
 
-        var outer = SampleSegment(seg, 0, toMm, 0, transform);
-        var inner = SampleSegment(seg, 0, toMm, depth, transform);
+        var outer = SampleSegment(seg, 0, toMm, outerOffsetMm, transform);
+        var inner = SampleSegment(seg, 0, toMm, innerOffsetMm, transform);
         if (outer.Count < 2 || inner.Count < 2)
             return;
 
