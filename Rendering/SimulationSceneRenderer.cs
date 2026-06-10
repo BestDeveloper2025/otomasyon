@@ -13,6 +13,18 @@ public sealed class SimulationSceneRenderer
 {
     private readonly DxfSceneRenderer _baseRenderer = new();
 
+    private static readonly Color[] TourPalette =
+    {
+        Color.FromArgb(120, 20, 160, 140),  // teal-green
+        Color.FromArgb(120, 40, 120, 220),  // blue
+        Color.FromArgb(120, 220, 120, 30),  // orange
+        Color.FromArgb(120, 180, 60, 200),  // purple
+        Color.FromArgb(120, 220, 40, 90),   // magenta/red
+        Color.FromArgb(120, 120, 170, 30),  // olive
+        Color.FromArgb(120, 30, 170, 210),  // cyan
+        Color.FromArgb(120, 200, 90, 150),  // pink
+    };
+
     public void Paint(
         Graphics g,
         SimulationJob job,
@@ -33,8 +45,6 @@ public sealed class SimulationSceneRenderer
 
     private static void DrawMachinedAreas(Graphics g, SimulationJob job, SimulationSnapshot snapshot, in WorldToScreenTransform transform)
     {
-        using var brush = new SolidBrush(Color.FromArgb(110, 20, 160, 140));
-
         for (int i = 0; i < job.Path.Segments.Count; i++)
         {
             var seg = job.Path.Segments[i];
@@ -49,9 +59,11 @@ public sealed class SimulationSceneRenderer
             if (completedPasses > edgePlan.Passes.Count)
                 completedPasses = edgePlan.Passes.Count;
 
-            if (completedPasses > 0)
+            // Her turu farklı renkte göstermek için, tamamlanan tüm turların bantlarını ayrı ayrı çiz.
+            for (int t = 0; t < completedPasses; t++)
             {
-                double depth = edgePlan.Passes[completedPasses - 1].DepthFromContourMm;
+                double depth = edgePlan.Passes[t].DepthFromContourMm;
+                using var brush = new SolidBrush(GetTourColor(t));
                 FillMachinedSwath(g, brush, seg, depth, transform);
             }
 
@@ -59,10 +71,14 @@ public sealed class SimulationSceneRenderer
             if (isCurrent && completedPasses < edgePlan.Passes.Count)
             {
                 double depth = edgePlan.Passes[completedPasses].DepthFromContourMm;
+                using var brush = new SolidBrush(GetTourColor(completedPasses));
                 FillMachinedSwath(g, brush, seg, depth, transform, snapshot.DistanceOnEdgeMm);
             }
         }
     }
+
+    private static Color GetTourColor(int tourIndex)
+        => TourPalette[tourIndex % TourPalette.Length];
 
     /// <summary>Konturdan içeri <paramref name="depth"/> kadar kaldırılan malzeme bandını doldurur.</summary>
     private static void FillMachinedSwath(

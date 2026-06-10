@@ -44,10 +44,12 @@ public sealed class SimulationForm : Form
         var btnPause = new Button { Text = "⏸ Durdur", Location = new Point(106, 10), Size = new Size(90, 32) };
         var btnStep = new Button { Text = "Adım", Location = new Point(202, 10), Size = new Size(70, 32) };
         var btnReset = new Button { Text = "Sıfırla", Location = new Point(278, 10), Size = new Size(80, 32) };
+        var btnExport = new Button { Text = "Çıktı Al", Location = new Point(364, 10), Size = new Size(90, 32) };
 
         btnPlay.Click += (_, _) => { _running = true; _timer.Start(); };
         btnPause.Click += (_, _) => { _running = false; _timer.Stop(); };
         btnStep.Click += (_, _) => { DoStep(); };
+        btnExport.Click += (_, _) => ExportDat();
         btnReset.Click += (_, _) =>
         {
             _running = false;
@@ -60,19 +62,20 @@ public sealed class SimulationForm : Form
             RefreshUi();
         };
 
-        _trackSpeed.Location = new Point(380, 14);
+        _trackSpeed.Location = new Point(510, 14);
         _trackSpeed.Size = new Size(200, 32);
         _trackSpeed.Minimum = 1;
         _trackSpeed.Maximum = 20;
         _trackSpeed.Value = 5;
         _trackSpeed.TickFrequency = 2;
 
-        top.Controls.Add(new Label { Text = "Hız:", Location = new Point(340, 16), AutoSize = true });
+        top.Controls.Add(new Label { Text = "Hız:", Location = new Point(470, 16), AutoSize = true });
         top.Controls.Add(_trackSpeed);
         top.Controls.Add(btnPlay);
         top.Controls.Add(btnPause);
         top.Controls.Add(btnStep);
         top.Controls.Add(btnReset);
+        top.Controls.Add(btnExport);
 
         _lblStatus.Dock = DockStyle.Bottom;
         _lblStatus.Height = 48;
@@ -188,6 +191,37 @@ public sealed class SimulationForm : Form
         _txtLog.AppendText(SimulationLogFormatter.FormatEdgeEntry(snap, seg, cutting, depth) + Environment.NewLine);
         _txtLog.SelectionStart = _txtLog.Text.Length;
         _txtLog.ScrollToCaret();
+    }
+
+    private void ExportDat()
+    {
+        using var optionsDlg = new ExportDatDialog();
+        if (optionsDlg.ShowDialog(this) != DialogResult.OK)
+            return;
+
+        string defaultName = Path.ChangeExtension(Path.GetFileName(_job.SourceFilePath), ".dat");
+        using var saveDlg = new SaveFileDialog
+        {
+            Filter = "DAT dosyası (*.dat)|*.dat|Tüm dosyalar (*.*)|*.*",
+            FileName = defaultName,
+            Title = "DAT çıktısını kaydet"
+        };
+
+        if (saveDlg.ShowDialog(this) != DialogResult.OK)
+            return;
+
+        if (!DatFileExporter.TryWrite(_job, optionsDlg.Options, saveDlg.FileName, out string? error))
+        {
+            MessageBox.Show(this, error ?? "Çıktı kaydedilemedi.", "Çıktı Al",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        MessageBox.Show(this,
+            $"DAT dosyası kaydedildi:\n{saveDlg.FileName}",
+            "Çıktı Al",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information);
     }
 
     private void DrawPanel_Paint(object? sender, PaintEventArgs e)
