@@ -13,8 +13,10 @@ public sealed class SimulationSetupDialog : Form
     private readonly NumericUpDown _numStone = new();
     private readonly NumericUpDown _numBindirme = new();
     private readonly Dictionary<int, NumericUpDown> _edgeThicknessInputs = new();
+    private readonly Dictionary<int, NumericUpDown> _edgeOffsetInputs = new();
 
     public IReadOnlyDictionary<int, double>? ThicknessByEdge { get; private set; }
+    public IReadOnlyDictionary<int, double>? OffsetByEdge { get; private set; }
     public StoneToolSettings? Tool { get; private set; }
 
     public SimulationSetupDialog(DxfScene scene)
@@ -81,11 +83,17 @@ public sealed class SimulationSetupDialog : Form
 
         inner.Controls.Add(new Label
         {
-            Text = "Her kenar için işleme kalınlığı (mm). Radius dahil tüm kenarlar:",
+            Text = "Her kenar için işleme kalınlığı ve offset (mm). Radius dahil tüm kenarlar:",
             AutoSize = true,
             Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
             Margin = new Padding(0, 0, 0, 8)
         });
+
+        var header = new Panel { Width = 400, Height = 22 };
+        header.Controls.Add(new Label { Text = "Kenar", Location = new Point(0, 4), AutoSize = true, Font = new Font("Segoe UI", 8.5f, FontStyle.Bold) });
+        header.Controls.Add(new Label { Text = "Kalınlık", Location = new Point(150, 4), AutoSize = true, Font = new Font("Segoe UI", 8.5f, FontStyle.Bold) });
+        header.Controls.Add(new Label { Text = "Offset", Location = new Point(280, 4), AutoSize = true, Font = new Font("Segoe UI", 8.5f, FontStyle.Bold) });
+        inner.Controls.Add(header);
 
         _edgeFlow.FlowDirection = FlowDirection.TopDown;
         _edgeFlow.AutoSize = true;
@@ -101,15 +109,15 @@ public sealed class SimulationSetupDialog : Form
 
             row.Controls.Add(new Label
             {
-                Text = label + " mm:",
+                Text = label,
                 Location = new Point(0, 8),
                 AutoSize = true
             });
 
             var num = new NumericUpDown
             {
-                Location = new Point(200, 4),
-                Width = 120,
+                Location = new Point(150, 4),
+                Width = 110,
                 DecimalPlaces = 2,
                 Maximum = 99999,
                 Minimum = 0,
@@ -118,6 +126,20 @@ public sealed class SimulationSetupDialog : Form
             };
             _edgeThicknessInputs[edge.Index] = num;
             row.Controls.Add(num);
+
+            var numOffset = new NumericUpDown
+            {
+                Location = new Point(280, 4),
+                Width = 110,
+                DecimalPlaces = 2,
+                Maximum = 99999,
+                Minimum = 0,
+                Value = 0,
+                ThousandsSeparator = false
+            };
+            _edgeOffsetInputs[edge.Index] = numOffset;
+            row.Controls.Add(numOffset);
+
             _edgeFlow.Controls.Add(row);
         }
 
@@ -206,6 +228,10 @@ public sealed class SimulationSetupDialog : Form
         foreach (var kv in _edgeThicknessInputs)
             dict[kv.Key] = (double)kv.Value.Value;
 
+        var offsets = new Dictionary<int, double>();
+        foreach (var kv in _edgeOffsetInputs)
+            offsets[kv.Key] = (double)kv.Value.Value;
+
         var tool = new StoneToolSettings
         {
             StoneWidthMm = (double)_numStone.Value,
@@ -223,6 +249,7 @@ public sealed class SimulationSetupDialog : Form
         }
 
         ThicknessByEdge = dict;
+        OffsetByEdge = offsets;
         Tool = tool;
         DialogResult = DialogResult.OK;
         Close();

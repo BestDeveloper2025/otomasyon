@@ -97,6 +97,11 @@ public sealed class RadiusFeatureExtractor
             line1Dir, line2Dir, tanAtStart, tanAtEnd,
             seg.StartX, seg.StartY, seg.EndX, seg.EndY, mcx, mcy);
 
+        var contourPoly = BuildContourPolygon(segments);
+        var convexity = RadiusConvexityClassifier.ClassifyByCenter(contourPoly, cx, cy);
+        if (convexity == RadiusConvexity.Unknown)
+            convexity = RadiusConvexityClassifier.ClassifyForCcwTraversal(seg.Bulge);
+
         return new RadiusFeature
         {
             Index = radiusIndex,
@@ -104,7 +109,7 @@ public sealed class RadiusFeatureExtractor
             CenterX = cx,
             CenterY = cy,
             Radius = r,
-            Convexity = RadiusConvexityClassifier.ClassifyForCcwTraversal(seg.Bulge),
+            Convexity = convexity,
             StartX = seg.StartX,
             StartY = seg.StartY,
             EndX = seg.EndX,
@@ -258,6 +263,9 @@ public sealed class RadiusFeatureExtractor
         double mcy = (scene.Bounds.MinY + scene.Bounds.MaxY) * 0.5;
         var angles = RadiusCornerAngles.Compute(line1, line2, tanAtStart, tanAtEnd, ax, ay, bx, by, mcx, mcy);
 
+        var convexity = RadiusConvexityClassifier.ClassifyForCcwTraversal(
+            forwardCcw ? Math.Abs(bulge) : -Math.Abs(bulge));
+
         radiusNum++;
         radii.Add(new RadiusFeature
         {
@@ -266,7 +274,7 @@ public sealed class RadiusFeatureExtractor
             CenterX = cx,
             CenterY = cy,
             Radius = r,
-            Convexity = RadiusConvexityClassifier.ClassifyForCcwTraversal(bulge),
+            Convexity = convexity,
             StartX = ax,
             StartY = ay,
             EndX = bx,
@@ -356,6 +364,15 @@ public sealed class RadiusFeatureExtractor
 
     private static double OppositeDirection(double dirDeg)
         => AngleMath.Normalize360(dirDeg + 180.0);
+
+    private static List<(double X, double Y)> BuildContourPolygon(
+        List<ContourPathOrderer.OrderedSegment> segments)
+    {
+        var pts = new List<(double X, double Y)>();
+        foreach (var s in segments)
+            GeometryHelper.AppendSegmentSamples(pts, s.StartX, s.StartY, s.EndX, s.EndY, s.Bulge);
+        return pts;
+    }
 }
 
 public sealed class RadiusAnalysisResult

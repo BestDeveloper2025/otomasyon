@@ -6,8 +6,8 @@ namespace otomasyon.Models;
 public enum RadiusConvexity
 {
     Unknown,
-    /// <summary>İç bükey — yay merkezi malzeme tarafında / profil içinde.</summary>
+    /// <summary>İç bükey (oyuk) — yay merkezi malzemenin DIŞINDA.</summary>
     IcBubey,
-    /// <summary>Dış bükey — yay merkezi malzeme dışında / profil dışında.</summary>
+    /// <summary>Dış bükey (çıkık) — yay merkezi malzemenin İÇİNDE (tam daire gibi).</summary>
     DisBubey
 }

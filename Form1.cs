@@ -153,7 +153,8 @@ public partial class Form1 : Form
                 setup.ThicknessByEdge,
                 setup.Tool,
                 out var job,
-                out string? error))
+                out string? error,
+                setup.OffsetByEdge))
         {
             MessageBox.Show(this, error ?? "Simülasyon oluşturulamadı.", "Simülasyon",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);

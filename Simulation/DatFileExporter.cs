@@ -9,7 +9,8 @@ namespace otomasyon.Simulation;
 
 /// <summary>
 /// Makine .dat çıktısı (noktalı virgülle ayrılmış satırlar).
-/// SA[1..12] kenar kalınlığı, L[1..12] kenar uzunluğu, R[1..12] radius, A[1..12] köşe açısı.
+/// SA[1..12] kenar kalınlığı, L[1..12] kenar uzunluğu (küçük yay +, büyük yay −),
+/// R[1..12] radius (dış bükey +, iç bükey −), A[1..12] köşe açısı, O[1..12] kenar offset (mm).
 /// </summary>
 public static class DatFileExporter
 {
@@ -65,10 +66,11 @@ public static class DatFileExporter
             var lengths = new double[SlotCount + 1];
             var radii = new double[SlotCount + 1];
             var angles = new double[SlotCount + 1];
+            var offsets = new double[SlotCount + 1];
 
-            FillArrays(job, sa, lengths, radii, angles);
+            FillArrays(job, sa, lengths, radii, angles, offsets);
 
-            var line = BuildLine(1, options, sa, lengths, radii, angles);
+            var line = BuildLine(1, options, sa, lengths, radii, angles, offsets);
             File.WriteAllText(filePath, line + Environment.NewLine, Encoding.UTF8);
             return true;
         }
@@ -84,7 +86,8 @@ public static class DatFileExporter
         double[] sa,
         double[] lengths,
         double[] radii,
-        double[] angles)
+        double[] angles,
+        double[] offsets)
     {
         var radiusByEdge = BuildRadiusByEdge(job.Scene);
 
@@ -106,14 +109,22 @@ public static class DatFileExporter
 
             var edgePlan = job.Plan.FindEdge(idx);
             sa[idx] = edgePlan?.TargetThicknessMm ?? 0;
-            lengths[idx] = seg.LengthMm > 1e-9
+            offsets[idx] = edgePlan?.OffsetMm ?? 0;
+            double len = seg.LengthMm > 1e-9
                 ? seg.LengthMm
                 : ContourSegmentLength.ComputeMm(seg);
+            // Küçük yay (|bulge| < 1, θ < 180°) → +L; büyük yay (|bulge| > 1, θ > 180°) → −L.
+            if (seg.IsArc && Math.Abs(seg.Bulge) > 1.0)
+                len = -len;
+            lengths[idx] = len;
+
+            var prev = segs[(i - 1 + n) % n];
 
             if (radiusByEdge.TryGetValue(idx, out double r))
                 radii[idx] = r;
+            else if (seg.IsArc && seg.Radius is double sr && sr > 1e-9)
+                radii[idx] = SignedRadiusForDat(sr, ClassifyArcByPath(segs, seg));
 
-            var prev = segs[(i - 1 + n) % n];
             double inDir = OutgoingDirAtStart(seg);
             double prevInDir = IncomingDirAtEnd(prev);
             angles[idx] = AngleMath.InteriorAngleBetweenRaysDeg(
@@ -128,7 +139,7 @@ public static class DatFileExporter
         foreach (var rf in scene.RadiusFeatures)
         {
             if (rf.EdgeIndex >= 1 && rf.EdgeIndex <= SlotCount)
-                map[rf.EdgeIndex] = rf.Radius;
+                map[rf.EdgeIndex] = SignedRadiusForDat(rf.Radius, rf.Convexity);
         }
 
         foreach (var e in scene.ContourEdges)
@@ -139,11 +150,51 @@ public static class DatFileExporter
             foreach (var rf in scene.RadiusFeatures)
             {
                 if (rf.Index == ri && e.Index >= 1 && e.Index <= SlotCount)
-                    map[e.Index] = rf.Radius;
+                    map[e.Index] = SignedRadiusForDat(rf.Radius, rf.Convexity);
             }
         }
 
         return map;
+    }
+
+    private static RadiusConvexity ClassifyArcByPath(
+        IReadOnlyList<ContourPathSegment> segs, ContourPathSegment arc)
+    {
+        double cx, cy;
+        if (arc.CenterX is double acx && arc.CenterY is double acy)
+        {
+            cx = acx;
+            cy = acy;
+        }
+        else if (!BulgeArcConverter.TryFromBulge(
+                     arc.StartX, arc.StartY, arc.EndX, arc.EndY, arc.Bulge,
+                     out cx, out cy, out _, out _, out _))
+        {
+            return RadiusConvexityClassifier.ClassifyForCcwTraversal(arc.Bulge);
+        }
+
+        var poly = new List<(double X, double Y)>();
+        foreach (var s in segs)
+            GeometryHelper.AppendSegmentSamples(poly, s.StartX, s.StartY, s.EndX, s.EndY, s.Bulge);
+
+        var convexity = RadiusConvexityClassifier.ClassifyByCenter(poly, cx, cy);
+        return convexity == RadiusConvexity.Unknown
+            ? RadiusConvexityClassifier.ClassifyForCcwTraversal(arc.Bulge)
+            : convexity;
+    }
+
+    /// <summary>Yay merkezi malzeme içinde (dış bükey) → +R; dışında (iç bükey) → −R.</summary>
+    private static double SignedRadiusForDat(double radius, RadiusConvexity convexity)
+    {
+        if (radius <= 1e-9)
+            return 0;
+
+        return convexity switch
+        {
+            RadiusConvexity.IcBubey => -radius,
+            RadiusConvexity.DisBubey => radius,
+            _ => radius
+        };
     }
 
     private static double OutgoingDirAtStart(ContourPathSegment s)
@@ -182,10 +233,11 @@ public static class DatFileExporter
         double[] sa,
         double[] lengths,
         double[] radii,
-        double[] angles)
+        double[] angles,
+        double[] offsets)
     {
         // İlk alan: satır sıra numarası (örnek: 1, 2, …)
-        var fields = new List<string>(54)
+        var fields = new List<string>(66)
         {
             rowIndex.ToString(Inv),
             SekilIsmiSerbest.ToString(Inv),
@@ -202,12 +254,22 @@ public static class DatFileExporter
             fields.Add(FormatLength(lengths[i]));
 
         for (int i = 1; i <= SlotCount; i++)
-            fields.Add(FormatSa(radii[i]));
+            fields.Add(FormatRadius(radii[i]));
 
         for (int i = 1; i <= SlotCount; i++)
             fields.Add(FormatAngle(angles[i]));
 
+        for (int i = 1; i <= SlotCount; i++)
+            fields.Add(FormatOffset(offsets[i]));
+
         return string.Join(";", fields);
+    }
+
+    private static string FormatOffset(double v)
+    {
+        if (Math.Abs(v) < 1e-9)
+            return "0.00";
+        return v.ToString("0.00", Inv);
     }
 
     private static string FormatKalinlik(double v)
@@ -233,6 +295,13 @@ public static class DatFileExporter
         if (Math.Abs(v - Math.Round(v)) < 1e-6)
             return ((int)Math.Round(v)).ToString(Inv);
         return v.ToString("0.0", Inv);
+    }
+
+    private static string FormatRadius(double v)
+    {
+        if (Math.Abs(v) < 1e-9)
+            return "0.00";
+        return v.ToString("0.00", Inv);
     }
 
     private static string FormatAngle(double v)

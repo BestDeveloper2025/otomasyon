@@ -12,7 +12,8 @@ public static class SimulationJobFactory
         IReadOnlyDictionary<int, double> thicknessByEdgeMm,
         StoneToolSettings tool,
         out SimulationJob? job,
-        out string? error)
+        out string? error,
+        IReadOnlyDictionary<int, double>? offsetByEdgeMm = null)
     {
         job = null;
         error = null;
@@ -39,7 +40,7 @@ public static class SimulationJobFactory
             return false;
         }
 
-        var plan = MachiningPlanBuilder.Build(path, thicknessByEdgeMm, tool);
+        var plan = MachiningPlanBuilder.Build(path, thicknessByEdgeMm, tool, offsetByEdgeMm);
         job = new SimulationJob
         {
             Scene = scene,

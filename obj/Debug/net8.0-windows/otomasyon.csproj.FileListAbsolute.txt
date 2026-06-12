@@ -60,3 +60,9 @@ c:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\_refactor2\otomasyon.pdb
 c:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\_refactor2\netDxf.dll
 C:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\obj\Debug\net8.0-windows\otomasyon.sourcelink.json
 C:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\Debug\net8.0-windows\otomasyon.exe
+C:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\obj\buildcheck\otomasyon.exe
+C:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\obj\buildcheck\otomasyon.deps.json
+C:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\obj\buildcheck\otomasyon.runtimeconfig.json
+C:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\obj\buildcheck\otomasyon.dll
+C:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\obj\buildcheck\otomasyon.pdb
+C:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\obj\buildcheck\netDxf.dll
