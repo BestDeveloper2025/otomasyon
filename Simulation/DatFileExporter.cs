@@ -94,9 +94,6 @@ public static class DatFileExporter
         if (!job.Scene.Bounds.HasBounds)
             return;
 
-        double mcx = (job.Scene.Bounds.MinX + job.Scene.Bounds.MaxX) * 0.5;
-        double mcy = (job.Scene.Bounds.MinY + job.Scene.Bounds.MaxY) * 0.5;
-
         var segs = job.Path.Segments;
         int n = segs.Count;
 
@@ -125,11 +122,10 @@ public static class DatFileExporter
             else if (seg.IsArc && seg.Radius is double sr && sr > 1e-9)
                 radii[idx] = SignedRadiusForDat(sr, ClassifyArcByPath(segs, seg));
 
+            // Dönüş (sapma) açısı: ardışık kirişlerin gidiş yönleri arası. Düz devam → 0.
             double inDir = OutgoingDirAtStart(seg);
             double prevInDir = IncomingDirAtEnd(prev);
-            angles[idx] = AngleMath.InteriorAngleBetweenRaysDeg(
-                AngleMath.Normalize360(prevInDir + 180.0), inDir,
-                seg.StartX, seg.StartY, mcx, mcy);
+            angles[idx] = AngleMath.OpeningAngleDeg(prevInDir, inDir);
         }
     }
 
@@ -160,27 +156,12 @@ public static class DatFileExporter
     private static RadiusConvexity ClassifyArcByPath(
         IReadOnlyList<ContourPathSegment> segs, ContourPathSegment arc)
     {
-        double cx, cy;
-        if (arc.CenterX is double acx && arc.CenterY is double acy)
-        {
-            cx = acx;
-            cy = acy;
-        }
-        else if (!BulgeArcConverter.TryFromBulge(
-                     arc.StartX, arc.StartY, arc.EndX, arc.EndY, arc.Bulge,
-                     out cx, out cy, out _, out _, out _))
-        {
-            return RadiusConvexityClassifier.ClassifyForCcwTraversal(arc.Bulge);
-        }
-
-        var poly = new List<(double X, double Y)>();
+        double sum = 0;
         foreach (var s in segs)
-            GeometryHelper.AppendSegmentSamples(poly, s.StartX, s.StartY, s.EndX, s.EndY, s.Bulge);
+            sum += s.StartX * s.EndY - s.EndX * s.StartY;
+        bool ccw = sum > 0;
 
-        var convexity = RadiusConvexityClassifier.ClassifyByCenter(poly, cx, cy);
-        return convexity == RadiusConvexity.Unknown
-            ? RadiusConvexityClassifier.ClassifyForCcwTraversal(arc.Bulge)
-            : convexity;
+        return RadiusConvexityClassifier.Classify(arc.Bulge, ccw);
     }
 
     /// <summary>Yay merkezi malzeme içinde (dış bükey) → +R; dışında (iç bükey) → −R.</summary>

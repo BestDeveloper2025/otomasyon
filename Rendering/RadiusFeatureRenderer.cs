@@ -43,26 +43,24 @@ public sealed class RadiusFeatureRenderer
 
         foreach (var f in features)
         {
-            // Yayın kirişi (başlangıç→bitiş doğrusu).
+            // Yayın kirişi (başlangıç→bitiş gidiş yönü).
             double chordDir = AngleMath.DirectionDeg(f.EndX - f.StartX, f.EndY - f.StartY);
 
-            // Başlangıç köşesi: bir önceki kenarın kirişi (köşeden dışarı) ile yay kirişi (köşeden dışarı) arası.
-            double startRayPrev = AngleMath.Normalize360(f.Line1DirectionDeg + 180.0);
+            // Başlangıç dönüş açısı: önceki kirişin gidişi ile yay kirişinin gidişi arası (düz ise 0).
             AngleAnnotationDrawer.DrawCornerAngle(
                 graphics, clip, transform,
                 f.StartX, f.StartY,
-                startRayPrev, chordDir,
+                f.Line1DirectionDeg, chordDir,
                 f.StartCornerAngleDeg,
                 string.Format(Inv, "R{0} baş {1:0.0}°", f.Index, f.StartCornerAngleDeg),
                 angleFont, angleBrush, angleHalo, anglePen, cx, cy);
 
-            // Bitiş köşesi: yay kirişi (köşeden dışarı = ters) ile bir sonraki kenarın kirişi (köşeden dışarı) arası.
-            double endRayArc = AngleMath.Normalize360(chordDir + 180.0);
-            double endRayNext = AngleMath.Normalize360(f.Line2DirectionDeg + 180.0);
+            // Bitiş dönüş açısı: yay kirişinin gidişi ile sonraki kirişin gidişi arası (düz ise 0).
+            double nextTravel = AngleMath.Normalize360(f.Line2DirectionDeg + 180.0);
             AngleAnnotationDrawer.DrawCornerAngle(
                 graphics, clip, transform,
                 f.EndX, f.EndY,
-                endRayArc, endRayNext,
+                chordDir, nextTravel,
                 f.EndCornerAngleDeg,
                 string.Format(Inv, "R{0} bit {1:0.0}°", f.Index, f.EndCornerAngleDeg),
                 angleFont, angleBrush, angleHalo, anglePen, cx, cy);

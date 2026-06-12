@@ -1,8 +1,8 @@
 namespace otomasyon.Geometry;
 
 /// <summary>
-/// Radius uç köşelerinde: yayın kirişi (başlangıç→bitiş doğrusu) ile bitişik kenar arasındaki açı.
-/// Bitişik kenar düz ise kendi yönü, yay ise onun kirişi kullanılır.
+/// Radius uç köşelerinde dönüş (sapma) açısı: ardışık kirişlerin gidiş yönleri arasındaki açı.
+/// İki kiriş aynı doğrultudaysa (düz devam) açı 0'dır.
 /// </summary>
 public static class RadiusCornerAngles
 {
@@ -17,34 +17,24 @@ public static class RadiusCornerAngles
         public double VirtualCornerAngleDeg { get; init; }
     }
 
+    /// <param name="line1DirectionDeg">Önceki kenarın gidiş yönü (köşeye doğru).</param>
+    /// <param name="line2DirectionDeg">Sonraki kenarın köşeye doğru yönü (gidişin tersi).</param>
+    /// <param name="arcChordDirectionDeg">Yay kirişinin gidiş yönü (başlangıç→bitiş).</param>
     public static Result Compute(
         double line1DirectionDeg,
         double line2DirectionDeg,
         double arcChordDirectionDeg,
         double tangentAtStartDeg,
-        double tangentAtEndDeg,
-        double arcStartX,
-        double arcStartY,
-        double arcEndX,
-        double arcEndY,
-        double materialCenterX,
-        double materialCenterY)
+        double tangentAtEndDeg)
     {
         double virtualCorner = AngleMath.OpeningAngleDeg(line1DirectionDeg, line2DirectionDeg);
 
-        // Başlangıç köşesi: bir önceki kenar (kirişi) ile yayın kirişi arası.
-        // line1DirectionDeg köşeye DOĞRU bakar; +180 köşeden dışarı bakar. Yay kirişi de köşeden dışarı (başlangıç→bitiş).
-        double startCorner = AngleMath.InteriorAngleBetweenRaysDeg(
-            AngleMath.Normalize360(line1DirectionDeg + 180.0),
-            arcChordDirectionDeg,
-            arcStartX, arcStartY, materialCenterX, materialCenterY);
+        // Başlangıç: önceki kirişin gidişi ile yay kirişinin gidişi arasındaki sapma. Düz ise 0.
+        double startCorner = AngleMath.OpeningAngleDeg(line1DirectionDeg, arcChordDirectionDeg);
 
-        // Bitiş köşesi: yayın kirişi ile bir sonraki kenar (kirişi) arası.
-        // Köşeden dışarı: yay kirişi ters (chordDir+180), sonraki kenar (line2 köşeye bakar, +180 dışarı).
-        double endCorner = AngleMath.InteriorAngleBetweenRaysDeg(
-            AngleMath.Normalize360(arcChordDirectionDeg + 180.0),
-            AngleMath.Normalize360(line2DirectionDeg + 180.0),
-            arcEndX, arcEndY, materialCenterX, materialCenterY);
+        // Bitiş: yay kirişinin gidişi ile sonraki kirişin gidişi (line2 köşeye bakar; +180 gidiş yönü) arası.
+        double nextTravel = AngleMath.Normalize360(line2DirectionDeg + 180.0);
+        double endCorner = AngleMath.OpeningAngleDeg(arcChordDirectionDeg, nextTravel);
 
         return new Result
         {

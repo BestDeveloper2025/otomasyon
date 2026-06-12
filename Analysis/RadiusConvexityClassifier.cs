@@ -1,43 +1,33 @@
-using otomasyon.Geometry;
 using otomasyon.Models;
 
 namespace otomasyon.Analysis;
 
 /// <summary>
 /// Yay iç/dış bükeylik sınıflandırması.
-/// Kesin kural: yay merkezi malzeme (kapalı kontur) içindeyse DIŞ bükey,
-/// dışındaysa İÇ bükey. (Tam daire = merkez içeride = dış bükey.)
+/// Kural: kontur CCW yürünürken yay sola dönüyorsa (şeklin dışına doğru bükülür) DIŞ bükey,
+/// sağa dönüyorsa (şeklin içine doğru bükülür) İÇ bükey. CW kontur için işaret terslenir.
 /// </summary>
 public static class RadiusConvexityClassifier
 {
     /// <summary>
-    /// Yayın merkezinin, örneklenmiş kontur poligonunun içinde olup olmamasına göre sınıflar.
-    /// Bu test kontur yönünden (CW/CCW) bağımsızdır; her şekilde geçerlidir.
+    /// Yürüyüş yönüne göre düzeltilmiş bulge ile sınıflar.
+    /// travelBulge &gt; 0 (sola dönüş, şeklin dışına) → dış bükey; &lt; 0 → iç bükey.
     /// </summary>
-    public static RadiusConvexity ClassifyByCenter(
-        IReadOnlyList<(double X, double Y)> contourPolygon,
-        double centerX, double centerY)
+    public static RadiusConvexity ClassifyForCcwTraversal(double travelBulge)
     {
-        if (contourPolygon is null || contourPolygon.Count < 3)
+        if (Math.Abs(travelBulge) < 1e-12)
             return RadiusConvexity.Unknown;
 
-        if (double.IsNaN(centerX) || double.IsNaN(centerY))
-            return RadiusConvexity.Unknown;
-
-        bool centerInside = GeometryHelper.PointInPolygon(contourPolygon, centerX, centerY);
-        return centerInside ? RadiusConvexity.DisBubey : RadiusConvexity.IcBubey;
+        return travelBulge > 0 ? RadiusConvexity.DisBubey : RadiusConvexity.IcBubey;
     }
 
     /// <summary>
-    /// Yedek (poligon kurulamazsa): CCW konturda yay sola dönerse (bulge &gt; 0) dış bükey,
-    /// sağa dönerse iç bükey.
+    /// Kontur yönünü (CCW/CW) hesaba katarak sınıflar.
     /// </summary>
-    public static RadiusConvexity ClassifyForCcwTraversal(double bulge)
+    public static RadiusConvexity Classify(double bulge, bool contourIsCcw)
     {
-        if (Math.Abs(bulge) < 1e-12)
-            return RadiusConvexity.Unknown;
-
-        return bulge > 0 ? RadiusConvexity.DisBubey : RadiusConvexity.IcBubey;
+        double travelBulge = contourIsCcw ? bulge : -bulge;
+        return ClassifyForCcwTraversal(travelBulge);
     }
 
     public static string ToDisplayName(RadiusConvexity c) => c switch

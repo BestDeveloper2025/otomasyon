@@ -49,13 +49,11 @@ public static class BulgeArcConverter
         startAngleDeg = arc.StartAngle;
         endAngleDeg = arc.EndAngle;
 
-        var tuple = MathHelper.ArcToBulge(
-            new Vector2(centerX, centerY),
-            radius,
-            startAngleDeg,
-            endAngleDeg);
-
-        bulge = tuple.Item3;
+        // DXF ARC her zaman başlangıç→bitiş CCW yönündedir. Bitiş açısı başlangıçtan
+        // küçükse (360° sarması) süpürmeyi normalize etmeden hesaplanan bulge yanlış
+        // (tümleyen yay) çıkar. Bu yüzden CCW süpürmeyi normalize edip bulge'u doğrudan üretiyoruz.
+        double sweepRad = ArcSampler.GetCcwSweepRadians(startAngleDeg, endAngleDeg);
+        bulge = Math.Tan(sweepRad / 4.0);
         return radius > 1e-12;
     }
 }

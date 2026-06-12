@@ -93,16 +93,11 @@ public sealed class RadiusFeatureExtractor
         if (double.IsNaN(line2Dir))
             line2Dir = arcChordDir;
 
-        double mcx = (scene.Bounds.MinX + scene.Bounds.MaxX) * 0.5;
-        double mcy = (scene.Bounds.MinY + scene.Bounds.MaxY) * 0.5;
         var angles = RadiusCornerAngles.Compute(
-            line1Dir, line2Dir, arcChordDir, tanAtStart, tanAtEnd,
-            seg.StartX, seg.StartY, seg.EndX, seg.EndY, mcx, mcy);
+            line1Dir, line2Dir, arcChordDir, tanAtStart, tanAtEnd);
 
-        var contourPoly = BuildContourPolygon(segments);
-        var convexity = RadiusConvexityClassifier.ClassifyByCenter(contourPoly, cx, cy);
-        if (convexity == RadiusConvexity.Unknown)
-            convexity = RadiusConvexityClassifier.ClassifyForCcwTraversal(seg.Bulge);
+        bool contourCcw = IsContourCcw(segments);
+        var convexity = RadiusConvexityClassifier.Classify(seg.Bulge, contourCcw);
 
         return new RadiusFeature
         {
@@ -263,9 +258,7 @@ public sealed class RadiusFeatureExtractor
         if (double.IsNaN(line2))
             line2 = arcChordDir;
 
-        double mcx = (scene.Bounds.MinX + scene.Bounds.MaxX) * 0.5;
-        double mcy = (scene.Bounds.MinY + scene.Bounds.MaxY) * 0.5;
-        var angles = RadiusCornerAngles.Compute(line1, line2, arcChordDir, tanAtStart, tanAtEnd, ax, ay, bx, by, mcx, mcy);
+        var angles = RadiusCornerAngles.Compute(line1, line2, arcChordDir, tanAtStart, tanAtEnd);
 
         var convexity = RadiusConvexityClassifier.ClassifyForCcwTraversal(
             forwardCcw ? Math.Abs(bulge) : -Math.Abs(bulge));
@@ -365,13 +358,13 @@ public sealed class RadiusFeatureExtractor
         return double.NaN;
     }
 
-    private static List<(double X, double Y)> BuildContourPolygon(
-        List<ContourPathOrderer.OrderedSegment> segments)
+    /// <summary>Kiriş çokgeninin işaretli alanından kontur yönü (CCW pozitif).</summary>
+    private static bool IsContourCcw(List<ContourPathOrderer.OrderedSegment> segments)
     {
-        var pts = new List<(double X, double Y)>();
+        double sum = 0;
         foreach (var s in segments)
-            GeometryHelper.AppendSegmentSamples(pts, s.StartX, s.StartY, s.EndX, s.EndY, s.Bulge);
-        return pts;
+            sum += s.StartX * s.EndY - s.EndX * s.StartY;
+        return sum > 0;
     }
 }
 
