@@ -9,7 +9,7 @@ namespace otomasyon.Simulation;
 
 /// <summary>
 /// Makine .dat çıktısı (noktalı virgülle ayrılmış satırlar).
-/// SA[1..12] kenar kalınlığı, L[1..12] kenar uzunluğu (küçük yay +, büyük yay −),
+/// SA[1..12] kenar kalınlığı, L[1..12] kenar uzunluğu — yaylarda kiriş uzunluğu (küçük yay +, büyük yay −),
 /// R[1..12] radius (dış bükey +, iç bükey −), A[1..12] köşe açısı, O[1..12] kenar offset (mm).
 /// </summary>
 public static class DatFileExporter
@@ -107,9 +107,8 @@ public static class DatFileExporter
             var edgePlan = job.Plan.FindEdge(idx);
             sa[idx] = edgePlan?.TargetThicknessMm ?? 0;
             offsets[idx] = edgePlan?.OffsetMm ?? 0;
-            double len = seg.LengthMm > 1e-9
-                ? seg.LengthMm
-                : ContourSegmentLength.ComputeMm(seg);
+            // L değeri kiriş uzunluğu: başlangıç→bitiş düz mesafesi (yayda da kiriş, düz kenarda gerçek uzunluk).
+            double len = SegmentLength.LineMm(seg.StartX, seg.StartY, seg.EndX, seg.EndY);
             // Küçük yay (|bulge| < 1, θ < 180°) → +L; büyük yay (|bulge| > 1, θ > 180°) → −L.
             if (seg.IsArc && Math.Abs(seg.Bulge) > 1.0)
                 len = -len;
