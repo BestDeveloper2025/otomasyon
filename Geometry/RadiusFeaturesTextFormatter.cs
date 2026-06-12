@@ -33,9 +33,9 @@ public static class RadiusFeaturesTextFormatter
             sb.AppendLine(CultureInfo.InvariantCulture,
                 $"Bitiş: {f.EndX:G9} {f.EndY:G9}");
             sb.AppendLine(CultureInfo.InvariantCulture,
-                $"Başlangıç köşe açısı° (teğet–kenar): {f.StartCornerAngleDeg:0.###}");
+                $"Başlangıç köşe açısı° (kiriş–kenar): {f.StartCornerAngleDeg:0.###}");
             sb.AppendLine(CultureInfo.InvariantCulture,
-                $"Bitiş köşe açısı° (teğet–kenar): {f.EndCornerAngleDeg:0.###}");
+                $"Bitiş köşe açısı° (kiriş–kenar): {f.EndCornerAngleDeg:0.###}");
             sb.AppendLine(CultureInfo.InvariantCulture,
                 $"Sanal köşe açısı° (iki düz kenar): {f.CornerAngleDeg:0.###}");
             sb.AppendLine(CultureInfo.InvariantCulture,

@@ -197,35 +197,12 @@ public static class DatFileExporter
         };
     }
 
+    // Köşe açıları kiriş tabanlı: her kenar (yay dahil) başlangıç→bitiş doğrusu (kiriş) ile temsil edilir.
     private static double OutgoingDirAtStart(ContourPathSegment s)
-    {
-        if (!s.IsArc)
-            return AngleMath.DirectionDeg(s.EndX - s.StartX, s.EndY - s.StartY);
-
-        if (BulgeArcConverter.TryFromBulge(s.StartX, s.StartY, s.EndX, s.EndY, s.Bulge,
-                out double cx, out double cy, out _, out _, out _))
-        {
-            double ang = AngleMath.DirectionDeg(s.StartX - cx, s.StartY - cy);
-            return AngleMath.ArcTangentDeg(ang, s.Bulge > 0);
-        }
-
-        return AngleMath.DirectionDeg(s.EndX - s.StartX, s.EndY - s.StartY);
-    }
+        => AngleMath.DirectionDeg(s.EndX - s.StartX, s.EndY - s.StartY);
 
     private static double IncomingDirAtEnd(ContourPathSegment s)
-    {
-        if (!s.IsArc)
-            return AngleMath.DirectionDeg(s.EndX - s.StartX, s.EndY - s.StartY);
-
-        if (BulgeArcConverter.TryFromBulge(s.StartX, s.StartY, s.EndX, s.EndY, s.Bulge,
-                out double cx, out double cy, out _, out _, out _))
-        {
-            double ang = AngleMath.DirectionDeg(s.EndX - cx, s.EndY - cy);
-            return AngleMath.ArcTangentDeg(ang, s.Bulge > 0);
-        }
-
-        return AngleMath.DirectionDeg(s.EndX - s.StartX, s.EndY - s.StartY);
-    }
+        => AngleMath.DirectionDeg(s.EndX - s.StartX, s.EndY - s.StartY);
 
     private static string BuildLine(
         int rowIndex,

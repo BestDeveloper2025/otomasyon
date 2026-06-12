@@ -1,7 +1,8 @@
 namespace otomasyon.Geometry;
 
 /// <summary>
-/// Radius uç köşelerinde: teğet çizgisi ile bitişik düz kenar arasındaki açı.
+/// Radius uç köşelerinde: yayın kirişi (başlangıç→bitiş doğrusu) ile bitişik kenar arasındaki açı.
+/// Bitişik kenar düz ise kendi yönü, yay ise onun kirişi kullanılır.
 /// </summary>
 public static class RadiusCornerAngles
 {
@@ -19,6 +20,7 @@ public static class RadiusCornerAngles
     public static Result Compute(
         double line1DirectionDeg,
         double line2DirectionDeg,
+        double arcChordDirectionDeg,
         double tangentAtStartDeg,
         double tangentAtEndDeg,
         double arcStartX,
@@ -30,22 +32,19 @@ public static class RadiusCornerAngles
     {
         double virtualCorner = AngleMath.OpeningAngleDeg(line1DirectionDeg, line2DirectionDeg);
 
-        double lineOutAtStart = AngleMath.Normalize360(line1DirectionDeg + 180.0);
-        
-        // line2DirectionDeg points backwards from the next segment into the end junction.
-        // So lineIntoAtEnd is literally line2DirectionDeg.
-        double lineIntoAtEnd = line2DirectionDeg;
+        // Başlangıç köşesi: bir önceki kenar (kirişi) ile yayın kirişi arası.
+        // line1DirectionDeg köşeye DOĞRU bakar; +180 köşeden dışarı bakar. Yay kirişi de köşeden dışarı (başlangıç→bitiş).
+        double startCorner = AngleMath.InteriorAngleBetweenRaysDeg(
+            AngleMath.Normalize360(line1DirectionDeg + 180.0),
+            arcChordDirectionDeg,
+            arcStartX, arcStartY, materialCenterX, materialCenterY);
 
-        // Interior angle of a CCW contour at any corner: Normalize360(vBackwards - vForwards)
-        // At start junction: vBackwards = lineOutAtStart, vForwards = tangentAtStartDeg
-        double startCorner = AngleMath.Normalize360(lineOutAtStart - tangentAtStartDeg);
-
-        // At end junction: vBackwards = tangentAtEndDeg + 180
-        // vForwards = lineIntoAtEnd + 180 (because it points backwards, adding 180 points forward)
-        // Interior = (tangentAtEndDeg + 180) - (lineIntoAtEnd + 180) = tangentAtEndDeg - lineIntoAtEnd
-        double endCorner = AngleMath.Normalize360(tangentAtEndDeg - lineIntoAtEnd);
-
-        double tangentIntoArcAtEnd = AngleMath.Normalize360(tangentAtEndDeg + 180.0);
+        // Bitiş köşesi: yayın kirişi ile bir sonraki kenar (kirişi) arası.
+        // Köşeden dışarı: yay kirişi ters (chordDir+180), sonraki kenar (line2 köşeye bakar, +180 dışarı).
+        double endCorner = AngleMath.InteriorAngleBetweenRaysDeg(
+            AngleMath.Normalize360(arcChordDirectionDeg + 180.0),
+            AngleMath.Normalize360(line2DirectionDeg + 180.0),
+            arcEndX, arcEndY, materialCenterX, materialCenterY);
 
         return new Result
         {

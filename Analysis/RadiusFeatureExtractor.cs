@@ -83,18 +83,20 @@ public sealed class RadiusFeatureExtractor
         double tanAtStart = AngleMath.ArcTangentDeg(startAngDeg, ccwAlongPath);
         double tanAtEnd = AngleMath.ArcTangentDeg(endAngDeg, ccwAlongPath);
 
-        double line1Dir = TryAdjacentLineDirection(segments, index, atArcStart: true);
-        if (double.IsNaN(line1Dir))
-            line1Dir = tanAtStart;
+        double arcChordDir = AngleMath.DirectionDeg(seg.EndX - seg.StartX, seg.EndY - seg.StartY);
 
-        double line2Dir = TryAdjacentLineDirection(segments, index, atArcStart: false);
+        double line1Dir = TryAdjacentChordDirection(segments, index, atArcStart: true);
+        if (double.IsNaN(line1Dir))
+            line1Dir = AngleMath.Normalize360(arcChordDir + 180.0);
+
+        double line2Dir = TryAdjacentChordDirection(segments, index, atArcStart: false);
         if (double.IsNaN(line2Dir))
-            line2Dir = OppositeDirection(tanAtEnd);
+            line2Dir = arcChordDir;
 
         double mcx = (scene.Bounds.MinX + scene.Bounds.MaxX) * 0.5;
         double mcy = (scene.Bounds.MinY + scene.Bounds.MaxY) * 0.5;
         var angles = RadiusCornerAngles.Compute(
-            line1Dir, line2Dir, tanAtStart, tanAtEnd,
+            line1Dir, line2Dir, arcChordDir, tanAtStart, tanAtEnd,
             seg.StartX, seg.StartY, seg.EndX, seg.EndY, mcx, mcy);
 
         var contourPoly = BuildContourPolygon(segments);
@@ -251,17 +253,19 @@ public sealed class RadiusFeatureExtractor
         double tanAtStart = AngleMath.ArcTangentDeg(angA, forwardCcw);
         double tanAtEnd = AngleMath.ArcTangentDeg(angB, forwardCcw);
 
+        double arcChordDir = AngleMath.DirectionDeg(bx - ax, by - ay);
+
         double line1 = lineAtSx;
         if (double.IsNaN(line1))
-            line1 = OppositeDirection(tanAtStart);
+            line1 = AngleMath.Normalize360(arcChordDir + 180.0);
 
         double line2 = lineAtEx;
         if (double.IsNaN(line2))
-            line2 = tanAtEnd;
+            line2 = arcChordDir;
 
         double mcx = (scene.Bounds.MinX + scene.Bounds.MaxX) * 0.5;
         double mcy = (scene.Bounds.MinY + scene.Bounds.MaxY) * 0.5;
-        var angles = RadiusCornerAngles.Compute(line1, line2, tanAtStart, tanAtEnd, ax, ay, bx, by, mcx, mcy);
+        var angles = RadiusCornerAngles.Compute(line1, line2, arcChordDir, tanAtStart, tanAtEnd, ax, ay, bx, by, mcx, mcy);
 
         var convexity = RadiusConvexityClassifier.ClassifyForCcwTraversal(
             forwardCcw ? Math.Abs(bulge) : -Math.Abs(bulge));
@@ -331,7 +335,7 @@ public sealed class RadiusFeatureExtractor
         }
     }
 
-    private static double TryAdjacentLineDirection(
+    private static double TryAdjacentChordDirection(
         List<ContourPathOrderer.OrderedSegment> segments,
         int arcIndex,
         bool atArcStart)
@@ -346,8 +350,7 @@ public sealed class RadiusFeatureExtractor
 
         var arc = segments[arcIndex];
         var adj = segments[adjIndex];
-        if (adj.IsArc)
-            return double.NaN;
+        // Komşu yay ise kirişini (başlangıç→bitiş doğrusu) kullanırız; ayrı dal gerekmez.
 
         double jx = atArcStart ? arc.StartX : arc.EndX;
         double jy = atArcStart ? arc.StartY : arc.EndY;
@@ -361,9 +364,6 @@ public sealed class RadiusFeatureExtractor
 
         return double.NaN;
     }
-
-    private static double OppositeDirection(double dirDeg)
-        => AngleMath.Normalize360(dirDeg + 180.0);
 
     private static List<(double X, double Y)> BuildContourPolygon(
         List<ContourPathOrderer.OrderedSegment> segments)
