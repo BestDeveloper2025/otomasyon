@@ -1,38 +1,55 @@
 using otomasyon.Models;
 using otomasyon.Models.Simulation;
+using otomasyon.Simulation;
 
 namespace otomasyon.UI;
+
+public enum SetupPurpose
+{
+    Simulation,
+    Recipe
+}
 
 /// <summary>Şekil onayı + kenar kalınlıkları + taş parametreleri.</summary>
 public sealed class SimulationSetupDialog : Form
 {
     private readonly DxfScene _scene;
+    private readonly SetupPurpose _purpose;
     private readonly Panel _panelConfirm = new();
     private readonly Panel _panelParams = new();
     private readonly FlowLayoutPanel _edgeFlow = new();
     private readonly NumericUpDown _numStone = new();
     private readonly NumericUpDown _numBindirme = new();
+    private readonly NumericUpDown _numKalinlik = new();
+    private readonly NumericUpDown _numAdet = new();
     private readonly Dictionary<int, NumericUpDown> _edgeThicknessInputs = new();
     private readonly Dictionary<int, NumericUpDown> _edgeOffsetInputs = new();
+    private Button _btnOk = null!;
 
     public IReadOnlyDictionary<int, double>? ThicknessByEdge { get; private set; }
     public IReadOnlyDictionary<int, double>? OffsetByEdge { get; private set; }
     public StoneToolSettings? Tool { get; private set; }
+    public CsvFileExporter.ExportOptions? CsvExportOptions { get; private set; }
 
-    public SimulationSetupDialog(DxfScene scene)
+    public SimulationSetupDialog(DxfScene scene, SetupPurpose purpose = SetupPurpose.Simulation)
     {
         _scene = scene;
-        Text = "Simülasyon Parametreleri";
+        _purpose = purpose;
+        Text = purpose == SetupPurpose.Recipe ? "Reçete Parametreleri" : "Simülasyon Parametreleri";
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterParent;
-        ClientSize = new Size(480, 520);
+        ClientSize = purpose == SetupPurpose.Recipe ? new Size(480, 600) : new Size(480, 520);
         MinimumSize = new Size(400, 400);
 
         BuildConfirmStep();
         BuildParamsStep();
-        ShowConfirmStep();
+
+        if (purpose == SetupPurpose.Recipe)
+            ShowParamsStep();
+        else
+            ShowConfirmStep();
     }
 
     private void BuildConfirmStep()
@@ -183,6 +200,38 @@ public sealed class SimulationSetupDialog : Form
 
         inner.Controls.Add(toolPanel);
 
+        if (_purpose == SetupPurpose.Recipe)
+        {
+            var defaults = CsvFileExporter.CreateDefaultOptions();
+            var exportPanel = new GroupBox
+            {
+                Text = "CSV çıktısı (bu şekil)",
+                Dock = DockStyle.Top,
+                Height = 88,
+                Padding = new Padding(12),
+                Margin = new Padding(0, 16, 0, 0)
+            };
+
+            exportPanel.Controls.Add(new Label { Text = "Cam kalınlığı (mm):", Location = new Point(16, 28), AutoSize = true });
+            _numKalinlik.Location = new Point(200, 24);
+            _numKalinlik.Width = 120;
+            _numKalinlik.DecimalPlaces = 2;
+            _numKalinlik.Minimum = 1;
+            _numKalinlik.Maximum = 99999;
+            _numKalinlik.Value = (decimal)defaults.KalinlikMm;
+            exportPanel.Controls.Add(_numKalinlik);
+
+            exportPanel.Controls.Add(new Label { Text = "İstenilen adet:", Location = new Point(16, 56), AutoSize = true });
+            _numAdet.Location = new Point(200, 52);
+            _numAdet.Width = 120;
+            _numAdet.Minimum = 1;
+            _numAdet.Maximum = 99999;
+            _numAdet.Value = defaults.IstenilenAdet;
+            exportPanel.Controls.Add(_numAdet);
+
+            inner.Controls.Add(exportPanel);
+        }
+
         scroll.Controls.Add(inner);
 
         var bottom = new FlowLayoutPanel
@@ -196,11 +245,16 @@ public sealed class SimulationSetupDialog : Form
         var btnCancel = new Button { Text = "İptal", DialogResult = DialogResult.Cancel, Width = 90 };
         var btnBack = new Button { Text = "Geri", Width = 90 };
         btnBack.Click += (_, _) => ShowConfirmStep();
-        var btnOk = new Button { Text = "Simülasyonu Başlat", Width = 150 };
-        btnOk.Click += OnStartClick;
+        btnBack.Visible = _purpose == SetupPurpose.Simulation;
+        _btnOk = new Button
+        {
+            Text = _purpose == SetupPurpose.Recipe ? "Reçeteye Ekle" : "Simülasyonu Başlat",
+            Width = 150
+        };
+        _btnOk.Click += OnStartClick;
 
         bottom.Controls.Add(btnCancel);
-        bottom.Controls.Add(btnOk);
+        bottom.Controls.Add(_btnOk);
         bottom.Controls.Add(btnBack);
 
         _panelParams.Controls.Add(scroll);
@@ -251,6 +305,16 @@ public sealed class SimulationSetupDialog : Form
         ThicknessByEdge = dict;
         OffsetByEdge = offsets;
         Tool = tool;
+
+        if (_purpose == SetupPurpose.Recipe)
+        {
+            CsvExportOptions = new CsvFileExporter.ExportOptions
+            {
+                KalinlikMm = (double)_numKalinlik.Value,
+                IstenilenAdet = (int)_numAdet.Value
+            };
+        }
+
         DialogResult = DialogResult.OK;
         Close();
     }

@@ -2,19 +2,19 @@ using otomasyon.Simulation;
 
 namespace otomasyon.UI;
 
-/// <summary>.dat çıktısı için genel kalınlık ve adet.</summary>
-public sealed class ExportDatDialog : Form
+/// <summary>CSV çıktısı için genel kalınlık ve adet.</summary>
+public sealed class ExportCsvDialog : Form
 {
     private readonly NumericUpDown _numKalinlik = new();
     private readonly NumericUpDown _numAdet = new();
 
-    public DatFileExporter.ExportOptions Options { get; private set; } = null!;
+    public CsvFileExporter.ExportOptions Options { get; private set; } = null!;
 
-    public ExportDatDialog()
+    public ExportCsvDialog()
     {
-        var defaults = DatFileExporter.CreateDefaultOptions();
+        var defaults = CsvFileExporter.CreateDefaultOptions();
 
-        Text = "DAT Çıktısı";
+        Text = "CSV Çıktısı";
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -24,7 +24,7 @@ public sealed class ExportDatDialog : Form
         var lblInfo = new Label
         {
             Text = "Kenar kalınlıkları (SA), uzunluklar (L), radius (R) ve köşe açıları (A)\n" +
-                   "simülasyondaki kontur verisinden otomatik doldurulur.",
+                   "kontur verisinden otomatik doldurulur.",
             Location = new Point(16, 12),
             Size = new Size(320, 40),
             Font = new Font("Segoe UI", 9f)
@@ -59,7 +59,7 @@ public sealed class ExportDatDialog : Form
         var btnOk = new Button { Text = "Kaydet…", Width = 100 };
         btnOk.Click += (_, _) =>
         {
-            Options = new DatFileExporter.ExportOptions
+            Options = new CsvFileExporter.ExportOptions
             {
                 KalinlikMm = (double)_numKalinlik.Value,
                 IstenilenAdet = (int)_numAdet.Value

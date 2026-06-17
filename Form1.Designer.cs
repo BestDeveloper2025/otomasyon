@@ -4,109 +4,138 @@ namespace otomasyon
 {
     partial class Form1
     {
-        /// <summary>
-        /// Bileşenler için kullanılan kapsayıcı (dispose desteği).
-        /// </summary>
         private System.ComponentModel.IContainer? components = null;
 
         private Panel _topPanel = null!;
+        private FlowLayoutPanel _toolbarFlow = null!;
         private Button _btnSelectFile = null!;
+        private Button _btnAddToRecipe = null!;
         private Button _btnSimulation = null!;
+        private Button _btnExportBatchCsv = null!;
+        private Button _btnExportBatchDat = null!;
         private Label _lblFilePath = null!;
 
         private DrawingPanel _drawPanel = null!;
 
         private SplitContainer _splitMain = null!;
+        private SplitContainer _splitRight = null!;
+
+        private Panel _recipePanel = null!;
+        private Label _lblRecipeHeader = null!;
+        private ListView _lvRecipe = null!;
+        private FlowLayoutPanel _recipeActions = null!;
+        private Button _btnRemoveRecipe = null!;
+        private Button _btnClearRecipe = null!;
 
         private TextBox _txtCoordinates = null!;
 
         private Panel _bottomPanel = null!;
         private Label _lblResults = null!;
+        private Label _lblRecipeCount = null!;
 
-        /// <summary>
-        /// Kaynakları serbest bırakır.
-        /// </summary>
         protected override void Dispose(bool disposing)
         {
             if (disposing && components != null)
-            {
                 components.Dispose();
-            }
             base.Dispose(disposing);
         }
 
-        /// <summary>
-        /// Tüm kontroller kod ile oluşturulur (Dock tabanlı yerleşim).
-        /// </summary>
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
 
-            AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1000, 700);
-            MinimumSize = new Size(800, 500);
-            Text = "DXF Dosya Okuyucu ve Şekil Analiz Aracı";
-            StartPosition = FormStartPosition.CenterScreen;
+            var uiFont = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            var headerFont = new Font("Segoe UI", 9.5F, FontStyle.Bold, GraphicsUnit.Point);
 
-            // --- Üst: dosya seç ---
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(1180, 760);
+            MinimumSize = new Size(900, 560);
+            Text = "DXF Analiz ve Reçete Aracı";
+            StartPosition = FormStartPosition.CenterScreen;
+            Font = uiFont;
+            BackColor = Color.White;
+
+            // --- Üst araç çubuğu ---
             _topPanel = new Panel
             {
-                Height = 50,
+                Height = 56,
                 Dock = DockStyle.Top,
-                BackColor = SystemColors.Control
+                BackColor = Color.FromArgb(248, 249, 251),
+                Padding = new Padding(8, 8, 12, 8)
             };
 
-            _btnSelectFile = new Button
+            _toolbarFlow = new FlowLayoutPanel
             {
-                Text = "Dosya Seç",
-                Location = new Point(10, 10),
-                Size = new Size(100, 30),
-                Anchor = AnchorStyles.Left | AnchorStyles.Top
+                Dock = DockStyle.Left,
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                Padding = new Padding(0)
             };
 
-            _btnSimulation = new Button
-            {
-                Text = "Simülasyon",
-                Location = new Point(118, 10),
-                Size = new Size(110, 30),
-                Enabled = false,
-                Anchor = AnchorStyles.Left | AnchorStyles.Top
-            };
+            _btnSelectFile = CreateToolbarButton("Dosya Seç", 100);
+            _btnAddToRecipe = CreateToolbarButton("Reçeteye Ekle", 120);
+            _btnAddToRecipe.Enabled = false;
+            _btnSimulation = CreateToolbarButton("Simülasyon", 110);
+            _btnSimulation.Enabled = false;
+            _btnExportBatchCsv = CreateToolbarButton("Toplu CSV Çıktı", 130);
+            _btnExportBatchCsv.Enabled = false;
+            _btnExportBatchDat = CreateToolbarButton("Toplu DAT Çıktı", 130);
+            _btnExportBatchDat.Enabled = false;
+
+            _toolbarFlow.Controls.Add(_btnSelectFile);
+            _toolbarFlow.Controls.Add(_btnAddToRecipe);
+            _toolbarFlow.Controls.Add(_btnSimulation);
+            _toolbarFlow.Controls.Add(_btnExportBatchCsv);
+            _toolbarFlow.Controls.Add(_btnExportBatchDat);
 
             _lblFilePath = new Label
             {
-                Location = new Point(236, 14),
-                AutoSize = false,
-                Size = new Size(744, 22),
-                AutoEllipsis = true,
+                Dock = DockStyle.Fill,
                 Text = "Henüz dosya seçilmedi.",
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+                TextAlign = ContentAlignment.MiddleLeft,
+                AutoEllipsis = true,
+                Padding = new Padding(12, 0, 0, 0),
+                ForeColor = Color.FromArgb(70, 70, 70),
+                Font = uiFont
             };
 
-            _topPanel.Controls.Add(_btnSelectFile);
-            _topPanel.Controls.Add(_btnSimulation);
             _topPanel.Controls.Add(_lblFilePath);
+            _topPanel.Controls.Add(_toolbarFlow);
 
-            // --- Alt: özet ---
+            // --- Alt durum çubuğu ---
             _bottomPanel = new Panel
             {
-                Height = 60,
+                Height = 44,
                 Dock = DockStyle.Bottom,
-                BackColor = Color.FromArgb(245, 245, 245)
+                BackColor = Color.FromArgb(245, 246, 248),
+                Padding = new Padding(12, 0, 12, 0)
             };
 
             _lblResults = new Label
             {
                 Dock = DockStyle.Fill,
-                Padding = new Padding(12, 14, 12, 12),
-                Text = "Toplam Kenar: — | Yay: — | Daire: — | Toplam Entity: —",
-                Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point),
-                ForeColor = Color.FromArgb(40, 40, 40)
+                Text = "Kontur kenar: — | Radius: — | Yay: — | Daire: — | Entity: —",
+                TextAlign = ContentAlignment.MiddleLeft,
+                ForeColor = Color.FromArgb(50, 50, 50),
+                Font = uiFont
+            };
+
+            _lblRecipeCount = new Label
+            {
+                Dock = DockStyle.Right,
+                Width = 160,
+                Text = "Reçete: 0 şekil",
+                TextAlign = ContentAlignment.MiddleRight,
+                ForeColor = Color.FromArgb(30, 100, 180),
+                Font = headerFont
             };
 
             _bottomPanel.Controls.Add(_lblResults);
+            _bottomPanel.Controls.Add(_lblRecipeCount);
 
-            // --- Orta: çizim + koordinat ---
+            // --- Çizim alanı ---
             _drawPanel = new DrawingPanel
             {
                 Dock = DockStyle.Fill,
@@ -114,6 +143,61 @@ namespace otomasyon
                 BorderStyle = BorderStyle.FixedSingle
             };
 
+            // --- Reçete listesi ---
+            _recipePanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                Padding = new Padding(8, 8, 8, 4)
+            };
+
+            _lblRecipeHeader = new Label
+            {
+                Dock = DockStyle.Top,
+                Height = 28,
+                Text = "Reçete",
+                Font = headerFont,
+                ForeColor = Color.FromArgb(35, 35, 35)
+            };
+
+            _recipeActions = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 40,
+                FlowDirection = FlowDirection.LeftToRight,
+                Padding = new Padding(0, 4, 0, 0)
+            };
+
+            _btnRemoveRecipe = CreateSmallButton("Seçileni Kaldır", 120);
+            _btnRemoveRecipe.Enabled = false;
+            _btnClearRecipe = CreateSmallButton("Tümünü Temizle", 110);
+            _btnClearRecipe.Enabled = false;
+
+            _recipeActions.Controls.Add(_btnRemoveRecipe);
+            _recipeActions.Controls.Add(_btnClearRecipe);
+
+            _lvRecipe = new ListView
+            {
+                Dock = DockStyle.Fill,
+                View = View.Details,
+                FullRowSelect = true,
+                GridLines = true,
+                HideSelection = false,
+                MultiSelect = false,
+                BorderStyle = BorderStyle.FixedSingle,
+                Font = uiFont
+            };
+            _lvRecipe.Columns.Add("#", 36, HorizontalAlignment.Right);
+            _lvRecipe.Columns.Add("Dosya", 140, HorizontalAlignment.Left);
+            _lvRecipe.Columns.Add("Kenar", 48, HorizontalAlignment.Center);
+            _lvRecipe.Columns.Add("Cam kalınlığı", 78, HorizontalAlignment.Center);
+            _lvRecipe.Columns.Add("Adet", 44, HorizontalAlignment.Center);
+            _lvRecipe.Columns.Add("Eklendi", 72, HorizontalAlignment.Left);
+
+            _recipePanel.Controls.Add(_lvRecipe);
+            _recipePanel.Controls.Add(_recipeActions);
+            _recipePanel.Controls.Add(_lblRecipeHeader);
+
+            // --- Analiz metni ---
             _txtCoordinates = new TextBox
             {
                 Dock = DockStyle.Fill,
@@ -126,7 +210,18 @@ namespace otomasyon
                 BackColor = Color.FromArgb(252, 252, 252)
             };
 
-            // SplitterDistance / Panel*MinSize: genişlik 0 iken hata vermemesi için sadece Load’da ayarlanır.
+            _splitRight = new SplitContainer
+            {
+                Dock = DockStyle.Fill,
+                Orientation = Orientation.Horizontal,
+                SplitterWidth = 6,
+                FixedPanel = FixedPanel.Panel1,
+                Panel1MinSize = 120,
+                Panel2MinSize = 120
+            };
+            _splitRight.Panel1.Controls.Add(_recipePanel);
+            _splitRight.Panel2.Controls.Add(_txtCoordinates);
+
             _splitMain = new SplitContainer
             {
                 Dock = DockStyle.Fill,
@@ -135,14 +230,39 @@ namespace otomasyon
                 FixedPanel = FixedPanel.None
             };
             _splitMain.Panel1.Controls.Add(_drawPanel);
-            _splitMain.Panel2.Controls.Add(_txtCoordinates);
+            _splitMain.Panel2.Controls.Add(_splitRight);
 
-            // Z-order: önce fill, sonra alt/üst bandlar
             Controls.Add(_splitMain);
             Controls.Add(_bottomPanel);
             Controls.Add(_topPanel);
 
             Load += Form1_Load;
+        }
+
+        private static Button CreateToolbarButton(string text, int width)
+        {
+            return new Button
+            {
+                Text = text,
+                Width = width,
+                Height = 34,
+                Margin = new Padding(0, 0, 8, 0),
+                FlatStyle = FlatStyle.System,
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point)
+            };
+        }
+
+        private static Button CreateSmallButton(string text, int width)
+        {
+            return new Button
+            {
+                Text = text,
+                Width = width,
+                Height = 28,
+                Margin = new Padding(0, 0, 8, 0),
+                FlatStyle = FlatStyle.System,
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular, GraphicsUnit.Point)
+            };
         }
     }
 }

@@ -44,12 +44,14 @@ public sealed class SimulationForm : Form
         var btnPause = new Button { Text = "⏸ Durdur", Location = new Point(106, 10), Size = new Size(90, 32) };
         var btnStep = new Button { Text = "Adım", Location = new Point(202, 10), Size = new Size(70, 32) };
         var btnReset = new Button { Text = "Sıfırla", Location = new Point(278, 10), Size = new Size(80, 32) };
-        var btnExport = new Button { Text = "Çıktı Al", Location = new Point(364, 10), Size = new Size(90, 32) };
+        var btnExportCsv = new Button { Text = "CSV Çıktı", Location = new Point(364, 10), Size = new Size(90, 32) };
+        var btnExportDat = new Button { Text = "DAT Çıktı", Location = new Point(460, 10), Size = new Size(90, 32) };
 
         btnPlay.Click += (_, _) => { _running = true; _timer.Start(); };
         btnPause.Click += (_, _) => { _running = false; _timer.Stop(); };
         btnStep.Click += (_, _) => { DoStep(); };
-        btnExport.Click += (_, _) => ExportDat();
+        btnExportCsv.Click += (_, _) => ExportCsv();
+        btnExportDat.Click += (_, _) => ExportDat();
         btnReset.Click += (_, _) =>
         {
             _running = false;
@@ -62,20 +64,21 @@ public sealed class SimulationForm : Form
             RefreshUi();
         };
 
-        _trackSpeed.Location = new Point(510, 14);
+        _trackSpeed.Location = new Point(566, 14);
         _trackSpeed.Size = new Size(200, 32);
         _trackSpeed.Minimum = 1;
         _trackSpeed.Maximum = 20;
         _trackSpeed.Value = 5;
         _trackSpeed.TickFrequency = 2;
 
-        top.Controls.Add(new Label { Text = "Hız:", Location = new Point(470, 16), AutoSize = true });
+        top.Controls.Add(new Label { Text = "Hız:", Location = new Point(526, 16), AutoSize = true });
         top.Controls.Add(_trackSpeed);
         top.Controls.Add(btnPlay);
         top.Controls.Add(btnPause);
         top.Controls.Add(btnStep);
         top.Controls.Add(btnReset);
-        top.Controls.Add(btnExport);
+        top.Controls.Add(btnExportCsv);
+        top.Controls.Add(btnExportDat);
 
         _lblStatus.Dock = DockStyle.Bottom;
         _lblStatus.Height = 48;
@@ -146,8 +149,18 @@ public sealed class SimulationForm : Form
 
     private bool _reportShown;
 
+    protected override void OnFormClosing(FormClosingEventArgs e)
+    {
+        _running = false;
+        _timer.Stop();
+        base.OnFormClosing(e);
+    }
+
     private void RefreshUi()
     {
+        if (IsDisposed || Disposing || !_txtLog.IsHandleCreated || _txtLog.IsDisposed)
+            return;
+
         var snap = _engine.Current;
         _lblStatus.Text = snap.StatusText;
         _drawPanel.Invalidate();
@@ -158,9 +171,7 @@ public sealed class SimulationForm : Form
         {
             _reportShown = true;
             string report = SimulationReportBuilder.BuildReport(_job, snap);
-            _txtLog.AppendText(Environment.NewLine + report);
-            _txtLog.SelectionStart = _txtLog.Text.Length;
-            _txtLog.ScrollToCaret();
+            SafeAppendLog(Environment.NewLine + report);
             MessageBox.Show(this, "Simülasyon tamamlandı. Log ekranından detaylı raporu inceleyebilirsiniz.", 
                             "Bitti", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
@@ -168,6 +179,9 @@ public sealed class SimulationForm : Form
 
     private void LogEdgeEntryIfChanged(SimulationSnapshot snap)
     {
+        if (IsDisposed || Disposing || !_txtLog.IsHandleCreated || _txtLog.IsDisposed)
+            return;
+
         if (snap.IsFinished)
             return;
 
@@ -186,16 +200,31 @@ public sealed class SimulationForm : Form
         double depth = MachiningTourPlanner.GetDepthOnEdge(_job.Plan, seg.EdgeIndex, snap.TourIndex);
 
         if (newTour)
-            _txtLog.AppendText(Environment.NewLine + $"=== Tur {snap.TourIndex + 1}/{snap.TourCount} (tam kontur, CCW) ===" + Environment.NewLine);
+            SafeAppendLog(Environment.NewLine + $"=== Tur {snap.TourIndex + 1}/{snap.TourCount} (tam kontur, CCW) ===" + Environment.NewLine);
 
-        _txtLog.AppendText(SimulationLogFormatter.FormatEdgeEntry(snap, seg, cutting, depth) + Environment.NewLine);
-        _txtLog.SelectionStart = _txtLog.Text.Length;
-        _txtLog.ScrollToCaret();
+        SafeAppendLog(SimulationLogFormatter.FormatEdgeEntry(snap, seg, cutting, depth) + Environment.NewLine);
+    }
+
+    private void SafeAppendLog(string text)
+    {
+        try
+        {
+            if (IsDisposed || Disposing || !_txtLog.IsHandleCreated || _txtLog.IsDisposed)
+                return;
+
+            _txtLog.AppendText(text);
+            _txtLog.SelectionStart = _txtLog.Text.Length;
+            _txtLog.ScrollToCaret();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Form kapanırken timer bir tick daha alabilir; log yazımını yoksay.
+        }
     }
 
     private void ExportDat()
     {
-        using var optionsDlg = new ExportDatDialog();
+        using var optionsDlg = new ExportCsvDialog();
         if (optionsDlg.ShowDialog(this) != DialogResult.OK)
             return;
 
@@ -212,13 +241,44 @@ public sealed class SimulationForm : Form
 
         if (!DatFileExporter.TryWrite(_job, optionsDlg.Options, saveDlg.FileName, out string? error))
         {
-            MessageBox.Show(this, error ?? "Çıktı kaydedilemedi.", "Çıktı Al",
+            MessageBox.Show(this, error ?? "Çıktı kaydedilemedi.", "DAT Çıktı",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
         MessageBox.Show(this,
             $"DAT dosyası kaydedildi:\n{saveDlg.FileName}",
+            "DAT Çıktı",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information);
+    }
+
+    private void ExportCsv()
+    {
+        using var optionsDlg = new ExportCsvDialog();
+        if (optionsDlg.ShowDialog(this) != DialogResult.OK)
+            return;
+
+        string defaultName = Path.ChangeExtension(Path.GetFileName(_job.SourceFilePath), ".csv");
+        using var saveDlg = new SaveFileDialog
+        {
+            Filter = "CSV dosyası (*.csv)|*.csv|Tüm dosyalar (*.*)|*.*",
+            FileName = defaultName,
+            Title = "CSV çıktısını kaydet"
+        };
+
+        if (saveDlg.ShowDialog(this) != DialogResult.OK)
+            return;
+
+        if (!CsvFileExporter.TryWrite(_job, optionsDlg.Options, saveDlg.FileName, out string? error))
+        {
+            MessageBox.Show(this, error ?? "Çıktı kaydedilemedi.", "Çıktı Al",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        MessageBox.Show(this,
+            $"CSV dosyası kaydedildi:\n{saveDlg.FileName}",
             "Çıktı Al",
             MessageBoxButtons.OK,
             MessageBoxIcon.Information);
