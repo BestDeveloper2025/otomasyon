@@ -21,6 +21,7 @@ public partial class Form1 : Form
     private readonly DxfSceneBuilder _sceneBuilder = new();
     private readonly DxfSceneRenderer _sceneRenderer = new();
     private readonly List<RecipeItem> _recipeItems = new();
+    private ImportedCsvBatch? _importedCsv;
 
     private DxfScene _scene = DxfScene.Empty;
     private string _currentFilePath = string.Empty;
@@ -31,6 +32,7 @@ public partial class Form1 : Form
         _btnSelectFile.Click += BtnSelectFile_Click;
         _btnAddToRecipe.Click += BtnAddToRecipe_Click;
         _btnSimulation.Click += BtnSimulation_Click;
+        _btnImportCsv.Click += BtnImportCsv_Click;
         _btnExportBatchCsv.Click += BtnExportBatchCsv_Click;
         _btnExportBatchDat.Click += BtnExportBatchDat_Click;
         _btnRemoveRecipe.Click += BtnRemoveRecipe_Click;
@@ -246,6 +248,53 @@ public partial class Form1 : Form
         return true;
     }
 
+    private void BtnImportCsv_Click(object? sender, EventArgs e)
+    {
+        using var dlg = new OpenFileDialog
+        {
+            Filter = "CSV Dosyası (*.csv)|*.csv",
+            Title = "Mevcut CSV dosyasını içe aktar",
+            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
+        };
+
+        if (dlg.ShowDialog(this) != DialogResult.OK)
+            return;
+
+        if (_importedCsv is not null)
+        {
+            var replace = MessageBox.Show(this,
+                $"Zaten içe aktarılmış bir CSV var ({_importedCsv.DisplayName}, {_importedCsv.LineCount} satır).\n" +
+                "Yeni dosya ile değiştirilsin mi?",
+                "CSV İçe Aktar",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (replace != DialogResult.Yes)
+                return;
+        }
+
+        if (!CsvFileImporter.TryImport(dlg.FileName, out ImportedCsvBatch batch, out string? error))
+        {
+            MessageBox.Show(this,
+                error ?? "CSV dosyası okunamadı.",
+                "CSV İçe Aktar",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+            return;
+        }
+
+        _importedCsv = batch;
+        RebuildRecipeList();
+        RefreshRecipeUi();
+
+        MessageBox.Show(this,
+            $"{batch.LineCount} satır içe aktarıldı.\n" +
+            "Yeni şekiller ekleyip çıktı aldığınızda bu satırların ardına yazılır.",
+            "CSV İçe Aktar",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information);
+    }
+
     private void BtnExportBatchCsv_Click(object? sender, EventArgs e)
         => ExportRecipeBatch(csv: true);
 
@@ -254,22 +303,35 @@ public partial class Form1 : Form
 
     private void ExportRecipeBatch(bool csv)
     {
-        if (_recipeItems.Count == 0)
+        bool hasImported = _importedCsv is not null;
+        bool hasNew = _recipeItems.Count > 0;
+
+        if (!hasImported && !hasNew)
         {
             MessageBox.Show(this,
-                "Reçetede kayıtlı şekil yok. Önce DXF yükleyip \"Reçeteye Ekle\" kullanın.",
+                "Kaydedilecek veri yok. CSV içe aktarın veya reçeteye şekil ekleyin.",
                 csv ? "Toplu CSV" : "Toplu DAT",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
             return;
         }
 
+        string defaultName = csv ? "recete.csv" : "recete.dat";
+        string? initialDir = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+        if (_importedCsv is not null)
+        {
+            defaultName = Path.ChangeExtension(_importedCsv.DisplayName, csv ? ".csv" : ".dat");
+            string? dir = Path.GetDirectoryName(_importedCsv.SourceFilePath);
+            if (!string.IsNullOrEmpty(dir))
+                initialDir = dir;
+        }
+
         using var saveDlg = new SaveFileDialog
         {
             Filter = csv ? "CSV Dosyası (*.csv)|*.csv" : "DAT Dosyası (*.dat)|*.dat",
             Title = csv ? "Toplu CSV dosyasını kaydet" : "Toplu DAT dosyasını kaydet",
-            FileName = csv ? "recete.csv" : "recete.dat",
-            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
+            FileName = defaultName,
+            InitialDirectory = initialDir
         };
 
         if (saveDlg.ShowDialog(this) != DialogResult.OK)
@@ -279,10 +341,12 @@ public partial class Form1 : Form
             .Select(i => (i.Job, i.ExportOptions))
             .ToList();
 
+        IReadOnlyList<string>? prefix = _importedCsv?.Lines;
         string? error;
+        IReadOnlyList<string> writtenLines;
         bool ok = csv
-            ? CsvFileExporter.TryWriteBatch(entries, saveDlg.FileName, out error)
-            : DatFileExporter.TryWriteBatch(entries, saveDlg.FileName, out error);
+            ? CsvFileExporter.TryWriteBatch(prefix, entries, saveDlg.FileName, out writtenLines, out error)
+            : DatFileExporter.TryWriteBatch(prefix, entries, saveDlg.FileName, out writtenLines, out error);
 
         if (!ok)
         {
@@ -294,8 +358,21 @@ public partial class Form1 : Form
             return;
         }
 
+        int importedCount = _importedCsv?.LineCount ?? 0;
+        int newCount = _recipeItems.Count;
+        _importedCsv = CsvFileImporter.CreateBatchFromLines(saveDlg.FileName, writtenLines);
+        if (_importedCsv.Rows.Count == 0)
+            _importedCsv = null;
+        _recipeItems.Clear();
+        RebuildRecipeList();
+        RefreshRecipeUi();
+
+        string detail = newCount > 0
+            ? $"{importedCount} mevcut satır + {newCount} yeni şekil kaydedildi."
+            : $"{writtenLines.Count} satır kaydedildi.";
+
         MessageBox.Show(this,
-            $"{_recipeItems.Count} şekil tek dosyada kaydedildi:\n{saveDlg.FileName}",
+            $"{detail}\n{saveDlg.FileName}",
             csv ? "Toplu CSV" : "Toplu DAT",
             MessageBoxButtons.OK,
             MessageBoxIcon.Information);
@@ -307,6 +384,26 @@ public partial class Form1 : Form
             return;
 
         var selected = _lvRecipe.SelectedItems[0];
+        if (selected.Tag is ImportedCsvRow importedRow)
+        {
+            var confirmImport = MessageBox.Show(this,
+                $"Bu CSV satırı kaldırılsın mı?\n{importedRow.DisplayName}",
+                "Reçete",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (confirmImport != DialogResult.Yes)
+                return;
+
+            _importedCsv?.Rows.Remove(importedRow);
+            if (_importedCsv is { Rows.Count: 0 })
+                _importedCsv = null;
+
+            RebuildRecipeList();
+            RefreshRecipeUi();
+            return;
+        }
+
         if (selected.Tag is not RecipeItem item)
             return;
 
@@ -326,11 +423,15 @@ public partial class Form1 : Form
 
     private void BtnClearRecipe_Click(object? sender, EventArgs e)
     {
-        if (_recipeItems.Count == 0)
+        bool hasImported = _importedCsv is not null;
+        bool hasNew = _recipeItems.Count > 0;
+        if (!hasImported && !hasNew)
             return;
 
         var confirm = MessageBox.Show(this,
-            $"Reçetedeki {_recipeItems.Count} şeklin tamamı silinsin mi?",
+            hasImported
+                ? $"İçe aktarılan CSV ({_importedCsv!.LineCount} satır) ve reçetedeki {_recipeItems.Count} yeni şekil temizlensin mi?"
+                : $"Reçetedeki {_recipeItems.Count} şeklin tamamı silinsin mi?",
             "Reçete",
             MessageBoxButtons.YesNo,
             MessageBoxIcon.Warning);
@@ -338,9 +439,24 @@ public partial class Form1 : Form
         if (confirm != DialogResult.Yes)
             return;
 
+        _importedCsv = null;
         _recipeItems.Clear();
         _lvRecipe.Items.Clear();
         RefreshRecipeUi();
+    }
+
+    private void AddImportedRowListItem(ImportedCsvRow row)
+    {
+        var lvi = new ListViewItem(row.RowIndex.ToString())
+        {
+            Tag = row
+        };
+        lvi.SubItems.Add(row.DisplayName);
+        lvi.SubItems.Add(row.EdgeCount.ToString());
+        lvi.SubItems.Add(row.CamKalinlikMm.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture));
+        lvi.SubItems.Add(row.Adet.ToString());
+        lvi.SubItems.Add("CSV");
+        _lvRecipe.Items.Add(lvi);
     }
 
     private void AddRecipeListItem(RecipeItem item, int index)
@@ -353,7 +469,7 @@ public partial class Form1 : Form
         lvi.SubItems.Add(item.EdgeCount.ToString());
         lvi.SubItems.Add(item.ExportOptions.KalinlikMm.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture));
         lvi.SubItems.Add(item.ExportOptions.IstenilenAdet.ToString());
-        lvi.SubItems.Add(item.AddedAt.ToString("HH:mm:ss"));
+        lvi.SubItems.Add("Yeni");
         _lvRecipe.Items.Add(lvi);
         lvi.Selected = true;
         lvi.EnsureVisible();
@@ -363,18 +479,37 @@ public partial class Form1 : Form
     {
         _lvRecipe.BeginUpdate();
         _lvRecipe.Items.Clear();
+
+        int rowBase = 0;
+        if (_importedCsv is not null)
+        {
+            foreach (var row in _importedCsv.Rows)
+                AddImportedRowListItem(row);
+            rowBase = _importedCsv.LineCount;
+        }
+
         for (int i = 0; i < _recipeItems.Count; i++)
-            AddRecipeListItem(_recipeItems[i], i + 1);
+            AddRecipeListItem(_recipeItems[i], rowBase + i + 1);
+
         _lvRecipe.EndUpdate();
     }
 
     private void RefreshRecipeUi()
     {
-        int count = _recipeItems.Count;
-        _lblRecipeCount.Text = count == 1 ? "Reçete: 1 şekil" : $"Reçete: {count} şekil";
-        _btnExportBatchCsv.Enabled = count > 0;
-        _btnExportBatchDat.Enabled = count > 0;
-        _btnClearRecipe.Enabled = count > 0;
+        int newCount = _recipeItems.Count;
+        int importedCount = _importedCsv?.LineCount ?? 0;
+
+        _lblRecipeCount.Text = importedCount switch
+        {
+            > 0 when newCount > 0 => $"CSV: {importedCount} satır + {newCount} yeni şekil",
+            > 0 => $"CSV: {importedCount} satır (içe aktarım)",
+            _ => newCount == 1 ? "Reçete: 1 şekil" : $"Reçete: {newCount} şekil"
+        };
+
+        bool hasData = importedCount > 0 || newCount > 0;
+        _btnExportBatchCsv.Enabled = hasData;
+        _btnExportBatchDat.Enabled = hasData;
+        _btnClearRecipe.Enabled = hasData;
         RefreshRecipeActionButtons();
     }
 

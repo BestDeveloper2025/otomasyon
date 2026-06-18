@@ -52,30 +52,23 @@ public static class DatFileExporter
         IReadOnlyList<(SimulationJob Job, CsvFileExporter.ExportOptions Options)> entries,
         string filePath,
         out string? error)
+        => TryWriteBatch(prefixLines: null, entries, filePath, out _, out error);
+
+    public static bool TryWriteBatch(
+        IReadOnlyList<string>? prefixLines,
+        IReadOnlyList<(SimulationJob Job, CsvFileExporter.ExportOptions Options)> entries,
+        string filePath,
+        out IReadOnlyList<string> writtenLines,
+        out string? error)
     {
-        error = null;
-        if (entries.Count == 0)
-        {
-            error = "Reçetede kayıtlı şekil yok.";
+        writtenLines = Array.Empty<string>();
+        if (!MachineExportLineBuilder.TryBuildCombinedLines(prefixLines, entries, csvFormat: false, out IReadOnlyList<string>? lines, out error))
             return false;
-        }
-
-        var lines = new List<string>(entries.Count);
-        for (int i = 0; i < entries.Count; i++)
-        {
-            var (job, options) = entries[i];
-            if (!TryBuildLine(job, i + 1, options, out string? line, out string? itemError))
-            {
-                error = $"Şekil {i + 1}: {itemError}";
-                return false;
-            }
-
-            lines.Add(line);
-        }
 
         try
         {
             File.WriteAllText(filePath, string.Join("\n", lines) + Environment.NewLine, Encoding.UTF8);
+            writtenLines = lines;
             return true;
         }
         catch (Exception ex)

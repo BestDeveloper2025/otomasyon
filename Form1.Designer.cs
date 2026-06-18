@@ -11,6 +11,7 @@ namespace otomasyon
         private Button _btnSelectFile = null!;
         private Button _btnAddToRecipe = null!;
         private Button _btnSimulation = null!;
+        private Button _btnImportCsv = null!;
         private Button _btnExportBatchCsv = null!;
         private Button _btnExportBatchDat = null!;
         private Label _lblFilePath = null!;
@@ -79,6 +80,7 @@ namespace otomasyon
             _btnAddToRecipe.Enabled = false;
             _btnSimulation = CreateToolbarButton("Simülasyon", 110);
             _btnSimulation.Enabled = false;
+            _btnImportCsv = CreateToolbarButton("CSV İçe Aktar", 120);
             _btnExportBatchCsv = CreateToolbarButton("Toplu CSV Çıktı", 130);
             _btnExportBatchCsv.Enabled = false;
             _btnExportBatchDat = CreateToolbarButton("Toplu DAT Çıktı", 130);
@@ -87,6 +89,7 @@ namespace otomasyon
             _toolbarFlow.Controls.Add(_btnSelectFile);
             _toolbarFlow.Controls.Add(_btnAddToRecipe);
             _toolbarFlow.Controls.Add(_btnSimulation);
+            _toolbarFlow.Controls.Add(_btnImportCsv);
             _toolbarFlow.Controls.Add(_btnExportBatchCsv);
             _toolbarFlow.Controls.Add(_btnExportBatchDat);
 
@@ -187,11 +190,11 @@ namespace otomasyon
                 Font = uiFont
             };
             _lvRecipe.Columns.Add("#", 36, HorizontalAlignment.Right);
-            _lvRecipe.Columns.Add("Dosya", 140, HorizontalAlignment.Left);
+            _lvRecipe.Columns.Add("Dosya", 160, HorizontalAlignment.Left);
             _lvRecipe.Columns.Add("Kenar", 48, HorizontalAlignment.Center);
             _lvRecipe.Columns.Add("Cam kalınlığı", 78, HorizontalAlignment.Center);
             _lvRecipe.Columns.Add("Adet", 44, HorizontalAlignment.Center);
-            _lvRecipe.Columns.Add("Eklendi", 72, HorizontalAlignment.Left);
+            _lvRecipe.Columns.Add("Kaynak", 72, HorizontalAlignment.Left);
 
             _recipePanel.Controls.Add(_lvRecipe);
             _recipePanel.Controls.Add(_recipeActions);
