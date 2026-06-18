@@ -2,6 +2,7 @@ using System.Drawing.Text;
 using System.Globalization;
 using otomasyon.Analysis;
 using otomasyon.Geometry;
+using otomasyon.Localization;
 using otomasyon.Models;
 
 namespace otomasyon.Rendering;
@@ -52,7 +53,7 @@ public sealed class RadiusFeatureRenderer
                 f.StartX, f.StartY,
                 f.Line1DirectionDeg, chordDir,
                 f.StartCornerAngleDeg,
-                string.Format(Inv, "R{0} baş {1:0.0}°", f.Index, f.StartCornerAngleDeg),
+                L.F("Render.RadiusStartAngle", f.Index, f.StartCornerAngleDeg.ToString("0.0", Inv)),
                 angleFont, angleBrush, angleHalo, anglePen, cx, cy);
 
             // Bitiş dönüş açısı: yay kirişinin gidişi ile sonraki kirişin gidişi arası (düz ise 0).
@@ -62,7 +63,7 @@ public sealed class RadiusFeatureRenderer
                 f.EndX, f.EndY,
                 chordDir, nextTravel,
                 f.EndCornerAngleDeg,
-                string.Format(Inv, "R{0} bit {1:0.0}°", f.Index, f.EndCornerAngleDeg),
+                L.F("Render.RadiusEndAngle", f.Index, f.EndCornerAngleDeg.ToString("0.0", Inv)),
                 angleFont, angleBrush, angleHalo, anglePen, cx, cy);
 
             var sc = transform.ToScreen(f.CenterX, f.CenterY);

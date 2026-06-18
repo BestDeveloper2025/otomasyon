@@ -1,4 +1,5 @@
 using System.Globalization;
+using otomasyon.Localization;
 using otomasyon.Models.Simulation;
 
 namespace otomasyon.Simulation;
@@ -20,7 +21,7 @@ internal static class MachineExportLineBuilder
         int prefixCount = prefixLines?.Count ?? 0;
         if (prefixCount == 0 && entries.Count == 0)
         {
-            error = "Kaydedilecek veri yok.";
+            error = L.Get("Error.NothingToSave");
             return false;
         }
 
@@ -38,7 +39,7 @@ internal static class MachineExportLineBuilder
             {
                 if (!CsvFileExporter.TryBuildLine(job, rowIndex, options, out string? line, out string? itemError))
                 {
-                    error = $"Yeni şekil {i + 1}: {itemError}";
+                    error = L.F("Error.NewShape", i + 1, itemError ?? string.Empty);
                     return false;
                 }
 
@@ -48,7 +49,7 @@ internal static class MachineExportLineBuilder
             {
                 if (!DatFileExporter.TryBuildLine(job, rowIndex, options, out string? line, out string? itemError))
                 {
-                    error = $"Yeni şekil {i + 1}: {itemError}";
+                    error = L.F("Error.NewShape", i + 1, itemError ?? string.Empty);
                     return false;
                 }
 

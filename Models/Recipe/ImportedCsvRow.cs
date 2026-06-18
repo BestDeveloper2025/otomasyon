@@ -1,4 +1,4 @@
-using System.Globalization;
+using otomasyon.Localization;
 
 namespace otomasyon.Models.Recipe;
 
@@ -13,5 +13,5 @@ public sealed class ImportedCsvRow
     public int EdgeCount { get; init; }
     public required string SourceFileName { get; init; }
 
-    public string DisplayName => $"{SourceFileName} · satır {RowIndex}";
+    public string GetDisplayName() => L.F("Import.RowLabel", SourceFileName, RowIndex);
 }

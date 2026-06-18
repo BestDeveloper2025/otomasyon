@@ -1,12 +1,17 @@
+using otomasyon.Localization;
 using otomasyon.Simulation;
 
 namespace otomasyon.UI;
 
-/// <summary>CSV çıktısı için genel kalınlık ve adet.</summary>
-public sealed class ExportCsvDialog : Form
+public sealed class ExportCsvDialog : Form, ILocalizable
 {
     private readonly NumericUpDown _numKalinlik = new();
     private readonly NumericUpDown _numAdet = new();
+    private readonly Label _lblInfo = new();
+    private readonly Label _lblThickness = new();
+    private readonly Label _lblQty = new();
+    private readonly Button _btnCancel = new();
+    private readonly Button _btnOk = new();
 
     public CsvFileExporter.ExportOptions Options { get; private set; } = null!;
 
@@ -14,38 +19,32 @@ public sealed class ExportCsvDialog : Form
     {
         var defaults = CsvFileExporter.CreateDefaultOptions();
 
-        Text = "CSV Çıktısı";
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterParent;
         ClientSize = new Size(360, 180);
 
-        var lblInfo = new Label
-        {
-            Text = "Kenar kalınlıkları (SA), uzunluklar (L), radius (R) ve köşe açıları (A)\n" +
-                   "kontur verisinden otomatik doldurulur.",
-            Location = new Point(16, 12),
-            Size = new Size(320, 40),
-            Font = new Font("Segoe UI", 9f)
-        };
+        _lblInfo.Location = new Point(16, 12);
+        _lblInfo.Size = new Size(320, 40);
+        _lblInfo.Font = new Font("Segoe UI", 9f);
 
-        Controls.Add(new Label { Text = "Genel kalınlık (mm):", Location = new Point(16, 62), AutoSize = true });
+        _lblThickness.Location = new Point(16, 62);
+        _lblThickness.AutoSize = true;
         _numKalinlik.Location = new Point(180, 58);
         _numKalinlik.Width = 120;
         _numKalinlik.DecimalPlaces = 2;
         _numKalinlik.Maximum = 99999;
         _numKalinlik.Minimum = 1;
         _numKalinlik.Value = (decimal)defaults.KalinlikMm;
-        Controls.Add(_numKalinlik);
 
-        Controls.Add(new Label { Text = "İstenilen adet:", Location = new Point(16, 96), AutoSize = true });
+        _lblQty.Location = new Point(16, 96);
+        _lblQty.AutoSize = true;
         _numAdet.Location = new Point(180, 92);
         _numAdet.Width = 120;
         _numAdet.Minimum = 1;
         _numAdet.Maximum = 99999;
         _numAdet.Value = defaults.IstenilenAdet;
-        Controls.Add(_numAdet);
 
         var flow = new FlowLayoutPanel
         {
@@ -55,9 +54,10 @@ public sealed class ExportCsvDialog : Form
             Padding = new Padding(12, 8, 12, 8)
         };
 
-        var btnCancel = new Button { Text = "İptal", DialogResult = DialogResult.Cancel, Width = 90 };
-        var btnOk = new Button { Text = "Kaydet…", Width = 100 };
-        btnOk.Click += (_, _) =>
+        _btnCancel.DialogResult = DialogResult.Cancel;
+        _btnCancel.Width = 90;
+        _btnOk.Width = 100;
+        _btnOk.Click += (_, _) =>
         {
             Options = new CsvFileExporter.ExportOptions
             {
@@ -68,12 +68,29 @@ public sealed class ExportCsvDialog : Form
             Close();
         };
 
-        flow.Controls.Add(btnCancel);
-        flow.Controls.Add(btnOk);
+        flow.Controls.Add(_btnCancel);
+        flow.Controls.Add(_btnOk);
 
         Controls.Add(flow);
-        Controls.Add(lblInfo);
-        AcceptButton = btnOk;
-        CancelButton = btnCancel;
+        Controls.Add(_lblQty);
+        Controls.Add(_numAdet);
+        Controls.Add(_lblThickness);
+        Controls.Add(_numKalinlik);
+        Controls.Add(_lblInfo);
+        AcceptButton = _btnOk;
+        CancelButton = _btnCancel;
+
+        LocalizationManager.LanguageChanged += (_, _) => { if (!IsDisposed) ApplyLocalization(); };
+        ApplyLocalization();
+    }
+
+    public void ApplyLocalization()
+    {
+        Text = L.Get("Dialog.CsvExport");
+        _lblInfo.Text = L.Get("Export.CsvInfo");
+        _lblThickness.Text = L.Get("Export.GeneralThickness");
+        _lblQty.Text = L.Get("Setup.DesiredQty");
+        _btnCancel.Text = L.Get("Btn.Cancel");
+        _btnOk.Text = L.Get("Btn.Save");
     }
 }

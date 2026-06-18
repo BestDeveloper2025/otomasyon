@@ -1,3 +1,5 @@
+using System.Globalization;
+using otomasyon.Localization;
 using otomasyon.Models.Simulation;
 
 namespace otomasyon.Simulation;
@@ -85,7 +87,7 @@ public sealed class SimulationEngine
                 TotalTraversedMm = _totalTraversedMm,
                 TotalCuttingMm = _totalCuttingMm,
                 TourCount = _totalTourCount,
-                StatusText = "Simülasyon tamamlandı."
+                StatusText = L.Get("Sim.StatusFinished")
             };
         }
 
@@ -111,9 +113,9 @@ public sealed class SimulationEngine
             };
         }
 
-        string mode = lift ? "Taş kalkık (rapid)"
-            : cutting ? $"İşleme, derinlik {depth:G4} mm"
-            : "Taş kalkık";
+        string mode = lift ? L.Get("Sim.ModeRapid")
+            : cutting ? L.F("Sim.ModeCutting", depth.ToString("G4", CultureInfo.InvariantCulture))
+            : L.Get("Sim.ModeRapid");
 
         return new SimulationSnapshot
         {
@@ -134,7 +136,14 @@ public sealed class SimulationEngine
             ToolX = pt.X,
             ToolY = pt.Y,
             InwardNormalDeg = pt.InwardNormalDirDeg,
-            StatusText = $"Tur {_tourIndex + 1}/{_totalTourCount} (tam kontur CCW) | L{seg.EdgeIndex} (K{seg.CornerIndex}) | {mode} | Kenar: {dist:G2}/{seg.LengthMm:G2} mm"
+            StatusText = L.F("Sim.StatusRunning",
+                _tourIndex + 1,
+                _totalTourCount,
+                seg.EdgeIndex,
+                seg.CornerIndex,
+                mode,
+                dist.ToString("G2", CultureInfo.InvariantCulture),
+                seg.LengthMm.ToString("G2", CultureInfo.InvariantCulture))
         };
     }
 

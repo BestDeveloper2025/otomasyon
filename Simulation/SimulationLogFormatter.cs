@@ -1,28 +1,30 @@
 using System.Globalization;
 using System.Text;
 using otomasyon.Geometry;
+using otomasyon.Localization;
 using otomasyon.Models.Simulation;
 
 namespace otomasyon.Simulation;
 
 public static class SimulationLogFormatter
 {
+    private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
+
     public static string FormatPlan(MachiningPlan plan, StoneToolSettings tool)
     {
         int tours = MachiningTourPlanner.GetGlobalTourCount(plan);
         var sb = new StringBuilder();
-        sb.AppendLine(CultureInfo.InvariantCulture, $"Taş genişliği: {tool.StoneWidthMm:G4} mm");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"Bindirme: {tool.BindirmeMm:G4} mm");
-        sb.AppendLine(CultureInfo.InvariantCulture, $"Toplam kontur turu: {tours} (her turda L1→L2→… tam şekil, CCW)");
+        sb.AppendLine(L.F("Log.StoneWidth", tool.StoneWidthMm.ToString("G4", Inv)));
+        sb.AppendLine(L.F("Log.Overlap", tool.BindirmeMm.ToString("G4", Inv)));
+        sb.AppendLine(L.F("Log.TotalTours", tours));
         sb.AppendLine();
 
         foreach (var edge in plan.Edges)
         {
-            sb.AppendLine(CultureInfo.InvariantCulture,
-                $"--- L{edge.EdgeIndex} hedef kalınlık {edge.TargetThicknessMm:G4} mm ---");
+            sb.AppendLine(L.F("Log.EdgeTarget", edge.EdgeIndex, edge.TargetThicknessMm.ToString("G4", Inv)));
             if (edge.Passes.Count == 0)
             {
-                sb.AppendLine("  Bu kenar turlarda işlenmez (0 mm); taş kalkık geçilir.");
+                sb.AppendLine(L.Get("Log.EdgeSkipped"));
                 continue;
             }
 
@@ -30,13 +32,11 @@ public static class SimulationLogFormatter
             {
                 if (t < edge.Passes.Count)
                 {
-                    sb.AppendLine(CultureInfo.InvariantCulture,
-                        $"  Kontur tur {t + 1}: derinlik {edge.Passes[t].DepthFromContourMm:G4} mm");
+                    sb.AppendLine(L.F("Log.TourDepth", t + 1, edge.Passes[t].DepthFromContourMm.ToString("G4", Inv)));
                 }
                 else
                 {
-                    sb.AppendLine(CultureInfo.InvariantCulture,
-                        $"  Kontur tur {t + 1}: işleme yok (taş kalkık)");
+                    sb.AppendLine(L.F("Log.TourNoCut", t + 1));
                 }
             }
 
@@ -51,10 +51,11 @@ public static class SimulationLogFormatter
         if (s.IsFinished)
             return s.StatusText;
 
-        return string.Format(CultureInfo.InvariantCulture,
-            "{0}\nTaş: ({1:G4}, {2:G4}) {3}",
-            s.StatusText, s.ToolX, s.ToolY,
-            s.ToolIsEngaged ? "[açık]" : "[kalkık]");
+        return L.F("Sim.SnapshotFormat",
+            s.StatusText,
+            s.ToolX,
+            s.ToolY,
+            s.ToolIsEngaged ? L.Get("Sim.ToolEngaged") : L.Get("Sim.ToolLifted"));
     }
 
     /// <summary>
@@ -63,16 +64,25 @@ public static class SimulationLogFormatter
     /// </summary>
     public static string FormatEdgeEntry(SimulationSnapshot s, ContourPathSegment seg, bool cutting, double depth)
     {
-        string shape = seg.IsArc ? "yay" : "düz";
+        string shape = seg.IsArc ? L.Get("Sim.ShapeArc") : L.Get("Sim.ShapeLine");
         double dir = AngleMath.DirectionDeg(seg.EndX - seg.StartX, seg.EndY - seg.StartY);
-        string dirText = double.IsNaN(dir) ? "-" : $"{dir:F1}°";
+        string dirText = double.IsNaN(dir) ? "-" : $"{dir.ToString("F1", Inv)}°";
         string mode = cutting
-            ? string.Format(CultureInfo.InvariantCulture, "KESİM (derinlik {0:G4} mm)", depth)
-            : "KALKIK (rapid)";
+            ? L.F("Sim.ModeCutting", depth.ToString("G4", Inv))
+            : L.Get("Sim.ModeRapid");
 
-        return string.Format(CultureInfo.InvariantCulture,
-            "Tur {0}/{1} | L{2} K{3} ({4}): ({5:0.##}, {6:0.##}) → ({7:0.##}, {8:0.##}) | uz {9:0.##} mm | yön {10} | {11}",
-            s.TourIndex + 1, s.TourCount, seg.EdgeIndex, seg.CornerIndex, shape,
-            seg.StartX, seg.StartY, seg.EndX, seg.EndY, seg.LengthMm, dirText, mode);
+        return L.F("Sim.EdgeLog",
+            s.TourIndex + 1,
+            s.TourCount,
+            seg.EdgeIndex,
+            seg.CornerIndex,
+            shape,
+            seg.StartX,
+            seg.StartY,
+            seg.EndX,
+            seg.EndY,
+            seg.LengthMm,
+            dirText,
+            mode);
     }
 }

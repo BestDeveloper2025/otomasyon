@@ -1,3 +1,4 @@
+using otomasyon.Localization;
 using otomasyon.Models;
 using otomasyon.Models.Simulation;
 using otomasyon.Simulation;
@@ -10,8 +11,7 @@ public enum SetupPurpose
     Recipe
 }
 
-/// <summary>Şekil onayı + kenar kalınlıkları + taş parametreleri.</summary>
-public sealed class SimulationSetupDialog : Form
+public sealed class SimulationSetupDialog : Form, ILocalizable
 {
     private readonly DxfScene _scene;
     private readonly SetupPurpose _purpose;
@@ -24,6 +24,24 @@ public sealed class SimulationSetupDialog : Form
     private readonly NumericUpDown _numAdet = new();
     private readonly Dictionary<int, NumericUpDown> _edgeThicknessInputs = new();
     private readonly Dictionary<int, NumericUpDown> _edgeOffsetInputs = new();
+    private readonly List<(Label Label, ContourEdge Edge)> _edgeRowLabels = new();
+
+    private Label _lblConfirm = null!;
+    private Button _btnNo = null!;
+    private Button _btnYes = null!;
+    private Label _lblEdgesHint = null!;
+    private Label _lblColEdge = null!;
+    private Label _lblColThickness = null!;
+    private Label _lblColOffset = null!;
+    private GroupBox _toolPanel = null!;
+    private Label _lblStoneWidth = null!;
+    private Label _lblOverlap = null!;
+    private Label _lblToolHint = null!;
+    private GroupBox? _exportPanel;
+    private Label? _lblGlassThickness;
+    private Label? _lblDesiredQty;
+    private Button _btnCancel = null!;
+    private Button _btnBack = null!;
     private Button _btnOk = null!;
 
     public IReadOnlyDictionary<int, double>? ThicknessByEdge { get; private set; }
@@ -35,7 +53,6 @@ public sealed class SimulationSetupDialog : Form
     {
         _scene = scene;
         _purpose = purpose;
-        Text = purpose == SetupPurpose.Recipe ? "Reçete Parametreleri" : "Simülasyon Parametreleri";
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -46,20 +63,63 @@ public sealed class SimulationSetupDialog : Form
         BuildConfirmStep();
         BuildParamsStep();
 
+        LocalizationManager.LanguageChanged += (_, _) => { if (!IsDisposed) ApplyLocalization(); };
+        ApplyLocalization();
+
         if (purpose == SetupPurpose.Recipe)
             ShowParamsStep();
         else
             ShowConfirmStep();
     }
 
+    public void ApplyLocalization()
+    {
+        Text = _purpose == SetupPurpose.Recipe
+            ? L.Get("Dialog.SetupRecipe")
+            : L.Get("Dialog.SetupSimulation");
+
+        _lblConfirm.Text = L.Get("Setup.ConfirmText");
+        _btnNo.Text = L.Get("Btn.No");
+        _btnYes.Text = L.Get("Btn.Yes");
+        _lblEdgesHint.Text = L.Get("Setup.EdgesHint");
+        _lblColEdge.Text = L.Get("Setup.ColEdge");
+        _lblColThickness.Text = L.Get("Setup.ColThickness");
+        _lblColOffset.Text = L.Get("Setup.ColOffset");
+        _toolPanel.Text = L.Get("Setup.ToolGroup");
+        _lblStoneWidth.Text = L.Get("Setup.StoneWidth");
+        _lblOverlap.Text = L.Get("Setup.Overlap");
+        _lblToolHint.Text = L.Get("Setup.ToolHint");
+        _btnCancel.Text = L.Get("Btn.Cancel");
+        _btnBack.Text = L.Get("Btn.Back");
+        _btnOk.Text = _purpose == SetupPurpose.Recipe
+            ? L.Get("Btn.AddToRecipe")
+            : L.Get("Btn.StartSimulation");
+
+        if (_exportPanel is not null)
+            _exportPanel.Text = L.Get("Setup.CsvGroup");
+        if (_lblGlassThickness is not null)
+            _lblGlassThickness.Text = L.Get("Setup.GlassThickness");
+        if (_lblDesiredQty is not null)
+            _lblDesiredQty.Text = L.Get("Setup.DesiredQty");
+
+        RefreshEdgeRowLabels();
+    }
+
+    private void RefreshEdgeRowLabels()
+    {
+        foreach (var (label, edge) in _edgeRowLabels)
+        {
+            label.Text = edge.IsRadiusSegment && edge.RadiusIndex is int ri
+                ? L.F("Setup.EdgeLabelRadius", edge.Index, edge.CornerIndex, ri)
+                : L.F("Setup.EdgeLabel", edge.Index, edge.CornerIndex);
+        }
+    }
+
     private void BuildConfirmStep()
     {
         _panelConfirm.Dock = DockStyle.Fill;
-        var lbl = new Label
+        _lblConfirm = new Label
         {
-            Text = "Şekil ve köşe numaraları (K1, K2, …) doğru mu?\n\n" +
-                   "Kenar sırası CCW (0,0) referanslıdır. Radiuslar ayrı kenar sayılır.\n" +
-                   "Hayır derseniz DXF dosyasını kontrol edin.",
             Dock = DockStyle.Top,
             Height = 120,
             Padding = new Padding(12),
@@ -74,14 +134,14 @@ public sealed class SimulationSetupDialog : Form
             Padding = new Padding(12)
         };
 
-        var btnNo = new Button { Text = "Hayır", DialogResult = DialogResult.Cancel, Width = 100 };
-        var btnYes = new Button { Text = "Evet, devam", Width = 120 };
-        btnYes.Click += (_, _) => ShowParamsStep();
+        _btnNo = new Button { DialogResult = DialogResult.Cancel, Width = 100 };
+        _btnYes = new Button { Width = 120 };
+        _btnYes.Click += (_, _) => ShowParamsStep();
 
-        flow.Controls.Add(btnNo);
-        flow.Controls.Add(btnYes);
+        flow.Controls.Add(_btnNo);
+        flow.Controls.Add(_btnYes);
         _panelConfirm.Controls.Add(flow);
-        _panelConfirm.Controls.Add(lbl);
+        _panelConfirm.Controls.Add(_lblConfirm);
     }
 
     private void BuildParamsStep()
@@ -98,18 +158,21 @@ public sealed class SimulationSetupDialog : Form
             Padding = new Padding(12)
         };
 
-        inner.Controls.Add(new Label
+        _lblEdgesHint = new Label
         {
-            Text = "Her kenar için işleme kalınlığı ve offset (mm). Radius dahil tüm kenarlar:",
             AutoSize = true,
             Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
             Margin = new Padding(0, 0, 0, 8)
-        });
+        };
+        inner.Controls.Add(_lblEdgesHint);
 
         var header = new Panel { Width = 400, Height = 22 };
-        header.Controls.Add(new Label { Text = "Kenar", Location = new Point(0, 4), AutoSize = true, Font = new Font("Segoe UI", 8.5f, FontStyle.Bold) });
-        header.Controls.Add(new Label { Text = "Kalınlık", Location = new Point(150, 4), AutoSize = true, Font = new Font("Segoe UI", 8.5f, FontStyle.Bold) });
-        header.Controls.Add(new Label { Text = "Offset", Location = new Point(280, 4), AutoSize = true, Font = new Font("Segoe UI", 8.5f, FontStyle.Bold) });
+        _lblColEdge = new Label { Location = new Point(0, 4), AutoSize = true, Font = new Font("Segoe UI", 8.5f, FontStyle.Bold) };
+        _lblColThickness = new Label { Location = new Point(150, 4), AutoSize = true, Font = new Font("Segoe UI", 8.5f, FontStyle.Bold) };
+        _lblColOffset = new Label { Location = new Point(280, 4), AutoSize = true, Font = new Font("Segoe UI", 8.5f, FontStyle.Bold) };
+        header.Controls.Add(_lblColEdge);
+        header.Controls.Add(_lblColThickness);
+        header.Controls.Add(_lblColOffset);
         inner.Controls.Add(header);
 
         _edgeFlow.FlowDirection = FlowDirection.TopDown;
@@ -120,16 +183,9 @@ public sealed class SimulationSetupDialog : Form
         foreach (var edge in _scene.ContourEdges)
         {
             var row = new Panel { Width = 400, Height = 36 };
-            string label = edge.IsRadiusSegment && edge.RadiusIndex is int ri
-                ? $"L{edge.Index} (K{edge.CornerIndex}, R{ri})"
-                : $"L{edge.Index} (K{edge.CornerIndex})";
-
-            row.Controls.Add(new Label
-            {
-                Text = label,
-                Location = new Point(0, 8),
-                AutoSize = true
-            });
+            var lblEdge = new Label { Location = new Point(0, 8), AutoSize = true };
+            _edgeRowLabels.Add((lblEdge, edge));
+            row.Controls.Add(lblEdge);
 
             var num = new NumericUpDown
             {
@@ -138,8 +194,7 @@ public sealed class SimulationSetupDialog : Form
                 DecimalPlaces = 2,
                 Maximum = 99999,
                 Minimum = 0,
-                Value = 10,
-                ThousandsSeparator = false
+                Value = 10
             };
             _edgeThicknessInputs[edge.Index] = num;
             row.Controls.Add(num);
@@ -151,8 +206,7 @@ public sealed class SimulationSetupDialog : Form
                 DecimalPlaces = 2,
                 Maximum = 99999,
                 Minimum = 0,
-                Value = 0,
-                ThousandsSeparator = false
+                Value = 0
             };
             _edgeOffsetInputs[edge.Index] = numOffset;
             row.Controls.Add(numOffset);
@@ -162,74 +216,76 @@ public sealed class SimulationSetupDialog : Form
 
         inner.Controls.Add(_edgeFlow);
 
-        var toolPanel = new GroupBox
+        _toolPanel = new GroupBox
         {
-            Text = "Taş (takım)",
             Dock = DockStyle.Top,
             Height = 110,
             Padding = new Padding(12),
             Margin = new Padding(0, 16, 0, 0)
         };
 
-        toolPanel.Controls.Add(new Label { Text = "Taş genişliği (mm):", Location = new Point(16, 28), AutoSize = true });
+        _lblStoneWidth = new Label { Location = new Point(16, 28), AutoSize = true };
         _numStone.Location = new Point(200, 24);
         _numStone.Width = 120;
         _numStone.DecimalPlaces = 2;
         _numStone.Minimum = 0.01m;
         _numStone.Maximum = 99999;
         _numStone.Value = 10;
-        toolPanel.Controls.Add(_numStone);
+        _toolPanel.Controls.Add(_lblStoneWidth);
+        _toolPanel.Controls.Add(_numStone);
 
-        toolPanel.Controls.Add(new Label { Text = "Bindirme (mm):", Location = new Point(16, 58), AutoSize = true });
+        _lblOverlap = new Label { Location = new Point(16, 58), AutoSize = true };
         _numBindirme.Location = new Point(200, 54);
         _numBindirme.Width = 120;
         _numBindirme.DecimalPlaces = 2;
         _numBindirme.Minimum = 0;
         _numBindirme.Maximum = 99998;
         _numBindirme.Value = 2;
-        toolPanel.Controls.Add(_numBindirme);
+        _toolPanel.Controls.Add(_lblOverlap);
+        _toolPanel.Controls.Add(_numBindirme);
 
-        toolPanel.Controls.Add(new Label
+        _lblToolHint = new Label
         {
-            Text = "Örn. taş 10 mm, bindirme 2 → geçişler: 10, 8, 6… mm (çizgiler arasında boşluk kalmaz).",
             Location = new Point(16, 82),
             Size = new Size(420, 32),
             ForeColor = Color.DimGray,
             Font = new Font("Segoe UI", 8f)
-        });
+        };
+        _toolPanel.Controls.Add(_lblToolHint);
 
-        inner.Controls.Add(toolPanel);
+        inner.Controls.Add(_toolPanel);
 
         if (_purpose == SetupPurpose.Recipe)
         {
             var defaults = CsvFileExporter.CreateDefaultOptions();
-            var exportPanel = new GroupBox
+            _exportPanel = new GroupBox
             {
-                Text = "CSV çıktısı (bu şekil)",
                 Dock = DockStyle.Top,
                 Height = 88,
                 Padding = new Padding(12),
                 Margin = new Padding(0, 16, 0, 0)
             };
 
-            exportPanel.Controls.Add(new Label { Text = "Cam kalınlığı (mm):", Location = new Point(16, 28), AutoSize = true });
+            _lblGlassThickness = new Label { Location = new Point(16, 28), AutoSize = true };
             _numKalinlik.Location = new Point(200, 24);
             _numKalinlik.Width = 120;
             _numKalinlik.DecimalPlaces = 2;
             _numKalinlik.Minimum = 1;
             _numKalinlik.Maximum = 99999;
             _numKalinlik.Value = (decimal)defaults.KalinlikMm;
-            exportPanel.Controls.Add(_numKalinlik);
+            _exportPanel.Controls.Add(_lblGlassThickness);
+            _exportPanel.Controls.Add(_numKalinlik);
 
-            exportPanel.Controls.Add(new Label { Text = "İstenilen adet:", Location = new Point(16, 56), AutoSize = true });
+            _lblDesiredQty = new Label { Location = new Point(16, 56), AutoSize = true };
             _numAdet.Location = new Point(200, 52);
             _numAdet.Width = 120;
             _numAdet.Minimum = 1;
             _numAdet.Maximum = 99999;
             _numAdet.Value = defaults.IstenilenAdet;
-            exportPanel.Controls.Add(_numAdet);
+            _exportPanel.Controls.Add(_lblDesiredQty);
+            _exportPanel.Controls.Add(_numAdet);
 
-            inner.Controls.Add(exportPanel);
+            inner.Controls.Add(_exportPanel);
         }
 
         scroll.Controls.Add(inner);
@@ -242,20 +298,16 @@ public sealed class SimulationSetupDialog : Form
             Padding = new Padding(12)
         };
 
-        var btnCancel = new Button { Text = "İptal", DialogResult = DialogResult.Cancel, Width = 90 };
-        var btnBack = new Button { Text = "Geri", Width = 90 };
-        btnBack.Click += (_, _) => ShowConfirmStep();
-        btnBack.Visible = _purpose == SetupPurpose.Simulation;
-        _btnOk = new Button
-        {
-            Text = _purpose == SetupPurpose.Recipe ? "Reçeteye Ekle" : "Simülasyonu Başlat",
-            Width = 150
-        };
+        _btnCancel = new Button { DialogResult = DialogResult.Cancel, Width = 90 };
+        _btnBack = new Button { Width = 90 };
+        _btnBack.Click += (_, _) => ShowConfirmStep();
+        _btnBack.Visible = _purpose == SetupPurpose.Simulation;
+        _btnOk = new Button { Width = 150 };
         _btnOk.Click += OnStartClick;
 
-        bottom.Controls.Add(btnCancel);
+        bottom.Controls.Add(_btnCancel);
         bottom.Controls.Add(_btnOk);
-        bottom.Controls.Add(btnBack);
+        bottom.Controls.Add(_btnBack);
 
         _panelParams.Controls.Add(scroll);
         _panelParams.Controls.Add(bottom);
@@ -298,7 +350,7 @@ public sealed class SimulationSetupDialog : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, ex.Message, "Parametre Hatası", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show(this, ex.Message, L.Get("Title.ParamError"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 

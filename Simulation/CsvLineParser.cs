@@ -1,4 +1,5 @@
 using System.Globalization;
+using otomasyon.Localization;
 using otomasyon.Models.Recipe;
 
 namespace otomasyon.Simulation;
@@ -15,20 +16,20 @@ public static class CsvLineParser
 
         if (string.IsNullOrWhiteSpace(line))
         {
-            error = "Boş satır.";
+            error = L.Get("Error.CsvEmptyLine");
             return false;
         }
 
         IReadOnlyList<string> fields = SplitFields(line);
         if (fields.Count < 6)
         {
-            error = "Satırda yeterli alan yok.";
+            error = L.Get("Error.CsvNotEnoughFields");
             return false;
         }
 
         if (!int.TryParse(fields[0], NumberStyles.Integer, Inv, out int rowIndex))
         {
-            error = "Satır numarası okunamadı.";
+            error = L.Get("Error.CsvRowIndex");
             return false;
         }
 

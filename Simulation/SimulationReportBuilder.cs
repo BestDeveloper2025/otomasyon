@@ -1,63 +1,65 @@
+using System.Globalization;
 using System.Text;
+using otomasyon.Localization;
 using otomasyon.Models.Simulation;
 
 namespace otomasyon.Simulation;
 
 public static class SimulationReportBuilder
 {
+    private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
+
     public static string BuildReport(SimulationJob job, SimulationSnapshot finalSnapshot)
     {
         var sb = new StringBuilder();
-        sb.AppendLine("=== SİMÜLASYON RAPORU ===");
-        sb.AppendLine($"Dosya: {Path.GetFileName(job.SourceFilePath)}");
-        sb.AppendLine($"Toplam Tur Sayısı: {finalSnapshot.TourCount}");
-        
-        // Zaman tahmini (hız ortalama 2000 mm/dk yani saniyede 33 mm kabul edilirse)
+        sb.AppendLine(L.Get("Report.Title"));
+        sb.AppendLine(L.F("Report.File", Path.GetFileName(job.SourceFilePath)));
+        sb.AppendLine(L.F("Report.TotalTours", finalSnapshot.TourCount));
+
         double speedMmPerMin = 2000.0;
-        double speedRapidMmPerMin = 5000.0; // Boşta geçiş (kalkık) hızı daha yüksek
-        
+        double speedRapidMmPerMin = 5000.0;
+
         double cuttingDistance = finalSnapshot.TotalCuttingMm;
         double rapidDistance = finalSnapshot.TotalTraversedMm - finalSnapshot.TotalCuttingMm;
-        
+
         double timeMinutes = (cuttingDistance / speedMmPerMin) + (rapidDistance / speedRapidMmPerMin);
-        
-        sb.AppendLine($"Toplam Makine Hareketi: {finalSnapshot.TotalTraversedMm:N1} mm");
-        sb.AppendLine($" - Dolu İşleme: {cuttingDistance:N1} mm");
-        sb.AppendLine($" - Boşta (Rapid) Geçiş: {rapidDistance:N1} mm");
-        sb.AppendLine($"Tahmini Süre: {timeMinutes:N1} dakika (Kesim: 2m/dk, Rapid: 5m/dk varsayımıyla)");
+
+        sb.AppendLine(L.F("Report.TotalMovement", finalSnapshot.TotalTraversedMm.ToString("N1", Inv)));
+        sb.AppendLine(L.F("Report.CuttingDistance", cuttingDistance.ToString("N1", Inv)));
+        sb.AppendLine(L.F("Report.RapidDistance", rapidDistance.ToString("N1", Inv)));
+        sb.AppendLine(L.F("Report.EstimatedTime", timeMinutes.ToString("N1", Inv)));
         sb.AppendLine();
-        sb.AppendLine("--- KENAR DETAYLARI ---");
+        sb.AppendLine(L.Get("Report.EdgeDetails"));
 
         foreach (var edgePlan in job.Plan.Edges)
         {
             var passes = edgePlan.Passes;
             if (passes.Count == 0 || edgePlan.TargetThicknessMm < 1e-6)
             {
-                sb.AppendLine($"L{edgePlan.EdgeIndex}: İşlenmedi (Hedef: 0 mm)");
+                sb.AppendLine(L.F("Report.EdgeNotMachined", edgePlan.EdgeIndex));
                 continue;
             }
 
-            sb.AppendLine($"L{edgePlan.EdgeIndex}: Hedef Kalınlık = {edgePlan.TargetThicknessMm:N1} mm");
+            sb.AppendLine(L.F("Report.EdgeTarget", edgePlan.EdgeIndex, edgePlan.TargetThicknessMm.ToString("N1", Inv)));
 
             var seg = FindSegment(job, edgePlan.EdgeIndex);
             if (seg is not null)
             {
-                string shape = seg.IsArc ? "yay" : "düz";
-                sb.AppendLine(string.Format(System.Globalization.CultureInfo.InvariantCulture,
-                    "   Konum ({0}): ({1:0.##}, {2:0.##}) → ({3:0.##}, {4:0.##}) | uzunluk {5:0.##} mm",
+                string shape = seg.IsArc ? L.Get("Sim.ShapeArc") : L.Get("Sim.ShapeLine");
+                sb.AppendLine(L.F("Report.EdgePosition",
                     shape, seg.StartX, seg.StartY, seg.EndX, seg.EndY, seg.LengthMm));
             }
 
-            sb.AppendLine($"   -> Toplam Tur (Pass): {passes.Count}");
+            sb.AppendLine(L.F("Report.TotalPasses", passes.Count));
 
             for (int i = 0; i < passes.Count; i++)
             {
-                sb.AppendLine($"      Tur {i + 1}: Derinlik {passes[i].DepthFromContourMm:N2} mm");
+                sb.AppendLine(L.F("Report.PassDepth", i + 1, passes[i].DepthFromContourMm.ToString("N2", Inv)));
             }
         }
-        
+
         sb.AppendLine();
-        sb.AppendLine("Not: Hedefi tamamlanan kenarlarda makine taşı kaldırarak (rapid) diğer kenarlara devam etmiştir.");
+        sb.AppendLine(L.Get("Report.Note"));
 
         return sb.ToString();
     }

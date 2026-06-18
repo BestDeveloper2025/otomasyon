@@ -1,0 +1,947 @@
+{
+  "App.Title": {
+    "en": "DXF Analysis and Recipe Tool",
+    "tr": "DXF Analiz ve Reçete Aracı",
+    "de": "DXF-Analyse- und Rezepttool"
+  },
+  "Lang.Label": {
+    "en": "Language",
+    "tr": "Dil",
+    "de": "Sprache"
+  },
+  "Lang.English": {
+    "en": "English",
+    "tr": "English",
+    "de": "English"
+  },
+  "Lang.Turkish": {
+    "en": "Türkçe",
+    "tr": "Türkçe",
+    "de": "Türkçe"
+  },
+  "Lang.German": {
+    "en": "Deutsch",
+    "tr": "Deutsch",
+    "de": "Deutsch"
+  },
+  "Btn.SelectFile": {
+    "en": "Select File",
+    "tr": "Dosya Seç",
+    "de": "Datei wählen"
+  },
+  "Btn.AddToRecipe": {
+    "en": "Add to Recipe",
+    "tr": "Reçeteye Ekle",
+    "de": "Zum Rezept hinzufügen"
+  },
+  "Btn.Simulation": {
+    "en": "Simulation",
+    "tr": "Simülasyon",
+    "de": "Simulation"
+  },
+  "Btn.ImportCsv": {
+    "en": "Import CSV",
+    "tr": "CSV İçe Aktar",
+    "de": "CSV importieren"
+  },
+  "Btn.ExportBatchCsv": {
+    "en": "Batch CSV Export",
+    "tr": "Toplu CSV Çıktı",
+    "de": "CSV-Sammelexport"
+  },
+  "Btn.ExportBatchDat": {
+    "en": "Batch DAT Export",
+    "tr": "Toplu DAT Çıktı",
+    "de": "DAT-Sammelexport"
+  },
+  "Btn.RemoveSelected": {
+    "en": "Remove Selected",
+    "tr": "Seçileni Kaldır",
+    "de": "Auswahl entfernen"
+  },
+  "Btn.ClearAll": {
+    "en": "Clear All",
+    "tr": "Tümünü Temizle",
+    "de": "Alles löschen"
+  },
+  "Btn.Cancel": {
+    "en": "Cancel",
+    "tr": "İptal",
+    "de": "Abbrechen"
+  },
+  "Btn.Save": {
+    "en": "Save…",
+    "tr": "Kaydet…",
+    "de": "Speichern…"
+  },
+  "Btn.Yes": {
+    "en": "Yes, continue",
+    "tr": "Evet, devam",
+    "de": "Ja, weiter"
+  },
+  "Btn.No": {
+    "en": "No",
+    "tr": "Hayır",
+    "de": "Nein"
+  },
+  "Btn.Back": {
+    "en": "Back",
+    "tr": "Geri",
+    "de": "Zurück"
+  },
+  "Btn.Play": {
+    "en": "▶ Play",
+    "tr": "▶ Oynat",
+    "de": "▶ Abspielen"
+  },
+  "Btn.Pause": {
+    "en": "⏸ Pause",
+    "tr": "⏸ Durdur",
+    "de": "⏸ Pause"
+  },
+  "Btn.Step": {
+    "en": "Step",
+    "tr": "Adım",
+    "de": "Schritt"
+  },
+  "Btn.Reset": {
+    "en": "Reset",
+    "tr": "Sıfırla",
+    "de": "Zurücksetzen"
+  },
+  "Btn.ExportCsv": {
+    "en": "CSV Export",
+    "tr": "CSV Çıktı",
+    "de": "CSV-Export"
+  },
+  "Btn.ExportDat": {
+    "en": "DAT Export",
+    "tr": "DAT Çıktı",
+    "de": "DAT-Export"
+  },
+  "Btn.StartSimulation": {
+    "en": "Start Simulation",
+    "tr": "Simülasyonu Başlat",
+    "de": "Simulation starten"
+  },
+  "Label.NoFileSelected": {
+    "en": "No file selected yet.",
+    "tr": "Henüz dosya seçilmedi.",
+    "de": "Noch keine Datei ausgewählt."
+  },
+  "Label.Recipe": {
+    "en": "Recipe",
+    "tr": "Reçete",
+    "de": "Rezept"
+  },
+  "Label.Speed": {
+    "en": "Speed:",
+    "tr": "Hız:",
+    "de": "Geschw.:"
+  },
+  "Col.Index": {
+    "en": "#",
+    "tr": "#",
+    "de": "#"
+  },
+  "Col.File": {
+    "en": "File",
+    "tr": "Dosya",
+    "de": "Datei"
+  },
+  "Col.Edge": {
+    "en": "Edge",
+    "tr": "Kenar",
+    "de": "Kante"
+  },
+  "Col.GlassThickness": {
+    "en": "Glass thickness",
+    "tr": "Cam kalınlığı",
+    "de": "Glasdicke"
+  },
+  "Col.Quantity": {
+    "en": "Qty",
+    "tr": "Adet",
+    "de": "Menge"
+  },
+  "Col.Source": {
+    "en": "Source",
+    "tr": "Kaynak",
+    "de": "Quelle"
+  },
+  "Source.Csv": {
+    "en": "CSV",
+    "tr": "CSV",
+    "de": "CSV"
+  },
+  "Source.New": {
+    "en": "New",
+    "tr": "Yeni",
+    "de": "Neu"
+  },
+  "Status.Stats": {
+    "en": "Contour edges: {0} | Radius: {1} | Arc: {2} | Circle: {3} | Entity: {4}",
+    "tr": "Kontur kenar: {0} | Radius: {1} | Yay: {2} | Daire: {3} | Entity: {4}",
+    "de": "Konturkanten: {0} | Radius: {1} | Bogen: {2} | Kreis: {3} | Entität: {4}"
+  },
+  "Status.RecipeCount": {
+    "en": "Recipe: {0} shapes",
+    "tr": "Reçete: {0} şekil",
+    "de": "Rezept: {0} Formen"
+  },
+  "Status.RecipeCountOne": {
+    "en": "Recipe: 1 shape",
+    "tr": "Reçete: 1 şekil",
+    "de": "Rezept: 1 Form"
+  },
+  "Status.CsvImportedOnly": {
+    "en": "CSV: {0} rows (imported)",
+    "tr": "CSV: {0} satır (içe aktarım)",
+    "de": "CSV: {0} Zeilen (importiert)"
+  },
+  "Status.CsvAndNew": {
+    "en": "CSV: {0} rows + {1} new shapes",
+    "tr": "CSV: {0} satır + {1} yeni şekil",
+    "de": "CSV: {0} Zeilen + {1} neue Formen"
+  },
+  "Import.RowLabel": {
+    "en": "{0} · row {1}",
+    "tr": "{0} · satır {1}",
+    "de": "{0} · Zeile {1}"
+  },
+  "Import.RowCount": {
+    "en": "{0} rows",
+    "tr": "{0} satır",
+    "de": "{0} Zeilen"
+  },
+  "Dialog.SelectDxf": {
+    "en": "Select DXF file",
+    "tr": "DXF dosyası seçin",
+    "de": "DXF-Datei auswählen"
+  },
+  "Dialog.ImportCsv": {
+    "en": "Import existing CSV file",
+    "tr": "Mevcut CSV dosyasını içe aktar",
+    "de": "Vorhandene CSV-Datei importieren"
+  },
+  "Dialog.SaveBatchCsv": {
+    "en": "Save batch CSV file",
+    "tr": "Toplu CSV dosyasını kaydet",
+    "de": "CSV-Sammeldatei speichern"
+  },
+  "Dialog.SaveBatchDat": {
+    "en": "Save batch DAT file",
+    "tr": "Toplu DAT dosyasını kaydet",
+    "de": "DAT-Sammeldatei speichern"
+  },
+  "Dialog.SaveCsv": {
+    "en": "Save CSV output",
+    "tr": "CSV çıktısını kaydet",
+    "de": "CSV-Ausgabe speichern"
+  },
+  "Dialog.SaveDat": {
+    "en": "Save DAT output",
+    "tr": "DAT çıktısını kaydet",
+    "de": "DAT-Ausgabe speichern"
+  },
+  "Dialog.CsvExport": {
+    "en": "CSV Output",
+    "tr": "CSV Çıktısı",
+    "de": "CSV-Ausgabe"
+  },
+  "Dialog.SetupSimulation": {
+    "en": "Simulation Parameters",
+    "tr": "Simülasyon Parametreleri",
+    "de": "Simulationsparameter"
+  },
+  "Dialog.SetupRecipe": {
+    "en": "Recipe Parameters",
+    "tr": "Reçete Parametreleri",
+    "de": "Rezeptparameter"
+  },
+  "Filter.Dxf": {
+    "en": "DXF Files (*.dxf)|*.dxf",
+    "tr": "DXF Dosyaları (*.dxf)|*.dxf",
+    "de": "DXF-Dateien (*.dxf)|*.dxf"
+  },
+  "Filter.Csv": {
+    "en": "CSV File (*.csv)|*.csv",
+    "tr": "CSV Dosyası (*.csv)|*.csv",
+    "de": "CSV-Datei (*.csv)|*.csv"
+  },
+  "Filter.Dat": {
+    "en": "DAT File (*.dat)|*.dat",
+    "tr": "DAT Dosyası (*.dat)|*.dat",
+    "de": "DAT-Datei (*.dat)|*.dat"
+  },
+  "Filter.CsvAll": {
+    "en": "CSV file (*.csv)|*.csv|All files (*.*)|*.*",
+    "tr": "CSV dosyası (*.csv)|*.csv|Tüm dosyalar (*.*)|*.*",
+    "de": "CSV-Datei (*.csv)|*.csv|Alle Dateien (*.*)|*.*"
+  },
+  "Filter.DatAll": {
+    "en": "DAT file (*.dat)|*.dat|All files (*.*)|*.*",
+    "tr": "DAT dosyası (*.dat)|*.dat|Tüm dosyalar (*.*)|*.*",
+    "de": "DAT-Datei (*.dat)|*.dat|Alle Dateien (*.*)|*.*"
+  },
+  "Title.Recipe": {
+    "en": "Recipe",
+    "tr": "Reçete",
+    "de": "Rezept"
+  },
+  "Title.Simulation": {
+    "en": "Simulation",
+    "tr": "Simülasyon",
+    "de": "Simulation"
+  },
+  "Title.ImportCsv": {
+    "en": "Import CSV",
+    "tr": "CSV İçe Aktar",
+    "de": "CSV importieren"
+  },
+  "Title.BatchCsv": {
+    "en": "Batch CSV",
+    "tr": "Toplu CSV",
+    "de": "CSV-Sammel"
+  },
+  "Title.BatchDat": {
+    "en": "Batch DAT",
+    "tr": "Toplu DAT",
+    "de": "DAT-Sammel"
+  },
+  "Title.DatExport": {
+    "en": "DAT Export",
+    "tr": "DAT Çıktı",
+    "de": "DAT-Export"
+  },
+  "Title.Export": {
+    "en": "Export",
+    "tr": "Çıktı Al",
+    "de": "Export"
+  },
+  "Title.Error": {
+    "en": "Error",
+    "tr": "Hata",
+    "de": "Fehler"
+  },
+  "Title.Dxf": {
+    "en": "DXF",
+    "tr": "DXF",
+    "de": "DXF"
+  },
+  "Title.DxfReadError": {
+    "en": "DXF Read Error",
+    "tr": "DXF Okuma Hatası",
+    "de": "DXF-Lesefehler"
+  },
+  "Title.DrawError": {
+    "en": "Draw Error",
+    "tr": "Çizim Hatası",
+    "de": "Zeichenfehler"
+  },
+  "Title.ParamError": {
+    "en": "Parameter Error",
+    "tr": "Parametre Hatası",
+    "de": "Parameterfehler"
+  },
+  "Title.Done": {
+    "en": "Done",
+    "tr": "Bitti",
+    "de": "Fertig"
+  },
+  "Msg.FileOpenError": {
+    "en": "An error occurred while opening the file:\n{0}",
+    "tr": "Dosya açılırken hata oluştu:\n{0}",
+    "de": "Beim Öffnen der Datei ist ein Fehler aufgetreten:\n{0}"
+  },
+  "Msg.DxfLoadNull": {
+    "en": "DXF file could not be loaded (operation returned null).",
+    "tr": "DXF dosyası yüklenemedi (işlem null döndü).",
+    "de": "DXF-Datei konnte nicht geladen werden (Vorgang gab null zurück)."
+  },
+  "Msg.DxfParseError": {
+    "en": "DXF could not be read or parsed:\n{0}",
+    "tr": "DXF okunamadı veya çözümlenemedi:\n{0}",
+    "de": "DXF konnte nicht gelesen oder analysiert werden:\n{0}"
+  },
+  "Msg.DrawError": {
+    "en": "An error occurred while drawing:\n{0}",
+    "tr": "Çizim sırasında hata oluştu:\n{0}",
+    "de": "Beim Zeichnen ist ein Fehler aufgetreten:\n{0}"
+  },
+  "Msg.RecipeAdded": {
+    "en": "\"{0}\" added to recipe.\nYou can load another DXF and continue.",
+    "tr": "\"{0}\" reçeteye eklendi.\nBaşka bir DXF yükleyip işleme devam edebilirsiniz.",
+    "de": "\"{0}\" zum Rezept hinzugefügt.\nSie können eine weitere DXF laden und fortfahren."
+  },
+  "Msg.ImportReplaceConfirm": {
+    "en": "A CSV is already imported ({0}, {1} rows).\nReplace with the new file?",
+    "tr": "Zaten içe aktarılmış bir CSV var ({0}, {1} satır).\nYeni dosya ile değiştirilsin mi?",
+    "de": "Es ist bereits eine CSV importiert ({0}, {1} Zeilen).\nMit der neuen Datei ersetzen?"
+  },
+  "Msg.ImportSuccess": {
+    "en": "{0} rows imported.\nNew shapes will be appended when you export.",
+    "tr": "{0} satır içe aktarıldı.\nYeni şekiller ekleyip çıktı aldığınızda bu satırların ardına yazılır.",
+    "de": "{0} Zeilen importiert.\nNeue Formen werden beim Export angehängt."
+  },
+  "Msg.NoExportData": {
+    "en": "Nothing to save. Import a CSV or add shapes to the recipe.",
+    "tr": "Kaydedilecek veri yok. CSV içe aktarın veya reçeteye şekil ekleyin.",
+    "de": "Nichts zu speichern. CSV importieren oder Formen zum Rezept hinzufügen."
+  },
+  "Msg.ExportFailed": {
+    "en": "{0} file could not be written.",
+    "tr": "{0} dosyası yazılamadı.",
+    "de": "{0}-Datei konnte nicht geschrieben werden."
+  },
+  "Msg.ExportSuccessDetail": {
+    "en": "{0}\n{1}",
+    "tr": "{0}\n{1}",
+    "de": "{0}\n{1}"
+  },
+  "Msg.ExportSavedExistingAndNew": {
+    "en": "{0} existing rows + {1} new shapes saved.",
+    "tr": "{0} mevcut satır + {1} yeni şekil kaydedildi.",
+    "de": "{0} vorhandene Zeilen + {1} neue Formen gespeichert."
+  },
+  "Msg.ExportSavedRows": {
+    "en": "{0} rows saved.",
+    "tr": "{0} satır kaydedildi.",
+    "de": "{0} Zeilen gespeichert."
+  },
+  "Msg.RemoveCsvRowConfirm": {
+    "en": "Remove this CSV row?\n{0}",
+    "tr": "Bu CSV satırı kaldırılsın mı?\n{0}",
+    "de": "Diese CSV-Zeile entfernen?\n{0}"
+  },
+  "Msg.RemoveShapeConfirm": {
+    "en": "Remove \"{0}\" from recipe?",
+    "tr": "\"{0}\" reçeteden kaldırılsın mı?",
+    "de": "\"{0}\" aus dem Rezept entfernen?"
+  },
+  "Msg.ClearAllWithCsv": {
+    "en": "Clear imported CSV ({0} rows) and {1} new shapes?",
+    "tr": "İçe aktarılan CSV ({0} satır) ve reçetedeki {1} yeni şekil temizlensin mi?",
+    "de": "Importierte CSV ({0} Zeilen) und {1} neue Formen löschen?"
+  },
+  "Msg.ClearAllShapes": {
+    "en": "Remove all {0} shapes from the recipe?",
+    "tr": "Reçetedeki {0} şeklin tamamı silinsin mi?",
+    "de": "Alle {0} Formen aus dem Rezept entfernen?"
+  },
+  "Msg.SimNeedClosedContour": {
+    "en": "A closed contour is required for simulation (closed polyline or connected lines).",
+    "tr": "Simülasyon için kapalı bir kontur gerekir (kapalı polyline veya birleşen çizgiler).",
+    "de": "Für die Simulation ist eine geschlossene Kontur erforderlich (geschlossene Polylinie oder verbundene Linien)."
+  },
+  "Msg.CsvParamsMissing": {
+    "en": "CSV output parameters are missing.",
+    "tr": "CSV çıktı parametreleri eksik.",
+    "de": "CSV-Ausgabeparameter fehlen."
+  },
+  "Msg.SimCompleted": {
+    "en": "Simulation completed. See the log for details.",
+    "tr": "Simülasyon tamamlandı. Log ekranından detaylı raporu inceleyebilirsiniz.",
+    "de": "Simulation abgeschlossen. Details im Protokoll."
+  },
+  "Msg.ExportSaveFailed": {
+    "en": "Output could not be saved.",
+    "tr": "Çıktı kaydedilemedi.",
+    "de": "Ausgabe konnte nicht gespeichert werden."
+  },
+  "Msg.CsvSaved": {
+    "en": "CSV file saved:\n{0}",
+    "tr": "CSV dosyası kaydedildi:\n{0}",
+    "de": "CSV-Datei gespeichert:\n{0}"
+  },
+  "Msg.DatSaved": {
+    "en": "DAT file saved:\n{0}",
+    "tr": "DAT dosyası kaydedildi:\n{0}",
+    "de": "DAT-Datei gespeichert:\n{0}"
+  },
+  "Sim.Title": {
+    "en": "Stone Simulation — {0}",
+    "tr": "Taş Simülasyonu — {0}",
+    "de": "Steinsimulation — {0}"
+  },
+  "Sim.LogHeader": {
+    "en": "--- Simulation ---",
+    "tr": "--- Simülasyon ---",
+    "de": "--- Simulation ---"
+  },
+  "Sim.TourHeader": {
+    "en": "=== Tour {0}/{1} (full contour, CCW) ===",
+    "tr": "=== Tur {0}/{1} (tam kontur, CCW) ===",
+    "de": "=== Durchlauf {0}/{1} (volle Kontur, CCW) ==="
+  },
+  "Sim.StatusFinished": {
+    "en": "Simulation completed.",
+    "tr": "Simülasyon tamamlandı.",
+    "de": "Simulation abgeschlossen."
+  },
+  "Sim.StatusRunning": {
+    "en": "Tour {0}/{1} (full contour CCW) | L{2} (K{3}) | {4} | Edge: {5}/{6} mm",
+    "tr": "Tur {0}/{1} (tam kontur CCW) | L{2} (K{3}) | {4} | Kenar: {5}/{6} mm",
+    "de": "Durchlauf {0}/{1} (volle Kontur CCW) | L{2} (K{3}) | {4} | Kante: {5}/{6} mm"
+  },
+  "Sim.ModeCutting": {
+    "en": "CUT depth {0} mm",
+    "tr": "KESİM (derinlik {0} mm)",
+    "de": "SCHNITT (Tiefe {0} mm)"
+  },
+  "Sim.ModeRapid": {
+    "en": "RAPID (lifted)",
+    "tr": "KALKIK (rapid)",
+    "de": "EILGANG (angehoben)"
+  },
+  "Sim.ToolEngaged": {
+    "en": "[engaged]",
+    "tr": "[açık]",
+    "de": "[eingeschaltet]"
+  },
+  "Sim.ToolLifted": {
+    "en": "[lifted]",
+    "tr": "[kalkık]",
+    "de": "[angehoben]"
+  },
+  "Sim.SnapshotFormat": {
+    "en": "{0}\nTool: ({1:G4}, {2:G4}) {3}",
+    "tr": "{0}\nTaş: ({1:G4}, {2:G4}) {3}",
+    "de": "{0}\nWerkzeug: ({1:G4}, {2:G4}) {3}"
+  },
+  "Sim.EdgeLog": {
+    "en": "Tour {0}/{1} | L{2} K{3} ({4}): ({5:0.##}, {6:0.##}) → ({7:0.##}, {8:0.##}) | len {9:0.##} mm | dir {10} | {11}",
+    "tr": "Tur {0}/{1} | L{2} K{3} ({4}): ({5:0.##}, {6:0.##}) → ({7:0.##}, {8:0.##}) | uz {9:0.##} mm | yön {10} | {11}",
+    "de": "Durchlauf {0}/{1} | L{2} K{3} ({4}): ({5:0.##}, {6:0.##}) → ({7:0.##}, {8:0.##}) | Länge {9:0.##} mm | Richt. {10} | {11}"
+  },
+  "Sim.ShapeArc": {
+    "en": "arc",
+    "tr": "yay",
+    "de": "Bogen"
+  },
+  "Sim.ShapeLine": {
+    "en": "line",
+    "tr": "düz",
+    "de": "Gerade"
+  },
+  "Setup.ConfirmText": {
+    "en": "Are corner and edge numbers (K1, K2, …) correct?\n\nEdge order is CCW (0,0) reference. Radii count as separate edges.\nIf not, check the DXF file.",
+    "tr": "Şekil ve köşe numaraları (K1, K2, …) doğru mu?\n\nKenar sırası CCW (0,0) referanslıdır. Radiuslar ayrı kenar sayılır.\nHayır derseniz DXF dosyasını kontrol edin.",
+    "de": "Sind Eck- und Kantennummern (K1, K2, …) korrekt?\n\nKantenreihenfolge ist CCW (0,0)-Referenz. Radien zählen als eigene Kanten.\nFalls nicht, DXF-Datei prüfen."
+  },
+  "Setup.EdgesHint": {
+    "en": "Machining thickness and offset (mm) per edge. All edges including radii:",
+    "tr": "Her kenar için işleme kalınlığı ve offset (mm). Radius dahil tüm kenarlar:",
+    "de": "Bearbeitungsdicke und Offset (mm) pro Kante. Alle Kanten inkl. Radien:"
+  },
+  "Setup.ColEdge": {
+    "en": "Edge",
+    "tr": "Kenar",
+    "de": "Kante"
+  },
+  "Setup.ColThickness": {
+    "en": "Thickness",
+    "tr": "Kalınlık",
+    "de": "Dicke"
+  },
+  "Setup.ColOffset": {
+    "en": "Offset",
+    "tr": "Offset",
+    "de": "Offset"
+  },
+  "Setup.ToolGroup": {
+    "en": "Stone (tool)",
+    "tr": "Taş (takım)",
+    "de": "Stein (Werkzeug)"
+  },
+  "Setup.StoneWidth": {
+    "en": "Stone width (mm):",
+    "tr": "Taş genişliği (mm):",
+    "de": "Steinbreite (mm):"
+  },
+  "Setup.Overlap": {
+    "en": "Overlap (mm):",
+    "tr": "Bindirme (mm):",
+    "de": "Überlappung (mm):"
+  },
+  "Setup.ToolHint": {
+    "en": "E.g. stone 10 mm, overlap 2 → passes: 10, 8, 6… mm (no gaps between lines).",
+    "tr": "Örn. taş 10 mm, bindirme 2 → geçişler: 10, 8, 6… mm (çizgiler arasında boşluk kalmaz).",
+    "de": "Z.B. Stein 10 mm, Überlappung 2 → Gänge: 10, 8, 6… mm (keine Lücken)."
+  },
+  "Setup.CsvGroup": {
+    "en": "CSV output (this shape)",
+    "tr": "CSV çıktısı (bu şekil)",
+    "de": "CSV-Ausgabe (diese Form)"
+  },
+  "Setup.GlassThickness": {
+    "en": "Glass thickness (mm):",
+    "tr": "Cam kalınlığı (mm):",
+    "de": "Glasdicke (mm):"
+  },
+  "Setup.DesiredQty": {
+    "en": "Desired quantity:",
+    "tr": "İstenilen adet:",
+    "de": "Gewünschte Menge:"
+  },
+  "Setup.EdgeLabel": {
+    "en": "L{0} (K{1})",
+    "tr": "L{0} (K{1})",
+    "de": "L{0} (K{1})"
+  },
+  "Setup.EdgeLabelRadius": {
+    "en": "L{0} (K{1}, R{2})",
+    "tr": "L{0} (K{1}, R{2})",
+    "de": "L{0} (K{1}, R{2})"
+  },
+  "Export.CsvInfo": {
+    "en": "Edge thickness (SA), lengths (L), radius (R) and corner angles (A)\nare filled automatically from contour data.",
+    "tr": "Kenar kalınlıkları (SA), uzunluklar (L), radius (R) ve köşe açıları (A)\nkontur verisinden otomatik doldurulur.",
+    "de": "Kantendicken (SA), Längen (L), Radien (R) und Eckwinkel (A)\nwerden automatisch aus Konturdaten gefüllt."
+  },
+  "Export.GeneralThickness": {
+    "en": "General thickness (mm):",
+    "tr": "Genel kalınlık (mm):",
+    "de": "Allgemeine Dicke (mm):"
+  },
+  "Error.EmptyPath": {
+    "en": "Contour path is empty; output could not be generated.",
+    "tr": "Kontur yolu boş; çıktı üretilemedi.",
+    "de": "Konturpfad ist leer; Ausgabe konnte nicht erzeugt werden."
+  },
+  "Error.TooManyEdges": {
+    "en": "At most {0} edges supported; contour has {1} edges.",
+    "tr": "En fazla {0} kenar desteklenir; konturda {1} kenar var.",
+    "de": "Maximal {0} Kanten unterstützt; Kontur hat {1} Kanten."
+  },
+  "Error.NoRecipeData": {
+    "en": "No shapes in recipe.",
+    "tr": "Reçetede kayıtlı şekil yok.",
+    "de": "Keine Formen im Rezept."
+  },
+  "Error.NothingToSave": {
+    "en": "Nothing to save.",
+    "tr": "Kaydedilecek veri yok.",
+    "de": "Nichts zu speichern."
+  },
+  "Error.NewShape": {
+    "en": "New shape {0}: {1}",
+    "tr": "Yeni şekil {0}: {1}",
+    "de": "Neue Form {0}: {1}"
+  },
+  "Error.NoClosedContour": {
+    "en": "No closed contour found. Closed polyline or connected LINEs required.",
+    "tr": "Kapalı kontur bulunamadı. Kapalı polyline veya uç uca birleşen LINE'lar gerekir.",
+    "de": "Keine geschlossene Kontur gefunden. Geschlossene Polylinie oder verbundene LINEs erforderlich."
+  },
+  "Error.PathBuildFailed": {
+    "en": "Contour path could not be built.",
+    "tr": "Kontur yolu oluşturulamadı.",
+    "de": "Konturpfad konnte nicht erstellt werden."
+  },
+  "Error.EmptyFilePath": {
+    "en": "File path is empty.",
+    "tr": "Dosya yolu boş.",
+    "de": "Dateipfad ist leer."
+  },
+  "Error.EntityPointLists": {
+    "en": "Each entity must have a point list.",
+    "tr": "Her entity için nokta listesi olmalıdır.",
+    "de": "Jede Entität muss eine Punktliste haben."
+  },
+  "Error.FileNotFound": {
+    "en": "File not found.",
+    "tr": "Dosya bulunamadı.",
+    "de": "Datei nicht gefunden."
+  },
+  "Error.CsvInvalidSeparator": {
+    "en": "Line {0}: field separator (;) not found.",
+    "tr": "Satır {0}: alan ayırıcı (;) bulunamadı.",
+    "de": "Zeile {0}: Feldtrennzeichen (;) nicht gefunden."
+  },
+  "Error.CsvLine": {
+    "en": "Line {0}: {1}",
+    "tr": "Satır {0}: {1}",
+    "de": "Zeile {0}: {1}"
+  },
+  "Error.CsvNoRows": {
+    "en": "CSV file has no data rows.",
+    "tr": "CSV dosyasında veri satırı yok.",
+    "de": "CSV-Datei enthält keine Datenzeilen."
+  },
+  "Error.CsvEmptyLine": {
+    "en": "Empty line.",
+    "tr": "Boş satır.",
+    "de": "Leere Zeile."
+  },
+  "Error.CsvNotEnoughFields": {
+    "en": "Not enough fields in line.",
+    "tr": "Satırda yeterli alan yok.",
+    "de": "Nicht genügend Felder in der Zeile."
+  },
+  "Error.CsvRowIndex": {
+    "en": "Row index could not be read.",
+    "tr": "Satır numarası okunamadı.",
+    "de": "Zeilennummer konnte nicht gelesen werden."
+  },
+  "Error.StoneWidthPositive": {
+    "en": "Stone width must be greater than 0.",
+    "tr": "Taş genişliği 0'dan büyük olmalıdır.",
+    "de": "Steinbreite muss größer als 0 sein."
+  },
+  "Error.OverlapNonNegative": {
+    "en": "Overlap cannot be negative.",
+    "tr": "Bindirme negatif olamaz.",
+    "de": "Überlappung darf nicht negativ sein."
+  },
+  "Error.OverlapLessThanStone": {
+    "en": "Overlap must be less than stone width.",
+    "tr": "Bindirme, taş genişliğinden küçük olmalıdır.",
+    "de": "Überlappung muss kleiner als die Steinbreite sein."
+  },
+  "Convexity.Inner": {
+    "en": "Inner convex",
+    "tr": "İç bükey",
+    "de": "Innen konkav"
+  },
+  "Convexity.Outer": {
+    "en": "Outer convex",
+    "tr": "Dış bükey",
+    "de": "Außen konvex"
+  },
+  "Convexity.Unknown": {
+    "en": "Unknown",
+    "tr": "Belirsiz",
+    "de": "Unbekannt"
+  },
+  "Analysis.EdgeKindRadius": {
+    "en": "Edge {0} / Arc R{1} (Corner {2})",
+    "tr": "Kenar {0} / Yay R{1} (Köşe {2})",
+    "de": "Kante {0} / Bogen R{1} (Ecke {2})"
+  },
+  "Analysis.EdgeKind": {
+    "en": "Edge {0} (Corner {1})",
+    "tr": "Kenar {0} (Köşe {1})",
+    "de": "Kante {0} (Ecke {1})"
+  },
+  "Analysis.EdgeSection": {
+    "en": "--- {0} ---",
+    "tr": "--- {0} ---",
+    "de": "--- {0} ---"
+  },
+  "Analysis.EdgeSource": {
+    "en": "Edge {0}",
+    "tr": "Kenar {0}",
+    "de": "Kante {0}"
+  },
+  "Analysis.ArcSource": {
+    "en": "Arc",
+    "tr": "Yay",
+    "de": "Bogen"
+  },
+  "Analysis.Start": {
+    "en": "Start: {0} {1}",
+    "tr": "Başlangıç: {0} {1}",
+    "de": "Start: {0} {1}"
+  },
+  "Analysis.End": {
+    "en": "End: {0} {1}",
+    "tr": "Bitiş: {0} {1}",
+    "de": "Ende: {0} {1}"
+  },
+  "Analysis.Length": {
+    "en": "Length: {0} mm",
+    "tr": "Uzunluk: {0} mm",
+    "de": "Länge: {0} mm"
+  },
+  "Analysis.RadiusHeader": {
+    "en": "--- Radius {0} ({1}) ---",
+    "tr": "--- Radius {0} ({1}) ---",
+    "de": "--- Radius {0} ({1}) ---"
+  },
+  "Analysis.Convexity": {
+    "en": "Convexity: {0}",
+    "tr": "Bükeylik: {0}",
+    "de": "Konvexität: {0}"
+  },
+  "Analysis.Center": {
+    "en": "Center: {0} {1}",
+    "tr": "Merkez: {0} {1}",
+    "de": "Mitte: {0} {1}"
+  },
+  "Analysis.RadiusValue": {
+    "en": "R: {0}",
+    "tr": "R: {0}",
+    "de": "R: {0}"
+  },
+  "Analysis.StartCornerAngle": {
+    "en": "Start corner angle° (chord–edge): {0}",
+    "tr": "Başlangıç köşe açısı° (kiriş–kenar): {0}",
+    "de": "Start-Eckwinkel° (Sehne–Kante): {0}"
+  },
+  "Analysis.EndCornerAngle": {
+    "en": "End corner angle° (chord–edge): {0}",
+    "tr": "Bitiş köşe açısı° (kiriş–kenar): {0}",
+    "de": "End-Eckwinkel° (Sehne–Kante): {0}"
+  },
+  "Analysis.VirtualCornerAngle": {
+    "en": "Virtual corner angle° (two straight edges): {0}",
+    "tr": "Sanal köşe açısı° (iki düz kenar): {0}",
+    "de": "Virtueller Eckwinkel° (zwei Geraden): {0}"
+  },
+  "Analysis.StartEdgeDir": {
+    "en": "Start edge direction°: {0}",
+    "tr": "Başlangıç kenar yön°: {0}",
+    "de": "Start-Kantenrichtung°: {0}"
+  },
+  "Analysis.EndEdgeDir": {
+    "en": "End edge direction°: {0}",
+    "tr": "Bitiş kenar yön°: {0}",
+    "de": "End-Kantenrichtung°: {0}"
+  },
+  "Analysis.StartTangent": {
+    "en": "Start tangent°: {0}",
+    "tr": "Başlangıç teğet°: {0}",
+    "de": "Start-Tangente°: {0}"
+  },
+  "Analysis.EndTangent": {
+    "en": "End tangent°: {0}",
+    "tr": "Bitiş teğet°: {0}",
+    "de": "End-Tangente°: {0}"
+  },
+  "Log.StoneWidth": {
+    "en": "Stone width: {0} mm",
+    "tr": "Taş genişliği: {0} mm",
+    "de": "Steinbreite: {0} mm"
+  },
+  "Log.Overlap": {
+    "en": "Overlap: {0} mm",
+    "tr": "Bindirme: {0} mm",
+    "de": "Überlappung: {0} mm"
+  },
+  "Log.TotalTours": {
+    "en": "Total contour tours: {0} (each tour L1→L2→… full shape, CCW)",
+    "tr": "Toplam kontur turu: {0} (her turda L1→L2→… tam şekil, CCW)",
+    "de": "Konturdurchläufe gesamt: {0} (jeder Durchlauf L1→L2→… volle Form, CCW)"
+  },
+  "Log.EdgeTarget": {
+    "en": "--- L{0} target thickness {1} mm ---",
+    "tr": "--- L{0} hedef kalınlık {1} mm ---",
+    "de": "--- L{0} Zieldicke {1} mm ---"
+  },
+  "Log.EdgeSkipped": {
+    "en": "  This edge is not machined in tours (0 mm); tool passes lifted.",
+    "tr": "  Bu kenar turlarda işlenmez (0 mm); taş kalkık geçilir.",
+    "de": "  Diese Kante wird in Durchläufen nicht bearbeitet (0 mm); Werkzeug angehoben."
+  },
+  "Log.TourDepth": {
+    "en": "  Contour tour {0}: depth {1} mm",
+    "tr": "  Kontur tur {0}: derinlik {1} mm",
+    "de": "  Konturdurchlauf {0}: Tiefe {1} mm"
+  },
+  "Log.TourNoCut": {
+    "en": "  Contour tour {0}: no machining (tool lifted)",
+    "tr": "  Kontur tur {0}: işleme yok (taş kalkık)",
+    "de": "  Konturdurchlauf {0}: keine Bearbeitung (Werkzeug angehoben)"
+  },
+  "Report.Title": {
+    "en": "=== SIMULATION REPORT ===",
+    "tr": "=== SİMÜLASYON RAPORU ===",
+    "de": "=== SIMULATIONSBERICHT ==="
+  },
+  "Report.File": {
+    "en": "File: {0}",
+    "tr": "Dosya: {0}",
+    "de": "Datei: {0}"
+  },
+  "Report.TotalTours": {
+    "en": "Total tour count: {0}",
+    "tr": "Toplam Tur Sayısı: {0}",
+    "de": "Gesamtzahl Durchläufe: {0}"
+  },
+  "Report.TotalMovement": {
+    "en": "Total machine movement: {0} mm",
+    "tr": "Toplam Makine Hareketi: {0} mm",
+    "de": "Gesamte Maschinenbewegung: {0} mm"
+  },
+  "Report.CuttingDistance": {
+    "en": " - Cutting: {0} mm",
+    "tr": " - Dolu İşleme: {0} mm",
+    "de": " - Bearbeitung: {0} mm"
+  },
+  "Report.RapidDistance": {
+    "en": " - Rapid traverse: {0} mm",
+    "tr": " - Boşta (Rapid) Geçiş: {0} mm",
+    "de": " - Eilgang: {0} mm"
+  },
+  "Report.EstimatedTime": {
+    "en": "Estimated time: {0} min (assuming cut 2 m/min, rapid 5 m/min)",
+    "tr": "Tahmini Süre: {0} dakika (Kesim: 2m/dk, Rapid: 5m/dk varsayımıyla)",
+    "de": "Geschätzte Zeit: {0} Min. (Annahme Schnitt 2 m/min, Eilgang 5 m/min)"
+  },
+  "Report.EdgeDetails": {
+    "en": "--- EDGE DETAILS ---",
+    "tr": "--- KENAR DETAYLARI ---",
+    "de": "--- KANTENDETAILS ---"
+  },
+  "Report.EdgeNotMachined": {
+    "en": "L{0}: Not machined (Target: 0 mm)",
+    "tr": "L{0}: İşlenmedi (Hedef: 0 mm)",
+    "de": "L{0}: Nicht bearbeitet (Ziel: 0 mm)"
+  },
+  "Report.EdgeTarget": {
+    "en": "L{0}: Target thickness = {1} mm",
+    "tr": "L{0}: Hedef Kalınlık = {1} mm",
+    "de": "L{0}: Zieldicke = {1} mm"
+  },
+  "Report.EdgePosition": {
+    "en": "   Position ({0}): ({1:0.##}, {2:0.##}) → ({3:0.##}, {4:0.##}) | length {5:0.##} mm",
+    "tr": "   Konum ({0}): ({1:0.##}, {2:0.##}) → ({3:0.##}, {4:0.##}) | uzunluk {5:0.##} mm",
+    "de": "   Position ({0}): ({1:0.##}, {2:0.##}) → ({3:0.##}, {4:0.##}) | Länge {5:0.##} mm"
+  },
+  "Report.Offset": {
+    "en": "   -> Offset: {0} mm",
+    "tr": "   -> Offset: {0} mm",
+    "de": "   -> Offset: {0} mm"
+  },
+  "Report.TotalPasses": {
+    "en": "   -> Total passes: {0}",
+    "tr": "   -> Toplam Tur (Pass): {0}",
+    "de": "   -> Gesamte Gänge: {0}"
+  },
+  "Report.PassDepth": {
+    "en": "      Tour {0}: Depth {1} mm",
+    "tr": "      Tur {0}: Derinlik {1} mm",
+    "de": "      Durchlauf {0}: Tiefe {1} mm"
+  },
+  "Report.Note": {
+    "en": "Note: On completed edges the machine lifts the tool (rapid) before moving to other edges.",
+    "tr": "Not: Hedefi tamamlanan kenarlarda makine taşı kaldırarak (rapid) diğer kenarlara devam etmiştir.",
+    "de": "Hinweis: Bei fertigen Kanten hebt die Masine das Werkzeug (Eilgang) vor dem Wechsel."
+  },
+  "File.DefaultCsv": {
+    "en": "recipe.csv",
+    "tr": "recete.csv",
+    "de": "rezept.csv"
+  },
+  "File.DefaultDat": {
+    "en": "recipe.dat",
+    "tr": "recete.dat",
+    "de": "rezept.dat"
+  },
+  "Render.CornerCoords": {
+    "en": "C{0}\r\n{1} , {2}",
+    "tr": "K{0}\r\n{1} , {2}",
+    "de": "E{0}\r\n{1} , {2}"
+  },
+  "Render.RadiusStartAngle": {
+    "en": "R{0} start {1}°",
+    "tr": "R{0} baş {1}°",
+    "de": "R{0} Anfang {1}°"
+  },
+  "Render.RadiusEndAngle": {
+    "en": "R{0} end {1}°",
+    "tr": "R{0} bit {1}°",
+    "de": "R{0} Ende {1}°"
+  }
+}

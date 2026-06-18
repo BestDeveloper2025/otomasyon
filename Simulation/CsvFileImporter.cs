@@ -1,4 +1,5 @@
 using System.Text;
+using otomasyon.Localization;
 using otomasyon.Models.Recipe;
 
 namespace otomasyon.Simulation;
@@ -12,13 +13,13 @@ public static class CsvFileImporter
 
         if (string.IsNullOrWhiteSpace(filePath))
         {
-            error = "Dosya yolu boş.";
+            error = L.Get("Error.EmptyFilePath");
             return false;
         }
 
         if (!File.Exists(filePath))
         {
-            error = "Dosya bulunamadı.";
+            error = L.Get("Error.FileNotFound");
             return false;
         }
 
@@ -38,13 +39,13 @@ public static class CsvFileImporter
 
                 if (!line.Contains(';'))
                 {
-                    error = $"Satır {lineNo}: alan ayırıcı (;) bulunamadı.";
+                    error = L.F("Error.CsvInvalidSeparator", lineNo);
                     return false;
                 }
 
                 if (!CsvLineParser.TryParse(line, sourceName, out ImportedCsvRow row, out string? rowError))
                 {
-                    error = $"Satır {lineNo}: {rowError}";
+                    error = L.F("Error.CsvLine", lineNo, rowError ?? string.Empty);
                     return false;
                 }
 
@@ -53,7 +54,7 @@ public static class CsvFileImporter
 
             if (batchBuilder.Rows.Count == 0)
             {
-                error = "CSV dosyasında veri satırı yok.";
+                error = L.Get("Error.CsvNoRows");
                 return false;
             }
 

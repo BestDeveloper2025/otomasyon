@@ -14,6 +14,9 @@ namespace otomasyon
         private Button _btnImportCsv = null!;
         private Button _btnExportBatchCsv = null!;
         private Button _btnExportBatchDat = null!;
+        private Panel _langPanel = null!;
+        private Label _lblLanguage = null!;
+        private ComboBox _cmbLanguage = null!;
         private Label _lblFilePath = null!;
 
         private DrawingPanel _drawPanel = null!;
@@ -51,7 +54,7 @@ namespace otomasyon
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1180, 760);
             MinimumSize = new Size(900, 560);
-            Text = "DXF Analiz ve Reçete Aracı";
+            Text = "DXF Analysis and Recipe Tool";
             StartPosition = FormStartPosition.CenterScreen;
             Font = uiFont;
             BackColor = Color.White;
@@ -75,15 +78,15 @@ namespace otomasyon
                 Padding = new Padding(0)
             };
 
-            _btnSelectFile = CreateToolbarButton("Dosya Seç", 100);
-            _btnAddToRecipe = CreateToolbarButton("Reçeteye Ekle", 120);
+            _btnSelectFile = CreateToolbarButton("Select File", 100);
+            _btnAddToRecipe = CreateToolbarButton("Add to Recipe", 120);
             _btnAddToRecipe.Enabled = false;
-            _btnSimulation = CreateToolbarButton("Simülasyon", 110);
+            _btnSimulation = CreateToolbarButton("Simulation", 110);
             _btnSimulation.Enabled = false;
-            _btnImportCsv = CreateToolbarButton("CSV İçe Aktar", 120);
-            _btnExportBatchCsv = CreateToolbarButton("Toplu CSV Çıktı", 130);
+            _btnImportCsv = CreateToolbarButton("Import CSV", 120);
+            _btnExportBatchCsv = CreateToolbarButton("Batch CSV Export", 130);
             _btnExportBatchCsv.Enabled = false;
-            _btnExportBatchDat = CreateToolbarButton("Toplu DAT Çıktı", 130);
+            _btnExportBatchDat = CreateToolbarButton("Batch DAT Export", 130);
             _btnExportBatchDat.Enabled = false;
 
             _toolbarFlow.Controls.Add(_btnSelectFile);
@@ -93,10 +96,36 @@ namespace otomasyon
             _toolbarFlow.Controls.Add(_btnExportBatchCsv);
             _toolbarFlow.Controls.Add(_btnExportBatchDat);
 
+            _langPanel = new Panel
+            {
+                Dock = DockStyle.Right,
+                Width = 200,
+                Padding = new Padding(4, 6, 0, 0)
+            };
+
+            _lblLanguage = new Label
+            {
+                Text = "Language",
+                AutoSize = true,
+                Location = new Point(0, 10),
+                Font = uiFont
+            };
+
+            _cmbLanguage = new ComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Width = 110,
+                Location = new Point(72, 6),
+                Font = uiFont
+            };
+
+            _langPanel.Controls.Add(_cmbLanguage);
+            _langPanel.Controls.Add(_lblLanguage);
+
             _lblFilePath = new Label
             {
                 Dock = DockStyle.Fill,
-                Text = "Henüz dosya seçilmedi.",
+                Text = "No file selected yet.",
                 TextAlign = ContentAlignment.MiddleLeft,
                 AutoEllipsis = true,
                 Padding = new Padding(12, 0, 0, 0),
@@ -105,6 +134,7 @@ namespace otomasyon
             };
 
             _topPanel.Controls.Add(_lblFilePath);
+            _topPanel.Controls.Add(_langPanel);
             _topPanel.Controls.Add(_toolbarFlow);
 
             // --- Alt durum çubuğu ---
@@ -119,7 +149,7 @@ namespace otomasyon
             _lblResults = new Label
             {
                 Dock = DockStyle.Fill,
-                Text = "Kontur kenar: — | Radius: — | Yay: — | Daire: — | Entity: —",
+                Text = "Contour edges: — | Radius: — | Arc: — | Circle: — | Entity: —",
                 TextAlign = ContentAlignment.MiddleLeft,
                 ForeColor = Color.FromArgb(50, 50, 50),
                 Font = uiFont
@@ -129,7 +159,7 @@ namespace otomasyon
             {
                 Dock = DockStyle.Right,
                 Width = 160,
-                Text = "Reçete: 0 şekil",
+                Text = "Recipe: 0 shapes",
                 TextAlign = ContentAlignment.MiddleRight,
                 ForeColor = Color.FromArgb(30, 100, 180),
                 Font = headerFont
@@ -157,7 +187,7 @@ namespace otomasyon
             {
                 Dock = DockStyle.Top,
                 Height = 28,
-                Text = "Reçete",
+                Text = "Recipe",
                 Font = headerFont,
                 ForeColor = Color.FromArgb(35, 35, 35)
             };
@@ -170,9 +200,9 @@ namespace otomasyon
                 Padding = new Padding(0, 4, 0, 0)
             };
 
-            _btnRemoveRecipe = CreateSmallButton("Seçileni Kaldır", 120);
+            _btnRemoveRecipe = CreateSmallButton("Remove Selected", 120);
             _btnRemoveRecipe.Enabled = false;
-            _btnClearRecipe = CreateSmallButton("Tümünü Temizle", 110);
+            _btnClearRecipe = CreateSmallButton("Clear All", 110);
             _btnClearRecipe.Enabled = false;
 
             _recipeActions.Controls.Add(_btnRemoveRecipe);
@@ -190,11 +220,11 @@ namespace otomasyon
                 Font = uiFont
             };
             _lvRecipe.Columns.Add("#", 36, HorizontalAlignment.Right);
-            _lvRecipe.Columns.Add("Dosya", 160, HorizontalAlignment.Left);
-            _lvRecipe.Columns.Add("Kenar", 48, HorizontalAlignment.Center);
-            _lvRecipe.Columns.Add("Cam kalınlığı", 78, HorizontalAlignment.Center);
-            _lvRecipe.Columns.Add("Adet", 44, HorizontalAlignment.Center);
-            _lvRecipe.Columns.Add("Kaynak", 72, HorizontalAlignment.Left);
+            _lvRecipe.Columns.Add("File", 160, HorizontalAlignment.Left);
+            _lvRecipe.Columns.Add("Edge", 48, HorizontalAlignment.Center);
+            _lvRecipe.Columns.Add("Glass thickness", 78, HorizontalAlignment.Center);
+            _lvRecipe.Columns.Add("Qty", 44, HorizontalAlignment.Center);
+            _lvRecipe.Columns.Add("Source", 72, HorizontalAlignment.Left);
 
             _recipePanel.Controls.Add(_lvRecipe);
             _recipePanel.Controls.Add(_recipeActions);

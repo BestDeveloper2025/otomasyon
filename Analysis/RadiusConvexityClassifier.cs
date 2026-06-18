@@ -1,3 +1,4 @@
+using otomasyon.Localization;
 using otomasyon.Models;
 
 namespace otomasyon.Analysis;
@@ -32,8 +33,8 @@ public static class RadiusConvexityClassifier
 
     public static string ToDisplayName(RadiusConvexity c) => c switch
     {
-        RadiusConvexity.IcBubey => "İç bükey",
-        RadiusConvexity.DisBubey => "Dış bükey",
-        _ => "Belirsiz"
+        RadiusConvexity.IcBubey => L.Get("Convexity.Inner"),
+        RadiusConvexity.DisBubey => L.Get("Convexity.Outer"),
+        _ => L.Get("Convexity.Unknown")
     };
 }

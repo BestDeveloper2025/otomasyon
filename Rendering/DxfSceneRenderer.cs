@@ -2,6 +2,7 @@ using System.Drawing.Text;
 using System.Globalization;
 using netDxf.Entities;
 using otomasyon.Geometry;
+using otomasyon.Localization;
 using otomasyon.Models;
 
 namespace otomasyon.Rendering;
@@ -89,7 +90,9 @@ public sealed class DxfSceneRenderer
         {
             var corner = corners[i];
             string text = corner.CornerIndex is int k
-                ? string.Format(CultureInfo.InvariantCulture, "K{0}\r\n{1:G6} , {2:G6}", k, corner.X, corner.Y)
+                ? L.F("Render.CornerCoords", k,
+                    corner.X.ToString("G6", CultureInfo.InvariantCulture),
+                    corner.Y.ToString("G6", CultureInfo.InvariantCulture))
                 : string.Format(CultureInfo.InvariantCulture, "{0:G6} , {1:G6}", corner.X, corner.Y);
 
             var screenPt = transform.ToScreen(corner.X, corner.Y);

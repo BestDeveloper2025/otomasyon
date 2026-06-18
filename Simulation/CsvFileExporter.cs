@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using otomasyon.Analysis;
 using otomasyon.Geometry;
+using otomasyon.Localization;
 using otomasyon.Models;
 using otomasyon.Models.Simulation;
 
@@ -70,6 +71,12 @@ public static class CsvFileExporter
         string filePath,
         out string? error)
     {
+        if (jobs.Count == 0)
+        {
+            error = L.Get("Error.NoRecipeData");
+            return false;
+        }
+
         var entries = new (SimulationJob Job, ExportOptions Options)[jobs.Count];
         for (int i = 0; i < jobs.Count; i++)
             entries[i] = (jobs[i], options);
@@ -137,13 +144,13 @@ public static class CsvFileExporter
 
         if (job.Path.Segments.Count == 0)
         {
-            error = "Kontur yolu boş; çıktı üretilemedi.";
+            error = L.Get("Error.EmptyPath");
             return false;
         }
 
         if (job.Path.Segments.Count > SlotCount)
         {
-            error = $"En fazla {SlotCount} kenar desteklenir; konturda {job.Path.Segments.Count} kenar var.";
+            error = L.F("Error.TooManyEdges", SlotCount, job.Path.Segments.Count);
             return false;
         }
 

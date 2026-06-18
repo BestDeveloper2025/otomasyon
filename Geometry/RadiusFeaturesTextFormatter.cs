@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using otomasyon.Analysis;
+using otomasyon.Localization;
 using otomasyon.Models;
 
 namespace otomasyon.Geometry;
@@ -21,31 +22,23 @@ public static class RadiusFeaturesTextFormatter
             if (sb.Length > 0)
                 sb.AppendLine();
 
-            sb.AppendLine(CultureInfo.InvariantCulture, $"--- Radius {f.Index} ({f.SourceLabel}) ---");
-            sb.AppendLine(CultureInfo.InvariantCulture,
-                $"Bükeylik: {RadiusConvexityClassifier.ToDisplayName(f.Convexity)}");
-            sb.AppendLine(CultureInfo.InvariantCulture,
-                $"Merkez: {f.CenterX:G9} {f.CenterY:G9}");
-            sb.AppendLine(CultureInfo.InvariantCulture,
-                $"R: {f.Radius:G9}");
-            sb.AppendLine(CultureInfo.InvariantCulture,
-                $"Başlangıç: {f.StartX:G9} {f.StartY:G9}");
-            sb.AppendLine(CultureInfo.InvariantCulture,
-                $"Bitiş: {f.EndX:G9} {f.EndY:G9}");
-            sb.AppendLine(CultureInfo.InvariantCulture,
-                $"Başlangıç köşe açısı° (kiriş–kenar): {f.StartCornerAngleDeg:0.###}");
-            sb.AppendLine(CultureInfo.InvariantCulture,
-                $"Bitiş köşe açısı° (kiriş–kenar): {f.EndCornerAngleDeg:0.###}");
-            sb.AppendLine(CultureInfo.InvariantCulture,
-                $"Sanal köşe açısı° (iki düz kenar): {f.CornerAngleDeg:0.###}");
-            sb.AppendLine(CultureInfo.InvariantCulture,
-                $"Başlangıç kenar yön°: {f.StartEdgeAngleDeg:G6}");
-            sb.AppendLine(CultureInfo.InvariantCulture,
-                $"Bitiş kenar yön°: {f.EndEdgeAngleDeg:G6}");
-            sb.AppendLine(CultureInfo.InvariantCulture,
-                $"Başlangıç teğet°: {f.StartTangentAngleDeg:G6}");
-            sb.AppendLine(CultureInfo.InvariantCulture,
-                $"Bitiş teğet°: {f.EndTangentAngleDeg:G6}");
+            var inv = CultureInfo.InvariantCulture;
+            string source = f.EdgeIndex > 0
+                ? L.F("Analysis.EdgeSource", f.EdgeIndex)
+                : L.Get("Analysis.ArcSource");
+            sb.AppendLine(L.F("Analysis.RadiusHeader", f.Index, source));
+            sb.AppendLine(L.F("Analysis.Convexity", RadiusConvexityClassifier.ToDisplayName(f.Convexity)));
+            sb.AppendLine(L.F("Analysis.Center", f.CenterX.ToString("G9", inv), f.CenterY.ToString("G9", inv)));
+            sb.AppendLine(L.F("Analysis.RadiusValue", f.Radius.ToString("G9", inv)));
+            sb.AppendLine(L.F("Analysis.Start", f.StartX.ToString("G9", inv), f.StartY.ToString("G9", inv)));
+            sb.AppendLine(L.F("Analysis.End", f.EndX.ToString("G9", inv), f.EndY.ToString("G9", inv)));
+            sb.AppendLine(L.F("Analysis.StartCornerAngle", f.StartCornerAngleDeg.ToString("0.###", inv)));
+            sb.AppendLine(L.F("Analysis.EndCornerAngle", f.EndCornerAngleDeg.ToString("0.###", inv)));
+            sb.AppendLine(L.F("Analysis.VirtualCornerAngle", f.CornerAngleDeg.ToString("0.###", inv)));
+            sb.AppendLine(L.F("Analysis.StartEdgeDir", f.StartEdgeAngleDeg.ToString("G6", inv)));
+            sb.AppendLine(L.F("Analysis.EndEdgeDir", f.EndEdgeAngleDeg.ToString("G6", inv)));
+            sb.AppendLine(L.F("Analysis.StartTangent", f.StartTangentAngleDeg.ToString("G6", inv)));
+            sb.AppendLine(L.F("Analysis.EndTangent", f.EndTangentAngleDeg.ToString("G6", inv)));
         }
 
         return sb.ToString().TrimEnd();

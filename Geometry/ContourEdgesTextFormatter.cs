@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using otomasyon.Localization;
 using otomasyon.Models;
 
 namespace otomasyon.Geometry;
@@ -21,17 +22,15 @@ public static class ContourEdgesTextFormatter
                 sb.AppendLine();
 
             string kind = e.IsRadiusSegment && e.RadiusIndex is int ri
-                ? $"Kenar {e.Index} / Yay R{ri} (Köşe {e.CornerIndex})"
-                : $"Kenar {e.Index} (Köşe {e.CornerIndex})";
-            sb.AppendLine(CultureInfo.InvariantCulture, $"--- {kind} ---");
-            sb.AppendLine(CultureInfo.InvariantCulture,
-                $"Başlangıç: {e.StartX:G9} {e.StartY:G9}");
-            sb.AppendLine(CultureInfo.InvariantCulture,
-                $"Bitiş: {e.EndX:G9} {e.EndY:G9}");
+                ? L.F("Analysis.EdgeKindRadius", e.Index, ri, e.CornerIndex)
+                : L.F("Analysis.EdgeKind", e.Index, e.CornerIndex);
+            sb.AppendLine(L.F("Analysis.EdgeSection", kind));
+            sb.AppendLine(L.F("Analysis.Start", e.StartX.ToString("G9", CultureInfo.InvariantCulture), e.StartY.ToString("G9", CultureInfo.InvariantCulture)));
+            sb.AppendLine(L.F("Analysis.End", e.EndX.ToString("G9", CultureInfo.InvariantCulture), e.EndY.ToString("G9", CultureInfo.InvariantCulture)));
             double len = e.LengthMm > 0
                 ? e.LengthMm
                 : SegmentLength.FromBulgeMm(e.StartX, e.StartY, e.EndX, e.EndY, e.Bulge);
-            sb.AppendLine(CultureInfo.InvariantCulture, $"Uzunluk: {len:G6} mm");
+            sb.AppendLine(L.F("Analysis.Length", len.ToString("G6", CultureInfo.InvariantCulture)));
         }
 
         return sb.ToString().TrimEnd();

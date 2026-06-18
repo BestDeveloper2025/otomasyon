@@ -2,6 +2,7 @@ using netDxf;
 using otomasyon.Analysis;
 using otomasyon.Dxf;
 using otomasyon.Geometry;
+using otomasyon.Localization;
 using otomasyon.Models;
 using otomasyon.Models.Recipe;
 using otomasyon.Models.Simulation;
@@ -11,10 +12,7 @@ using otomasyon.UI;
 
 namespace otomasyon;
 
-/// <summary>
-/// DXF yükler, sahneyi gösterir; reçete oluşturma ve toplu CSV çıktısı.
-/// </summary>
-public partial class Form1 : Form
+public partial class Form1 : Form, ILocalizable
 {
     private const double PaddingPixels = 20d;
 
@@ -25,6 +23,7 @@ public partial class Form1 : Form
 
     private DxfScene _scene = DxfScene.Empty;
     private string _currentFilePath = string.Empty;
+    private bool _syncingLanguage;
 
     public Form1()
     {
@@ -39,13 +38,89 @@ public partial class Form1 : Form
         _btnClearRecipe.Click += BtnClearRecipe_Click;
         _lvRecipe.SelectedIndexChanged += (_, _) => RefreshRecipeActionButtons();
         _drawPanel.Paint += DrawPanel_Paint;
+        _cmbLanguage.SelectedIndexChanged += CmbLanguage_SelectedIndexChanged;
+        LocalizationManager.LanguageChanged += OnLanguageChanged;
+        InitLanguageCombo();
+        ApplyLocalization();
     }
 
-    private void Form1_Load(object? sender, EventArgs e)
+    private void OnLanguageChanged(object? sender, EventArgs e)
     {
-        ApplyInitialSplitLayout();
-        RefreshRecipeUi();
+        if (!IsDisposed)
+            ApplyLocalization();
     }
+
+    private void InitLanguageCombo()
+    {
+        _cmbLanguage.Items.Clear();
+        _cmbLanguage.Items.Add(new LanguageComboItem(AppLanguage.English));
+        _cmbLanguage.Items.Add(new LanguageComboItem(AppLanguage.Turkish));
+        _cmbLanguage.Items.Add(new LanguageComboItem(AppLanguage.German));
+    }
+
+    private void CmbLanguage_SelectedIndexChanged(object? sender, EventArgs e)
+    {
+        if (_syncingLanguage || _cmbLanguage.SelectedItem is not LanguageComboItem item)
+            return;
+
+        LocalizationManager.SetLanguage(item.Language);
+    }
+
+    public void ApplyLocalization()
+    {
+        _syncingLanguage = true;
+
+        Text = L.Get("App.Title");
+        _lblLanguage.Text = L.Get("Lang.Label");
+        _btnSelectFile.Text = L.Get("Btn.SelectFile");
+        _btnAddToRecipe.Text = L.Get("Btn.AddToRecipe");
+        _btnSimulation.Text = L.Get("Btn.Simulation");
+        _btnImportCsv.Text = L.Get("Btn.ImportCsv");
+        _btnExportBatchCsv.Text = L.Get("Btn.ExportBatchCsv");
+        _btnExportBatchDat.Text = L.Get("Btn.ExportBatchDat");
+        _btnRemoveRecipe.Text = L.Get("Btn.RemoveSelected");
+        _btnClearRecipe.Text = L.Get("Btn.ClearAll");
+        _lblRecipeHeader.Text = L.Get("Label.Recipe");
+
+        if (string.IsNullOrWhiteSpace(_currentFilePath))
+            _lblFilePath.Text = L.Get("Label.NoFileSelected");
+
+        if (_lvRecipe.Columns.Count >= 6)
+        {
+            _lvRecipe.Columns[0].Text = L.Get("Col.Index");
+            _lvRecipe.Columns[1].Text = L.Get("Col.File");
+            _lvRecipe.Columns[2].Text = L.Get("Col.Edge");
+            _lvRecipe.Columns[3].Text = L.Get("Col.GlassThickness");
+            _lvRecipe.Columns[4].Text = L.Get("Col.Quantity");
+            _lvRecipe.Columns[5].Text = L.Get("Col.Source");
+        }
+
+        InitLanguageCombo();
+        RefreshLanguageComboSelection();
+        RefreshResultsUi();
+        if (_scene.ContourEdges.Count > 0 || _scene.RadiusFeatures.Count > 0)
+            _txtCoordinates.Text = SceneResultsTextFormatter.Format(_scene);
+        RebuildRecipeList();
+        RefreshRecipeUi();
+        _drawPanel.Invalidate();
+
+        _syncingLanguage = false;
+    }
+
+    private void RefreshLanguageComboSelection()
+    {
+        for (int i = 0; i < _cmbLanguage.Items.Count; i++)
+        {
+            if (_cmbLanguage.Items[i] is LanguageComboItem item &&
+                item.Language == LocalizationManager.CurrentLanguage)
+            {
+                _cmbLanguage.SelectedIndex = i;
+                return;
+            }
+        }
+    }
+
+    private void Form1_Load(object? sender, EventArgs e) => ApplyInitialSplitLayout();
 
     private void ApplyInitialSplitLayout()
     {
@@ -76,8 +151,8 @@ public partial class Form1 : Form
         {
             using var dlg = new OpenFileDialog
             {
-                Filter = "DXF Dosyaları (*.dxf)|*.dxf",
-                Title = "DXF dosyası seçin"
+                Filter = L.Get("Filter.Dxf"),
+                Title = L.Get("Dialog.SelectDxf")
             };
 
             if (dlg.ShowDialog(this) != DialogResult.OK)
@@ -91,8 +166,8 @@ public partial class Form1 : Form
         catch (Exception ex)
         {
             MessageBox.Show(this,
-                "Dosya açılırken hata oluştu:\n" + ex.Message,
-                "Hata",
+                L.F("Msg.FileOpenError", ex.Message),
+                L.Get("Title.Error"),
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error);
         }
@@ -109,8 +184,8 @@ public partial class Form1 : Form
             if (doc is null)
             {
                 MessageBox.Show(this,
-                    "DXF dosyası yüklenemedi (işlem null döndü).",
-                    "DXF",
+                    L.Get("Msg.DxfLoadNull"),
+                    L.Get("Title.Dxf"),
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
                 RefreshResultsUi();
@@ -126,8 +201,8 @@ public partial class Form1 : Form
         catch (Exception ex)
         {
             MessageBox.Show(this,
-                "DXF okunamadı veya çözümlenemedi:\n" + ex.Message,
-                "DXF Okuma Hatası",
+                L.F("Msg.DxfParseError", ex.Message),
+                L.Get("Title.DxfReadError"),
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error);
             _txtCoordinates.Clear();
@@ -138,8 +213,7 @@ public partial class Form1 : Form
     private void RefreshResultsUi()
     {
         var s = _scene.Statistics;
-        _lblResults.Text = string.Format(System.Globalization.CultureInfo.InvariantCulture,
-            "Kontur kenar: {0} | Radius: {1} | Yay: {2} | Daire: {3} | Entity: {4}",
+        _lblResults.Text = L.F("Status.Stats",
             s.ContourEdgeCount,
             s.RadiusFeatureCount,
             s.ArcCount,
@@ -160,9 +234,7 @@ public partial class Form1 : Form
                 out CsvFileExporter.ExportOptions? exportOptions))
         {
             if (!string.IsNullOrEmpty(error))
-            {
-                MessageBox.Show(this, error, "Reçete", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
+                MessageBox.Show(this, error, L.Get("Title.Recipe"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
@@ -175,12 +247,12 @@ public partial class Form1 : Form
         };
 
         _recipeItems.Add(item);
-        AddRecipeListItem(item, _recipeItems.Count);
+        AddRecipeListItem(item, _recipeItems.Count + (_importedCsv?.LineCount ?? 0));
         RefreshRecipeUi();
 
         MessageBox.Show(this,
-            $"\"{item.DisplayName}\" reçeteye eklendi.\nBaşka bir DXF yükleyip işleme devam edebilirsiniz.",
-            "Reçete",
+            L.F("Msg.RecipeAdded", item.DisplayName),
+            L.Get("Title.Recipe"),
             MessageBoxButtons.OK,
             MessageBoxIcon.Information);
     }
@@ -194,9 +266,7 @@ public partial class Form1 : Form
                 out _))
         {
             if (!string.IsNullOrEmpty(error))
-            {
-                MessageBox.Show(this, error, "Simülasyon", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
+                MessageBox.Show(this, error, L.Get("Title.Simulation"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
@@ -216,7 +286,7 @@ public partial class Form1 : Form
 
         if (!ContourPathOrderer.HasSimulatableContour(_scene))
         {
-            error = "Simülasyon için kapalı bir kontur gerekir (kapalı polyline veya birleşen çizgiler).";
+            error = L.Get("Msg.SimNeedClosedContour");
             return false;
         }
 
@@ -228,7 +298,7 @@ public partial class Form1 : Form
 
         if (purpose == SetupPurpose.Recipe && setup.CsvExportOptions is null)
         {
-            error = "CSV çıktı parametreleri eksik.";
+            error = L.Get("Msg.CsvParamsMissing");
             return false;
         }
 
@@ -252,8 +322,8 @@ public partial class Form1 : Form
     {
         using var dlg = new OpenFileDialog
         {
-            Filter = "CSV Dosyası (*.csv)|*.csv",
-            Title = "Mevcut CSV dosyasını içe aktar",
+            Filter = L.Get("Filter.Csv"),
+            Title = L.Get("Dialog.ImportCsv"),
             InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
         };
 
@@ -263,9 +333,8 @@ public partial class Form1 : Form
         if (_importedCsv is not null)
         {
             var replace = MessageBox.Show(this,
-                $"Zaten içe aktarılmış bir CSV var ({_importedCsv.DisplayName}, {_importedCsv.LineCount} satır).\n" +
-                "Yeni dosya ile değiştirilsin mi?",
-                "CSV İçe Aktar",
+                L.F("Msg.ImportReplaceConfirm", _importedCsv.DisplayName, _importedCsv.LineCount),
+                L.Get("Title.ImportCsv"),
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question);
 
@@ -276,8 +345,8 @@ public partial class Form1 : Form
         if (!CsvFileImporter.TryImport(dlg.FileName, out ImportedCsvBatch batch, out string? error))
         {
             MessageBox.Show(this,
-                error ?? "CSV dosyası okunamadı.",
-                "CSV İçe Aktar",
+                error ?? L.Get("Title.ImportCsv"),
+                L.Get("Title.ImportCsv"),
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Warning);
             return;
@@ -288,9 +357,8 @@ public partial class Form1 : Form
         RefreshRecipeUi();
 
         MessageBox.Show(this,
-            $"{batch.LineCount} satır içe aktarıldı.\n" +
-            "Yeni şekiller ekleyip çıktı aldığınızda bu satırların ardına yazılır.",
-            "CSV İçe Aktar",
+            L.F("Msg.ImportSuccess", batch.LineCount),
+            L.Get("Title.ImportCsv"),
             MessageBoxButtons.OK,
             MessageBoxIcon.Information);
     }
@@ -309,14 +377,14 @@ public partial class Form1 : Form
         if (!hasImported && !hasNew)
         {
             MessageBox.Show(this,
-                "Kaydedilecek veri yok. CSV içe aktarın veya reçeteye şekil ekleyin.",
-                csv ? "Toplu CSV" : "Toplu DAT",
+                L.Get("Msg.NoExportData"),
+                csv ? L.Get("Title.BatchCsv") : L.Get("Title.BatchDat"),
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
             return;
         }
 
-        string defaultName = csv ? "recete.csv" : "recete.dat";
+        string defaultName = csv ? L.Get("File.DefaultCsv") : L.Get("File.DefaultDat");
         string? initialDir = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
         if (_importedCsv is not null)
         {
@@ -328,8 +396,8 @@ public partial class Form1 : Form
 
         using var saveDlg = new SaveFileDialog
         {
-            Filter = csv ? "CSV Dosyası (*.csv)|*.csv" : "DAT Dosyası (*.dat)|*.dat",
-            Title = csv ? "Toplu CSV dosyasını kaydet" : "Toplu DAT dosyasını kaydet",
+            Filter = csv ? L.Get("Filter.Csv") : L.Get("Filter.Dat"),
+            Title = csv ? L.Get("Dialog.SaveBatchCsv") : L.Get("Dialog.SaveBatchDat"),
             FileName = defaultName,
             InitialDirectory = initialDir
         };
@@ -351,8 +419,8 @@ public partial class Form1 : Form
         if (!ok)
         {
             MessageBox.Show(this,
-                error ?? $"{(csv ? "CSV" : "DAT")} dosyası yazılamadı.",
-                csv ? "Toplu CSV" : "Toplu DAT",
+                error ?? L.F("Msg.ExportFailed", csv ? "CSV" : "DAT"),
+                csv ? L.Get("Title.BatchCsv") : L.Get("Title.BatchDat"),
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Warning);
             return;
@@ -368,12 +436,12 @@ public partial class Form1 : Form
         RefreshRecipeUi();
 
         string detail = newCount > 0
-            ? $"{importedCount} mevcut satır + {newCount} yeni şekil kaydedildi."
-            : $"{writtenLines.Count} satır kaydedildi.";
+            ? L.F("Msg.ExportSavedExistingAndNew", importedCount, newCount)
+            : L.F("Msg.ExportSavedRows", writtenLines.Count);
 
         MessageBox.Show(this,
-            $"{detail}\n{saveDlg.FileName}",
-            csv ? "Toplu CSV" : "Toplu DAT",
+            L.F("Msg.ExportSuccessDetail", detail, saveDlg.FileName),
+            csv ? L.Get("Title.BatchCsv") : L.Get("Title.BatchDat"),
             MessageBoxButtons.OK,
             MessageBoxIcon.Information);
     }
@@ -387,8 +455,8 @@ public partial class Form1 : Form
         if (selected.Tag is ImportedCsvRow importedRow)
         {
             var confirmImport = MessageBox.Show(this,
-                $"Bu CSV satırı kaldırılsın mı?\n{importedRow.DisplayName}",
-                "Reçete",
+                L.F("Msg.RemoveCsvRowConfirm", importedRow.GetDisplayName()),
+                L.Get("Title.Recipe"),
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question);
 
@@ -408,8 +476,8 @@ public partial class Form1 : Form
             return;
 
         var confirm = MessageBox.Show(this,
-            $"\"{item.DisplayName}\" reçeteden kaldırılsın mı?",
-            "Reçete",
+            L.F("Msg.RemoveShapeConfirm", item.DisplayName),
+            L.Get("Title.Recipe"),
             MessageBoxButtons.YesNo,
             MessageBoxIcon.Question);
 
@@ -430,9 +498,9 @@ public partial class Form1 : Form
 
         var confirm = MessageBox.Show(this,
             hasImported
-                ? $"İçe aktarılan CSV ({_importedCsv!.LineCount} satır) ve reçetedeki {_recipeItems.Count} yeni şekil temizlensin mi?"
-                : $"Reçetedeki {_recipeItems.Count} şeklin tamamı silinsin mi?",
-            "Reçete",
+                ? L.F("Msg.ClearAllWithCsv", _importedCsv!.LineCount, _recipeItems.Count)
+                : L.F("Msg.ClearAllShapes", _recipeItems.Count),
+            L.Get("Title.Recipe"),
             MessageBoxButtons.YesNo,
             MessageBoxIcon.Warning);
 
@@ -447,29 +515,23 @@ public partial class Form1 : Form
 
     private void AddImportedRowListItem(ImportedCsvRow row)
     {
-        var lvi = new ListViewItem(row.RowIndex.ToString())
-        {
-            Tag = row
-        };
-        lvi.SubItems.Add(row.DisplayName);
+        var lvi = new ListViewItem(row.RowIndex.ToString()) { Tag = row };
+        lvi.SubItems.Add(row.GetDisplayName());
         lvi.SubItems.Add(row.EdgeCount.ToString());
         lvi.SubItems.Add(row.CamKalinlikMm.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture));
         lvi.SubItems.Add(row.Adet.ToString());
-        lvi.SubItems.Add("CSV");
+        lvi.SubItems.Add(L.Get("Source.Csv"));
         _lvRecipe.Items.Add(lvi);
     }
 
     private void AddRecipeListItem(RecipeItem item, int index)
     {
-        var lvi = new ListViewItem(index.ToString())
-        {
-            Tag = item
-        };
+        var lvi = new ListViewItem(index.ToString()) { Tag = item };
         lvi.SubItems.Add(item.DisplayName);
         lvi.SubItems.Add(item.EdgeCount.ToString());
         lvi.SubItems.Add(item.ExportOptions.KalinlikMm.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture));
         lvi.SubItems.Add(item.ExportOptions.IstenilenAdet.ToString());
-        lvi.SubItems.Add("Yeni");
+        lvi.SubItems.Add(L.Get("Source.New"));
         _lvRecipe.Items.Add(lvi);
         lvi.Selected = true;
         lvi.EnsureVisible();
@@ -501,9 +563,9 @@ public partial class Form1 : Form
 
         _lblRecipeCount.Text = importedCount switch
         {
-            > 0 when newCount > 0 => $"CSV: {importedCount} satır + {newCount} yeni şekil",
-            > 0 => $"CSV: {importedCount} satır (içe aktarım)",
-            _ => newCount == 1 ? "Reçete: 1 şekil" : $"Reçete: {newCount} şekil"
+            > 0 when newCount > 0 => L.F("Status.CsvAndNew", importedCount, newCount),
+            > 0 => L.F("Status.CsvImportedOnly", importedCount),
+            _ => newCount == 1 ? L.Get("Status.RecipeCountOne") : L.F("Status.RecipeCount", newCount)
         };
 
         bool hasData = importedCount > 0 || newCount > 0;
@@ -534,10 +596,22 @@ public partial class Form1 : Form
         catch (Exception ex)
         {
             MessageBox.Show(this,
-                "Çizim sırasında hata oluştu:\n" + ex.Message,
-                "Çizim Hatası",
+                L.F("Msg.DrawError", ex.Message),
+                L.Get("Title.DrawError"),
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Error);
         }
+    }
+
+    private sealed class LanguageComboItem(AppLanguage language)
+    {
+        public AppLanguage Language { get; } = language;
+
+        public override string ToString() => language switch
+        {
+            AppLanguage.Turkish => L.Get("Lang.Turkish"),
+            AppLanguage.German => L.Get("Lang.German"),
+            _ => L.Get("Lang.English")
+        };
     }
 }

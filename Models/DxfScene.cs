@@ -1,4 +1,5 @@
 using netDxf.Entities;
+using otomasyon.Localization;
 
 namespace otomasyon.Models;
 
@@ -31,7 +32,7 @@ public sealed class DxfScene
         IReadOnlyList<ContourEdge> contourEdges)
     {
         if (entities.Count != entityPointLists.Count)
-            throw new ArgumentException("Her entity için nokta listesi olmalıdır.", nameof(entityPointLists));
+            throw new ArgumentException(L.Get("Error.EntityPointLists"), nameof(entityPointLists));
 
         Entities = entities;
         EntityPointLists = entityPointLists;

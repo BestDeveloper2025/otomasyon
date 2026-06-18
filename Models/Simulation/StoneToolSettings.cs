@@ -1,3 +1,5 @@
+using otomasyon.Localization;
+
 namespace otomasyon.Models.Simulation;
 
 /// <summary>Taş (takım) boyutu ve bindirme (geçişler arası örtüşme, mm).</summary>
@@ -9,10 +11,10 @@ public sealed class StoneToolSettings
     public void Validate()
     {
         if (StoneWidthMm <= 0)
-            throw new ArgumentOutOfRangeException(nameof(StoneWidthMm), "Taş genişliği 0'dan büyük olmalıdır.");
+            throw new ArgumentOutOfRangeException(nameof(StoneWidthMm), L.Get("Error.StoneWidthPositive"));
         if (BindirmeMm < 0)
-            throw new ArgumentOutOfRangeException(nameof(BindirmeMm), "Bindirme negatif olamaz.");
+            throw new ArgumentOutOfRangeException(nameof(BindirmeMm), L.Get("Error.OverlapNonNegative"));
         if (BindirmeMm >= StoneWidthMm)
-            throw new ArgumentOutOfRangeException(nameof(BindirmeMm), "Bindirme, taş genişliğinden küçük olmalıdır.");
+            throw new ArgumentOutOfRangeException(nameof(BindirmeMm), L.Get("Error.OverlapLessThanStone"));
     }
 }

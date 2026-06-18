@@ -1,4 +1,5 @@
 using otomasyon.Analysis;
+using otomasyon.Localization;
 using otomasyon.Models;
 using otomasyon.Models.Simulation;
 
@@ -20,13 +21,13 @@ public static class SimulationJobFactory
 
         if (!ContourPathOrderer.HasSimulatableContour(scene))
         {
-            error = "Kapalı kontur bulunamadı. Kapalı polyline veya uç uca birleşen LINE'lar gerekir.";
+            error = L.Get("Error.NoClosedContour");
             return false;
         }
 
         if (!ContourPathBuilder.TryBuild(scene, out var path))
         {
-            error = "Kontur yolu oluşturulamadı.";
+            error = L.Get("Error.PathBuildFailed");
             return false;
         }
 
