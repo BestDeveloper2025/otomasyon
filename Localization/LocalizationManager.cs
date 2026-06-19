@@ -25,7 +25,7 @@ public static class LocalizationManager
 
         CurrentLanguage = language;
         if (save)
-            AppSettingsManager.Save();
+            AppSettingsManager.Persist();
 
         LanguageChanged?.Invoke(null, EventArgs.Empty);
     }

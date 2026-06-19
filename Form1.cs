@@ -41,14 +41,46 @@ public partial class Form1 : Form, ILocalizable
         _drawPanel.Paint += DrawPanel_Paint;
         LocalizationManager.LanguageChanged += OnLanguageChanged;
         AppSettingsManager.MachineDirectionChanged += OnMachineDirectionChanged;
+        AppSettingsManager.SettingsChanged += OnSettingsChanged;
         ApplyLocalization();
     }
 
-    private void BtnSettings_Click(object? sender, EventArgs e)
+    private void OnSettingsChanged(object? sender, EventArgs e)
+    {
+        if (IsDisposed)
+            return;
+
+        RefreshResultsUi();
+        RefreshRecipeUi();
+        if (AppSettingsManager.IsConfigured && !string.IsNullOrWhiteSpace(_currentFilePath))
+            ReloadCurrentScene();
+    }
+
+    private void ShowSettingsDialog()
     {
         using var dlg = new SettingsDialog();
         dlg.ShowDialog(this);
+        RefreshResultsUi();
+        RefreshRecipeUi();
     }
+
+    private bool EnsureConfiguredForAction()
+    {
+        if (AppSettingsManager.IsConfigured)
+            return true;
+
+        MessageBox.Show(this,
+            L.Get("Msg.SettingsRequired"),
+            L.Get("Title.SettingsRequired"),
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Warning);
+
+        ShowSettingsDialog();
+        return AppSettingsManager.IsConfigured;
+    }
+
+    private void BtnSettings_Click(object? sender, EventArgs e)
+        => ShowSettingsDialog();
 
     private void OnMachineDirectionChanged(object? sender, EventArgs e)
     {
@@ -105,7 +137,8 @@ public partial class Form1 : Form, ILocalizable
         _drawPanel.Invalidate();
     }
 
-    private void Form1_Load(object? sender, EventArgs e) => ApplyInitialSplitLayout();
+    private void Form1_Load(object? sender, EventArgs e)
+        => ApplyInitialSplitLayout();
 
     private void ApplyInitialSplitLayout()
     {
@@ -132,6 +165,9 @@ public partial class Form1 : Form, ILocalizable
 
     private void BtnSelectFile_Click(object? sender, EventArgs e)
     {
+        if (!EnsureConfiguredForAction())
+            return;
+
         try
         {
             using var dlg = new OpenFileDialog
@@ -181,6 +217,16 @@ public partial class Form1 : Form, ILocalizable
             _txtCoordinates.Text = SceneResultsTextFormatter.Format(_scene);
             _txtCoordinates.SelectionStart = 0;
             _txtCoordinates.ScrollToCaret();
+
+            if (!ShapeLimitsValidator.TryValidate(_scene, out string? limitMsg))
+            {
+                MessageBox.Show(this,
+                    limitMsg ?? L.Get("Msg.ShapeLimitExceededGeneric"),
+                    L.Get("Title.ShapeLimit"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+            }
+
             RefreshResultsUi();
         }
         catch (Exception ex)
@@ -205,13 +251,18 @@ public partial class Form1 : Form, ILocalizable
             s.CircleCount,
             s.TrackedEntityCount);
 
-        bool canProcess = ContourPathOrderer.HasSimulatableContour(_scene);
+        bool canProcess = ContourPathOrderer.HasSimulatableContour(_scene)
+            && ShapeLimitsValidator.IsWithinLimits(_scene)
+            && AppSettingsManager.IsConfigured;
         _btnSimulation.Enabled = canProcess;
         _btnAddToRecipe.Enabled = canProcess && !string.IsNullOrWhiteSpace(_currentFilePath);
     }
 
     private void BtnAddToRecipe_Click(object? sender, EventArgs e)
     {
+        if (!EnsureConfiguredForAction())
+            return;
+
         if (!TryCreateJobFromCurrentScene(
                 SetupPurpose.Recipe,
                 out SimulationJob? job,
@@ -244,6 +295,9 @@ public partial class Form1 : Form, ILocalizable
 
     private void BtnSimulation_Click(object? sender, EventArgs e)
     {
+        if (!EnsureConfiguredForAction())
+            return;
+
         if (!TryCreateJobFromCurrentScene(
                 SetupPurpose.Simulation,
                 out SimulationJob? job,

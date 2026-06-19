@@ -39,6 +39,26 @@
     "tr": "Sağdan sola",
     "de": "Rechts nach links"
   },
+  "Settings.RequiredHint": {
+    "en": "Required when adding a shape to the recipe or running simulation.",
+    "tr": "Reçeteye şekil eklerken veya simülasyon çalıştırırken zorunludur.",
+    "de": "Erforderlich beim Hinzufügen einer Form zum Rezept oder bei der Simulation."
+  },
+  "Settings.MaxShapeWidth": {
+    "en": "Max shape width (mm)",
+    "tr": "Maks. şekil eni (mm)",
+    "de": "Max. Formbreite (mm)"
+  },
+  "Settings.MaxShapeHeight": {
+    "en": "Max shape height (mm)",
+    "tr": "Maks. şekil boyu (mm)",
+    "de": "Max. Formhöhe (mm)"
+  },
+  "Label.Required": {
+    "en": "(*)",
+    "tr": "(*)",
+    "de": "(*)"
+  },
   "Btn.SelectFile": {
     "en": "Select File",
     "tr": "Dosya Seç",
@@ -349,6 +369,16 @@
     "tr": "Hata",
     "de": "Fehler"
   },
+  "Title.SettingsRequired": {
+    "en": "Setup required",
+    "tr": "Kurulum gerekli",
+    "de": "Einrichtung erforderlich"
+  },
+  "Title.ShapeLimit": {
+    "en": "Size limit exceeded",
+    "tr": "Boyut sınırı aşıldı",
+    "de": "Größenlimit überschritten"
+  },
   "Title.Dxf": {
     "en": "DXF",
     "tr": "DXF",
@@ -378,6 +408,21 @@
     "en": "An error occurred while opening the file:\n{0}",
     "tr": "Dosya açılırken hata oluştu:\n{0}",
     "de": "Beim Öffnen der Datei ist ein Fehler aufgetreten:\n{0}"
+  },
+  "Msg.SettingsRequired": {
+    "en": "Please open Settings and enter the required information (machine direction and shape size limits) before adding a shape.",
+    "tr": "Şekil eklemeden önce Ayarlar'dan zorunlu bilgileri girin (makine yönü ve şekil boyut sınırları).",
+    "de": "Bitte öffnen Sie Einstellungen und geben Sie die Pflichtangaben ein (Maschinenrichtung und Formgrößenlimits), bevor Sie eine Form hinzufügen."
+  },
+  "Msg.ShapeLimitExceeded": {
+    "en": "Shape size exceeds the configured limits.\nActual: {0} × {1} mm\nLimit: {2} × {3} mm\nSimulation and recipe actions are disabled for this shape.",
+    "tr": "Şekil boyutu tanımlı sınırları aşıyor.\nGerçek: {0} × {1} mm\nSınır: {2} × {3} mm\nBu şekil için simülasyon ve reçete işlemleri devre dışı.",
+    "de": "Die Formgröße überschreitet die konfigurierten Grenzen.\nIst: {0} × {1} mm\nLimit: {2} × {3} mm\nSimulation und Rezept sind für diese Form deaktiviert."
+  },
+  "Msg.ShapeLimitExceededGeneric": {
+    "en": "Shape size exceeds the configured limits.",
+    "tr": "Şekil boyutu tanımlı sınırları aşıyor.",
+    "de": "Die Formgröße überschreitet die konfigurierten Grenzen."
   },
   "Msg.DxfLoadNull": {
     "en": "DXF file could not be loaded (operation returned null).",
@@ -673,6 +718,21 @@
     "en": "Each entity must have a point list.",
     "tr": "Her entity için nokta listesi olmalıdır.",
     "de": "Jede Entität muss eine Punktliste haben."
+  },
+  "Error.LimitsPositive": {
+    "en": "Max width and height must be greater than 0.",
+    "tr": "Maks. en ve boy 0'dan büyük olmalıdır.",
+    "de": "Max. Breite und Höhe müssen größer als 0 sein."
+  },
+  "Error.LimitsRequired": {
+    "en": "Please enter max shape width and height.",
+    "tr": "Maks. şekil eni ve boyunu girin.",
+    "de": "Bitte maximale Formbreite und -höhe eingeben."
+  },
+  "Error.MachineDirectionRequired": {
+    "en": "Please select a machine direction.",
+    "tr": "Makine yönünü seçin.",
+    "de": "Bitte wählen Sie eine Maschinenrichtung."
   },
   "Error.FileNotFound": {
     "en": "File not found.",
