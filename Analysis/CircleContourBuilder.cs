@@ -1,10 +1,12 @@
 using netDxf.Entities;
 using otomasyon.Models;
+using otomasyon.Settings;
 
 namespace otomasyon.Analysis;
 
 /// <summary>
-/// Tek bir kapalı daireyi iki yarım yay (bulge = +1) olarak kontur segmentlerine çevirir.
+/// Tek bir kapalı daireyi iki yarım yay (bulge = ±1) olarak kontur segmentlerine çevirir.
+/// Başlangıç: en alt nokta; LTR → CCW (sağ yarım), RTL → CW (sol yarım).
 /// </summary>
 public static class CircleContourBuilder
 {
@@ -29,30 +31,33 @@ public static class CircleContourBuilder
         double cy = best.Center.Y;
         double r = best.Radius;
 
-        double rightX = cx + r, rightY = cy;
-        double leftX = cx - r, leftY = cy;
+        double bottomX = cx;
+        double bottomY = cy - r;
+        double topX = cx;
+        double topY = cy + r;
 
-        // CCW: sağ uçtan üst yarım, sol uçtan alt yarım (bulge +1 = CCW yarım daire).
+        double bulge = AppSettingsManager.MachineDirection == MachineDirection.LeftToRight ? 1.0 : -1.0;
+
         segments.Add(new ContourPathOrderer.OrderedSegment
         {
             EdgeIndex = 1,
             CornerIndex = 1,
-            StartX = rightX,
-            StartY = rightY,
-            EndX = leftX,
-            EndY = leftY,
-            Bulge = 1.0
+            StartX = bottomX,
+            StartY = bottomY,
+            EndX = topX,
+            EndY = topY,
+            Bulge = bulge
         });
 
         segments.Add(new ContourPathOrderer.OrderedSegment
         {
             EdgeIndex = 2,
             CornerIndex = 2,
-            StartX = leftX,
-            StartY = leftY,
-            EndX = rightX,
-            EndY = rightY,
-            Bulge = 1.0
+            StartX = topX,
+            StartY = topY,
+            EndX = bottomX,
+            EndY = bottomY,
+            Bulge = bulge
         });
 
         return true;

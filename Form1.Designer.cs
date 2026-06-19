@@ -14,9 +14,7 @@ namespace otomasyon
         private Button _btnImportCsv = null!;
         private Button _btnExportBatchCsv = null!;
         private Button _btnExportBatchDat = null!;
-        private Panel _langPanel = null!;
-        private Label _lblLanguage = null!;
-        private ComboBox _cmbLanguage = null!;
+        private Button _btnSettings = null!;
         private Label _lblFilePath = null!;
 
         private DrawingPanel _drawPanel = null!;
@@ -96,31 +94,9 @@ namespace otomasyon
             _toolbarFlow.Controls.Add(_btnExportBatchCsv);
             _toolbarFlow.Controls.Add(_btnExportBatchDat);
 
-            _langPanel = new Panel
-            {
-                Dock = DockStyle.Right,
-                Width = 200,
-                Padding = new Padding(4, 6, 0, 0)
-            };
-
-            _lblLanguage = new Label
-            {
-                Text = "Language",
-                AutoSize = true,
-                Location = new Point(0, 10),
-                Font = uiFont
-            };
-
-            _cmbLanguage = new ComboBox
-            {
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                Width = 110,
-                Location = new Point(72, 6),
-                Font = uiFont
-            };
-
-            _langPanel.Controls.Add(_cmbLanguage);
-            _langPanel.Controls.Add(_lblLanguage);
+            _btnSettings = CreateToolbarButton("Settings", 90);
+            _btnSettings.Dock = DockStyle.Right;
+            _btnSettings.Margin = new Padding(8, 0, 0, 0);
 
             _lblFilePath = new Label
             {
@@ -134,7 +110,7 @@ namespace otomasyon
             };
 
             _topPanel.Controls.Add(_lblFilePath);
-            _topPanel.Controls.Add(_langPanel);
+            _topPanel.Controls.Add(_btnSettings);
             _topPanel.Controls.Add(_toolbarFlow);
 
             // --- Alt durum çubuğu ---

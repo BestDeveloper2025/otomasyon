@@ -7,6 +7,7 @@ namespace otomasyon
         {
             ApplicationConfiguration.Initialize();
             Localization.LocalizationManager.Initialize();
+            Settings.AppSettingsManager.Initialize();
             Application.Run(new Form1());
         }
     }

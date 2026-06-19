@@ -1,16 +1,12 @@
 using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
+using otomasyon.Settings;
 
 namespace otomasyon.Localization;
 
 public static class LocalizationManager
 {
-    private static readonly string SettingsPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "otomasyon",
-        "language.txt");
-
     private static Dictionary<string, Dictionary<string, string>> _catalog = new(StringComparer.Ordinal);
 
     public static AppLanguage CurrentLanguage { get; private set; } = AppLanguage.English;
@@ -20,7 +16,6 @@ public static class LocalizationManager
     public static void Initialize()
     {
         LoadCatalog();
-        CurrentLanguage = LoadSavedLanguage();
     }
 
     public static void SetLanguage(AppLanguage language, bool save = true)
@@ -30,7 +25,7 @@ public static class LocalizationManager
 
         CurrentLanguage = language;
         if (save)
-            SaveLanguage(language);
+            AppSettingsManager.Save();
 
         LanguageChanged?.Invoke(null, EventArgs.Empty);
     }
@@ -66,35 +61,5 @@ public static class LocalizationManager
         string json = reader.ReadToEnd();
         var raw = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(json);
         _catalog = raw ?? new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
-    }
-
-    private static AppLanguage LoadSavedLanguage()
-    {
-        try
-        {
-            if (File.Exists(SettingsPath))
-                return AppLanguageExtensions.FromCode(File.ReadAllText(SettingsPath).Trim());
-        }
-        catch
-        {
-            // Varsayılan İngilizce.
-        }
-
-        return AppLanguage.English;
-    }
-
-    private static void SaveLanguage(AppLanguage language)
-    {
-        try
-        {
-            string? dir = Path.GetDirectoryName(SettingsPath);
-            if (!string.IsNullOrEmpty(dir))
-                Directory.CreateDirectory(dir);
-            File.WriteAllText(SettingsPath, language.ToCode());
-        }
-        catch
-        {
-            // Kayıt başarısızsa sessizce devam et.
-        }
     }
 }

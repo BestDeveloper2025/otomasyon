@@ -24,6 +24,21 @@
     "tr": "Deutsch",
     "de": "Deutsch"
   },
+  "Settings.MachineDirection": {
+    "en": "Machine direction",
+    "tr": "Makine yönü",
+    "de": "Maschinenrichtung"
+  },
+  "Settings.MachineLtr": {
+    "en": "Left to right",
+    "tr": "Soldan sağa",
+    "de": "Links nach rechts"
+  },
+  "Settings.MachineRtl": {
+    "en": "Right to left",
+    "tr": "Sağdan sola",
+    "de": "Rechts nach links"
+  },
   "Btn.SelectFile": {
     "en": "Select File",
     "tr": "Dosya Seç",
@@ -63,6 +78,11 @@
     "en": "Clear All",
     "tr": "Tümünü Temizle",
     "de": "Alles löschen"
+  },
+  "Btn.Settings": {
+    "en": "Settings",
+    "tr": "Ayarlar",
+    "de": "Einstellungen"
   },
   "Btn.Cancel": {
     "en": "Cancel",
@@ -258,6 +278,11 @@
     "en": "Recipe Parameters",
     "tr": "Reçete Parametreleri",
     "de": "Rezeptparameter"
+  },
+  "Dialog.Settings": {
+    "en": "Settings",
+    "tr": "Ayarlar",
+    "de": "Einstellungen"
   },
   "Filter.Dxf": {
     "en": "DXF Files (*.dxf)|*.dxf",

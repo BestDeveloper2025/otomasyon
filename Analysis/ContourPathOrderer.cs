@@ -1,7 +1,5 @@
 using netDxf.Entities;
-using otomasyon.Geometry;
 using otomasyon.Models;
-using static otomasyon.Geometry.GeometryHelper;
 
 namespace otomasyon.Analysis;
 
@@ -93,7 +91,7 @@ public static class ContourPathOrderer
         if (loop.Count < 3)
             return;
 
-        var verts = NormalizeLoopCcwFromOrigin(loop);
+        var verts = ContourStartResolver.Apply(loop, ContourTolerance.FromLoop(loop));
         int n = verts.Count;
         int edgeNum = 0;
 
@@ -141,57 +139,5 @@ public static class ContourPathOrderer
         }
 
         return sum * 0.5;
-    }
-
-    private static List<(double X, double Y, double Bulge)> NormalizeLoopCcwFromOrigin(
-        List<(double X, double Y, double Bulge)> loop)
-    {
-        if (SignedAreaOfBulgeLoop(loop) < 0)
-            loop = ReverseLoop(loop);
-
-        int start = 0;
-        for (int i = 1; i < loop.Count; i++)
-        {
-            if (CompareOriginStart(loop[i], loop[start]) < 0)
-                start = i;
-        }
-
-        if (start == 0)
-            return loop;
-
-        var rotated = new List<(double X, double Y, double Bulge)>(loop.Count);
-        for (int k = 0; k < loop.Count; k++)
-            rotated.Add(loop[(start + k) % loop.Count]);
-        return rotated;
-    }
-
-    /// <summary>
-    /// CCW yürüyüşü CW depolamaya çevirirken her tepe noktasındaki bulge işaretini ters çevirir.
-    /// </summary>
-    private static List<(double X, double Y, double Bulge)> ReverseLoop(List<(double X, double Y, double Bulge)> loop)
-    {
-        int n = loop.Count;
-        var rev = new List<(double X, double Y, double Bulge)>(n);
-        for (int i = 0; i < n; i++)
-        {
-            int vi = (n - 1 - i + n) % n;
-            int prevEdge = (vi - 1 + n) % n;
-            rev.Add((loop[vi].X, loop[vi].Y, -loop[prevEdge].Bulge));
-        }
-
-        return rev;
-    }
-
-    private static int CompareOriginStart((double X, double Y, double Bulge) a, (double X, double Y, double Bulge) b)
-    {
-        double da = a.X * a.X + a.Y * a.Y;
-        double db = b.X * b.X + b.Y * b.Y;
-        if (Math.Abs(da - db) > Eps)
-            return da < db ? -1 : 1;
-        if (Math.Abs(a.X - b.X) > Eps)
-            return a.X > b.X ? -1 : 1;
-        if (Math.Abs(a.Y - b.Y) > Eps)
-            return a.Y < b.Y ? -1 : 1;
-        return 0;
     }
 }

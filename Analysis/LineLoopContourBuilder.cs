@@ -1,6 +1,7 @@
 using netDxf.Entities;
 using otomasyon.Geometry;
 using otomasyon.Models;
+using otomasyon.Settings;
 using static otomasyon.Geometry.GeometryHelper;
 
 namespace otomasyon.Analysis;
@@ -204,8 +205,12 @@ public static class LineLoopContourBuilder
                 return false;
         }
 
-        int preferred = PickOriginStartEdge(comp, eps);
-        if (TryTraceFromFirstEdge(comp, preferred, forward: true, eps, out loop) &&
+        int preferred = PickMachineStartEdge(comp, eps);
+        bool forward = ContourStartResolver.ShouldTraceForward(
+            comp[preferred].X0, comp[preferred].Y0,
+            comp[preferred].X1, comp[preferred].Y1,
+            AppSettingsManager.MachineDirection, eps);
+        if (TryTraceFromFirstEdge(comp, preferred, forward, eps, out loop) &&
             loop.Count == comp.Count &&
             LoopUsesOnlyGraphEdges(loop, comp, eps))
             return true;
@@ -447,80 +452,51 @@ public static class LineLoopContourBuilder
     private static double SignedAreaOfLoop(List<(double X, double Y, double Bulge)> verts)
         => SignedAreaOfBulgeLoop(verts);
 
-    private static int PickOriginStartEdge(List<RawEdge> comp, double eps)
+    private static int PickMachineStartEdge(List<RawEdge> comp, double eps)
     {
-        GetOriginVertex(comp, out double ox, out double oy);
         int bestIdx = -1;
-        double bestScore = double.NegativeInfinity;
+        double bestY = double.PositiveInfinity;
+        double bestSpan = double.NegativeInfinity;
 
         for (int i = 0; i < comp.Count; i++)
         {
             var e = comp[i];
-            double score = OriginDepartureScore(e, ox, oy, eps);
-            if (score > bestScore)
+            if (!ContourStartResolver.IsHorizontalLine(e.X0, e.Y0, e.X1, e.Y1, e.Bulge, eps))
+                continue;
+
+            double y = Math.Min(e.Y0, e.Y1);
+            double span = Math.Abs(e.X1 - e.X0);
+            if (y < bestY - eps || (Math.Abs(y - bestY) <= eps && span > bestSpan))
             {
-                bestScore = score;
+                bestY = y;
+                bestSpan = span;
                 bestIdx = i;
             }
         }
 
-        return bestIdx >= 0 ? bestIdx : 0;
-    }
+        if (bestIdx >= 0)
+            return bestIdx;
 
-    /// <summary>(0,0) çıkışında +X yönüne en yakın kenarı seçer.</summary>
-    private static double OriginDepartureScore(RawEdge e, double ox, double oy, double eps)
-    {
-        double dx, dy;
-        if (PointsNear(e.X0, e.Y0, ox, oy, eps))
+        double minY = double.PositiveInfinity;
+        for (int i = 0; i < comp.Count; i++)
         {
-            dx = e.X1 - ox;
-            dy = e.Y1 - oy;
-        }
-        else if (PointsNear(e.X1, e.Y1, ox, oy, eps))
-        {
-            dx = e.X0 - ox;
-            dy = e.Y0 - oy;
-        }
-        else
-        {
-            return double.NegativeInfinity;
+            var e = comp[i];
+            minY = Math.Min(minY, Math.Min(e.Y0, e.Y1));
         }
 
-        double len = Math.Sqrt(dx * dx + dy * dy);
-        if (len < eps)
-            return double.NegativeInfinity;
-
-        return dx / len;
-    }
-
-    private static void GetOriginVertex(List<RawEdge> comp, out double ox, out double oy)
-    {
-        ox = comp[0].X0;
-        oy = comp[0].Y0;
-        foreach (var e in comp)
+        bestIdx = 0;
+        bestY = double.PositiveInfinity;
+        for (int i = 0; i < comp.Count; i++)
         {
-            foreach (var (x, y) in new[] { (e.X0, e.Y0), (e.X1, e.Y1) })
+            var e = comp[i];
+            double y = Math.Min(e.Y0, e.Y1);
+            if (y <= minY + eps && y < bestY - eps)
             {
-                if (CompareOriginStart(x, y, ox, oy) < 0)
-                {
-                    ox = x;
-                    oy = y;
-                }
+                bestY = y;
+                bestIdx = i;
             }
         }
-    }
 
-    /// <summary>(0,0) yakın, +X öncelikli köşe sıralaması.</summary>
-    private static int CompareOriginStart(double ax, double ay, double bx, double by)
-    {
-        double da = ax * ax + ay * ay;
-        double db = bx * bx + by * by;
-        if (Math.Abs(da - db) > MinEps)
-            return da < db ? -1 : 1;
-        if (Math.Abs(ax - bx) > MinEps)
-            return ax > bx ? -1 : 1;
-        if (Math.Abs(ay - by) > MinEps)
-            return ay < by ? -1 : 1;
-        return 0;
+        return bestIdx;
     }
 }

@@ -7,6 +7,7 @@ using otomasyon.Models;
 using otomasyon.Models.Recipe;
 using otomasyon.Models.Simulation;
 using otomasyon.Rendering;
+using otomasyon.Settings;
 using otomasyon.Simulation;
 using otomasyon.UI;
 
@@ -23,7 +24,6 @@ public partial class Form1 : Form, ILocalizable
 
     private DxfScene _scene = DxfScene.Empty;
     private string _currentFilePath = string.Empty;
-    private bool _syncingLanguage;
 
     public Form1()
     {
@@ -36,12 +36,32 @@ public partial class Form1 : Form, ILocalizable
         _btnExportBatchDat.Click += BtnExportBatchDat_Click;
         _btnRemoveRecipe.Click += BtnRemoveRecipe_Click;
         _btnClearRecipe.Click += BtnClearRecipe_Click;
+        _btnSettings.Click += BtnSettings_Click;
         _lvRecipe.SelectedIndexChanged += (_, _) => RefreshRecipeActionButtons();
         _drawPanel.Paint += DrawPanel_Paint;
-        _cmbLanguage.SelectedIndexChanged += CmbLanguage_SelectedIndexChanged;
         LocalizationManager.LanguageChanged += OnLanguageChanged;
-        InitLanguageCombo();
+        AppSettingsManager.MachineDirectionChanged += OnMachineDirectionChanged;
         ApplyLocalization();
+    }
+
+    private void BtnSettings_Click(object? sender, EventArgs e)
+    {
+        using var dlg = new SettingsDialog();
+        dlg.ShowDialog(this);
+    }
+
+    private void OnMachineDirectionChanged(object? sender, EventArgs e)
+    {
+        if (IsDisposed || string.IsNullOrWhiteSpace(_currentFilePath))
+            return;
+
+        ReloadCurrentScene();
+    }
+
+    private void ReloadCurrentScene()
+    {
+        LoadDxfFile(_currentFilePath);
+        _drawPanel.Invalidate();
     }
 
     private void OnLanguageChanged(object? sender, EventArgs e)
@@ -50,28 +70,10 @@ public partial class Form1 : Form, ILocalizable
             ApplyLocalization();
     }
 
-    private void InitLanguageCombo()
-    {
-        _cmbLanguage.Items.Clear();
-        _cmbLanguage.Items.Add(new LanguageComboItem(AppLanguage.English));
-        _cmbLanguage.Items.Add(new LanguageComboItem(AppLanguage.Turkish));
-        _cmbLanguage.Items.Add(new LanguageComboItem(AppLanguage.German));
-    }
-
-    private void CmbLanguage_SelectedIndexChanged(object? sender, EventArgs e)
-    {
-        if (_syncingLanguage || _cmbLanguage.SelectedItem is not LanguageComboItem item)
-            return;
-
-        LocalizationManager.SetLanguage(item.Language);
-    }
-
     public void ApplyLocalization()
     {
-        _syncingLanguage = true;
-
         Text = L.Get("App.Title");
-        _lblLanguage.Text = L.Get("Lang.Label");
+        _btnSettings.Text = L.Get("Btn.Settings");
         _btnSelectFile.Text = L.Get("Btn.SelectFile");
         _btnAddToRecipe.Text = L.Get("Btn.AddToRecipe");
         _btnSimulation.Text = L.Get("Btn.Simulation");
@@ -95,29 +97,12 @@ public partial class Form1 : Form, ILocalizable
             _lvRecipe.Columns[5].Text = L.Get("Col.Source");
         }
 
-        InitLanguageCombo();
-        RefreshLanguageComboSelection();
         RefreshResultsUi();
         if (_scene.ContourEdges.Count > 0 || _scene.RadiusFeatures.Count > 0)
             _txtCoordinates.Text = SceneResultsTextFormatter.Format(_scene);
         RebuildRecipeList();
         RefreshRecipeUi();
         _drawPanel.Invalidate();
-
-        _syncingLanguage = false;
-    }
-
-    private void RefreshLanguageComboSelection()
-    {
-        for (int i = 0; i < _cmbLanguage.Items.Count; i++)
-        {
-            if (_cmbLanguage.Items[i] is LanguageComboItem item &&
-                item.Language == LocalizationManager.CurrentLanguage)
-            {
-                _cmbLanguage.SelectedIndex = i;
-                return;
-            }
-        }
     }
 
     private void Form1_Load(object? sender, EventArgs e) => ApplyInitialSplitLayout();
@@ -603,15 +588,4 @@ public partial class Form1 : Form, ILocalizable
         }
     }
 
-    private sealed class LanguageComboItem(AppLanguage language)
-    {
-        public AppLanguage Language { get; } = language;
-
-        public override string ToString() => language switch
-        {
-            AppLanguage.Turkish => L.Get("Lang.Turkish"),
-            AppLanguage.German => L.Get("Lang.German"),
-            _ => L.Get("Lang.English")
-        };
-    }
 }
