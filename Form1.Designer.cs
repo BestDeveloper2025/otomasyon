@@ -9,6 +9,7 @@ namespace otomasyon
         private Panel _topPanel = null!;
         private FlowLayoutPanel _toolbarFlow = null!;
         private Button _btnSelectFile = null!;
+        private Button _btnSetBaseEdge = null!;
         private Button _btnAddToRecipe = null!;
         private Button _btnSimulation = null!;
         private Button _btnImportCsv = null!;
@@ -77,6 +78,8 @@ namespace otomasyon
             };
 
             _btnSelectFile = CreateToolbarButton("Select File", 100);
+            _btnSetBaseEdge = CreateToolbarButton("Set Base Edge", 120);
+            _btnSetBaseEdge.Enabled = false;
             _btnAddToRecipe = CreateToolbarButton("Add to Recipe", 120);
             _btnAddToRecipe.Enabled = false;
             _btnSimulation = CreateToolbarButton("Simulation", 110);
@@ -88,6 +91,7 @@ namespace otomasyon
             _btnExportBatchDat.Enabled = false;
 
             _toolbarFlow.Controls.Add(_btnSelectFile);
+            _toolbarFlow.Controls.Add(_btnSetBaseEdge);
             _toolbarFlow.Controls.Add(_btnAddToRecipe);
             _toolbarFlow.Controls.Add(_btnSimulation);
             _toolbarFlow.Controls.Add(_btnImportCsv);

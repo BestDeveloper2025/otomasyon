@@ -1,6 +1,7 @@
 using System.Drawing.Text;
 using System.Globalization;
 using netDxf.Entities;
+using otomasyon.Analysis;
 using otomasyon.Geometry;
 using otomasyon.Localization;
 using otomasyon.Models;
@@ -14,7 +15,7 @@ public sealed class DxfSceneRenderer
 {
     private readonly RadiusFeatureRenderer _radiusRenderer = new();
 
-    public void Paint(Graphics graphics, DxfScene scene, Rectangle clip, in WorldToScreenTransform transform, bool drawEdgeLabels = true)
+    public void Paint(Graphics graphics, DxfScene scene, Rectangle clip, in WorldToScreenTransform transform, bool drawEdgeLabels = true, int? highlightEdgeIndex = null)
     {
         ArgumentNullException.ThrowIfNull(graphics);
         ArgumentNullException.ThrowIfNull(scene);
@@ -54,8 +55,21 @@ public sealed class DxfSceneRenderer
 
         DrawCornerLabels(graphics, clip, scene, transform);
         if (drawEdgeLabels)
-            EdgeLabelRenderer.DrawForScene(graphics, scene, transform);
+            EdgeLabelRenderer.DrawForScene(graphics, scene, transform, highlightEdgeIndex);
+
+        if (ShapeOrientationContext.UseOriginAnchor)
+            DrawOriginMarker(graphics, transform);
         _radiusRenderer.Paint(graphics, scene, scene.RadiusFeatures, clip, transform);
+    }
+
+    private static void DrawOriginMarker(Graphics g, in WorldToScreenTransform transform)
+    {
+        var o = transform.ToScreen(0, 0);
+        using var pen = new Pen(Color.FromArgb(220, 200, 40, 40), 2f);
+        const float r = 5f;
+        g.DrawEllipse(pen, o.X - r, o.Y - r, r * 2f, r * 2f);
+        g.DrawLine(pen, o.X - 10f, o.Y, o.X + 10f, o.Y);
+        g.DrawLine(pen, o.X, o.Y - 10f, o.X, o.Y + 10f);
     }
 
     private static void DrawWorldAxes(Graphics g, Rectangle clip, double offsetX, double offsetY)

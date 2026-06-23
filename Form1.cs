@@ -24,11 +24,17 @@ public partial class Form1 : Form, ILocalizable
 
     private DxfScene _scene = DxfScene.Empty;
     private string _currentFilePath = string.Empty;
+    private BaseEdgeSelection? _baseEdgeSelection;
+    private bool _baseEdgePickMode;
+    private int? _highlightEdgeIndex;
+    private WorldToScreenTransform _lastTransform;
+    private bool _hasLastTransform;
 
     public Form1()
     {
         InitializeComponent();
         _btnSelectFile.Click += BtnSelectFile_Click;
+        _btnSetBaseEdge.Click += BtnSetBaseEdge_Click;
         _btnAddToRecipe.Click += BtnAddToRecipe_Click;
         _btnSimulation.Click += BtnSimulation_Click;
         _btnImportCsv.Click += BtnImportCsv_Click;
@@ -39,6 +45,7 @@ public partial class Form1 : Form, ILocalizable
         _btnSettings.Click += BtnSettings_Click;
         _lvRecipe.SelectedIndexChanged += (_, _) => RefreshRecipeActionButtons();
         _drawPanel.Paint += DrawPanel_Paint;
+        _drawPanel.MouseClick += DrawPanel_MouseClick;
         LocalizationManager.LanguageChanged += OnLanguageChanged;
         AppSettingsManager.MachineDirectionChanged += OnMachineDirectionChanged;
         AppSettingsManager.SettingsChanged += OnSettingsChanged;
@@ -52,8 +59,7 @@ public partial class Form1 : Form, ILocalizable
 
         RefreshResultsUi();
         RefreshRecipeUi();
-        if (AppSettingsManager.IsConfigured && !string.IsNullOrWhiteSpace(_currentFilePath))
-            ReloadCurrentScene();
+        RebuildSceneAfterDirectionOrLimitsChange();
     }
 
     private void ShowSettingsDialog()
@@ -87,13 +93,170 @@ public partial class Form1 : Form, ILocalizable
         if (IsDisposed || string.IsNullOrWhiteSpace(_currentFilePath))
             return;
 
-        ReloadCurrentScene();
+        RebuildSceneAfterDirectionOrLimitsChange();
+    }
+
+    private void RebuildSceneAfterDirectionOrLimitsChange()
+    {
+        if (string.IsNullOrWhiteSpace(_currentFilePath))
+            return;
+
+        if (_baseEdgeSelection is BaseEdgeSelection selection)
+        {
+            TryApplyBaseEdgeOrientation(selection);
+            return;
+        }
+
+        LoadDxfFile(_currentFilePath, preserveBaseEdge: false);
     }
 
     private void ReloadCurrentScene()
+        => RebuildSceneAfterDirectionOrLimitsChange();
+
+    private void BtnSetBaseEdge_Click(object? sender, EventArgs e)
     {
-        LoadDxfFile(_currentFilePath);
+        if (!ContourPathOrderer.HasSimulatableContour(_scene) && string.IsNullOrWhiteSpace(_currentFilePath))
+        {
+            MessageBox.Show(this,
+                L.Get("Msg.NoContourForBaseEdge"),
+                L.Get("Title.BaseEdge"),
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_currentFilePath))
+            LoadDxfFile(_currentFilePath, preserveBaseEdge: false);
+
+        if (!ContourPathOrderer.HasSimulatableContour(_scene))
+        {
+            MessageBox.Show(this,
+                L.Get("Msg.NoContourForBaseEdge"),
+                L.Get("Title.BaseEdge"),
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+            return;
+        }
+
+        _baseEdgePickMode = true;
+        _highlightEdgeIndex = null;
+        _btnSetBaseEdge.BackColor = Color.FromArgb(255, 248, 210);
+        _lblResults.Text = L.Get("Status.PickBaseEdge");
+        _drawPanel.Cursor = Cursors.Cross;
         _drawPanel.Invalidate();
+    }
+
+    private void ExitBaseEdgePickMode()
+    {
+        _baseEdgePickMode = false;
+        _highlightEdgeIndex = null;
+        _btnSetBaseEdge.BackColor = SystemColors.Control;
+        _drawPanel.Cursor = Cursors.Default;
+        RefreshResultsUi();
+    }
+
+    private void DrawPanel_MouseClick(object? sender, MouseEventArgs e)
+    {
+        if (!_baseEdgePickMode || e.Button != MouseButtons.Left)
+            return;
+
+        if (!_hasLastTransform || !_lastTransform.TryToWorld(e.Location, out double wx, out double wy))
+            return;
+
+        if (!ContourEdgePicker.TryPick(_scene, wx, wy, out var segment, out int edgeIndex))
+        {
+            MessageBox.Show(this,
+                L.Get("Msg.BaseEdgePickMiss"),
+                L.Get("Title.BaseEdge"),
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+            return;
+        }
+
+        _baseEdgeSelection = BaseEdgeSelection.FromSegment(segment);
+        ExitBaseEdgePickMode();
+
+        if (!TryApplyBaseEdgeOrientation(_baseEdgeSelection.Value))
+            return;
+
+        MessageBox.Show(this,
+            L.F("Msg.BaseEdgeApplied", edgeIndex),
+            L.Get("Title.BaseEdge"),
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information);
+    }
+
+    private bool TryApplyBaseEdgeOrientation(BaseEdgeSelection selection)
+    {
+        if (string.IsNullOrWhiteSpace(_currentFilePath))
+            return false;
+
+        try
+        {
+            DxfDocument? doc = DxfDocument.Load(_currentFilePath);
+            if (doc is null)
+                return false;
+
+            if (!ApplyOrientationToDocument(doc, selection))
+            {
+                MessageBox.Show(this,
+                    L.Get("Msg.BaseEdgeApplyFailed"),
+                    L.Get("Title.BaseEdge"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return false;
+            }
+
+            FinishSceneBuild(doc);
+            _drawPanel.Invalidate();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this,
+                L.F("Msg.BaseEdgeApplyFailedDetail", ex.Message),
+                L.Get("Title.BaseEdge"),
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
+            return false;
+        }
+    }
+
+    private bool ApplyOrientationToDocument(DxfDocument doc, BaseEdgeSelection selection)
+    {
+        var probeScene = _sceneBuilder.Build(doc);
+        if (!ContourEdgePicker.TryFindMatchingSegment(probeScene, selection, out var segment))
+            return false;
+
+        var samplePoints = DxfDocumentTransformer.CollectSamplePoints(doc);
+        var transform = BaseEdgeOrientator.ComputeTransform(
+            segment,
+            samplePoints,
+            AppSettingsManager.MachineDirection);
+
+        DxfDocumentTransformer.Apply(doc, transform);
+        DxfDocumentTransformer.SnapNearZero(doc);
+        ShapeOrientationContext.UseOriginAnchor = true;
+        return true;
+    }
+
+    private void FinishSceneBuild(DxfDocument doc)
+    {
+        _scene = _sceneBuilder.Build(doc);
+        _txtCoordinates.Text = SceneResultsTextFormatter.Format(_scene);
+        _txtCoordinates.SelectionStart = 0;
+        _txtCoordinates.ScrollToCaret();
+
+        if (!ShapeLimitsValidator.TryValidate(_scene, out string? limitMsg))
+        {
+            MessageBox.Show(this,
+                limitMsg ?? L.Get("Msg.ShapeLimitExceededGeneric"),
+                L.Get("Title.ShapeLimit"),
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+        }
+
+        RefreshResultsUi();
     }
 
     private void OnLanguageChanged(object? sender, EventArgs e)
@@ -107,6 +270,7 @@ public partial class Form1 : Form, ILocalizable
         Text = L.Get("App.Title");
         _btnSettings.Text = L.Get("Btn.Settings");
         _btnSelectFile.Text = L.Get("Btn.SelectFile");
+        _btnSetBaseEdge.Text = L.Get("Btn.SetBaseEdge");
         _btnAddToRecipe.Text = L.Get("Btn.AddToRecipe");
         _btnSimulation.Text = L.Get("Btn.Simulation");
         _btnImportCsv.Text = L.Get("Btn.ImportCsv");
@@ -194,10 +358,18 @@ public partial class Form1 : Form, ILocalizable
         }
     }
 
-    private void LoadDxfFile(string path)
+    private void LoadDxfFile(string path, bool preserveBaseEdge = false)
     {
         _scene = DxfScene.Empty;
         _txtCoordinates.Clear();
+
+        if (!preserveBaseEdge)
+        {
+            _baseEdgeSelection = null;
+            ShapeOrientationContext.UseOriginAnchor = false;
+        }
+
+        ExitBaseEdgePickMode();
 
         try
         {
@@ -213,21 +385,16 @@ public partial class Form1 : Form, ILocalizable
                 return;
             }
 
-            _scene = _sceneBuilder.Build(doc);
-            _txtCoordinates.Text = SceneResultsTextFormatter.Format(_scene);
-            _txtCoordinates.SelectionStart = 0;
-            _txtCoordinates.ScrollToCaret();
-
-            if (!ShapeLimitsValidator.TryValidate(_scene, out string? limitMsg))
+            if (preserveBaseEdge && _baseEdgeSelection is BaseEdgeSelection selection)
             {
-                MessageBox.Show(this,
-                    limitMsg ?? L.Get("Msg.ShapeLimitExceededGeneric"),
-                    L.Get("Title.ShapeLimit"),
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);
+                if (!ApplyOrientationToDocument(doc, selection))
+                {
+                    _baseEdgeSelection = null;
+                    ShapeOrientationContext.UseOriginAnchor = false;
+                }
             }
 
-            RefreshResultsUi();
+            FinishSceneBuild(doc);
         }
         catch (Exception ex)
         {
@@ -244,16 +411,21 @@ public partial class Form1 : Form, ILocalizable
     private void RefreshResultsUi()
     {
         var s = _scene.Statistics;
-        _lblResults.Text = L.F("Status.Stats",
-            s.ContourEdgeCount,
-            s.RadiusFeatureCount,
-            s.ArcCount,
-            s.CircleCount,
-            s.TrackedEntityCount);
+        if (!_baseEdgePickMode)
+        {
+            _lblResults.Text = L.F("Status.Stats",
+                s.ContourEdgeCount,
+                s.RadiusFeatureCount,
+                s.ArcCount,
+                s.CircleCount,
+                s.TrackedEntityCount);
+        }
 
         bool canProcess = ContourPathOrderer.HasSimulatableContour(_scene)
             && ShapeLimitsValidator.IsWithinLimits(_scene)
             && AppSettingsManager.IsConfigured;
+
+        _btnSetBaseEdge.Enabled = ContourPathOrderer.HasSimulatableContour(_scene);
         _btnSimulation.Enabled = canProcess;
         _btnAddToRecipe.Enabled = canProcess && !string.IsNullOrWhiteSpace(_currentFilePath);
     }
@@ -626,11 +798,14 @@ public partial class Form1 : Form, ILocalizable
             var rect = _drawPanel.ClientRectangle;
             if (!WorldToScreenTransform.TryCreate(rect, _scene.Bounds, PaddingPixels, out WorldToScreenTransform transform))
             {
+                _hasLastTransform = false;
                 e.Graphics.Clear(Color.White);
                 return;
             }
 
-            _sceneRenderer.Paint(e.Graphics, _scene, rect, transform);
+            _lastTransform = transform;
+            _hasLastTransform = true;
+            _sceneRenderer.Paint(e.Graphics, _scene, rect, transform, highlightEdgeIndex: _highlightEdgeIndex);
         }
         catch (Exception ex)
         {

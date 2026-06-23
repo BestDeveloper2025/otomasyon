@@ -13,7 +13,68 @@ public static class ContourStartResolver
     public static List<(double X, double Y, double Bulge)> Apply(
         List<(double X, double Y, double Bulge)> loop,
         double eps)
-        => Apply(loop, eps, AppSettingsManager.MachineDirection);
+    {
+        if (ShapeOrientationContext.UseOriginAnchor)
+            return ApplyFromOriginAnchor(loop, eps, AppSettingsManager.MachineDirection);
+
+        return Apply(loop, eps, AppSettingsManager.MachineDirection);
+    }
+
+    public static List<(double X, double Y, double Bulge)> ApplyFromOriginAnchor(
+        List<(double X, double Y, double Bulge)> loop,
+        double eps,
+        MachineDirection direction)
+    {
+        if (loop.Count < 3)
+            return loop;
+
+        if (SignedAreaOfBulgeLoop(loop) < 0)
+            loop = ReverseBulgeLoop(loop);
+
+        int origin = FindVertexNearOrigin(loop, eps);
+        loop = RotateLoop(loop, origin);
+
+        if (loop.Count >= 2)
+        {
+            double edx = loop[1].X - loop[0].X;
+            bool wrongDir = direction == MachineDirection.LeftToRight
+                ? edx < -eps
+                : edx > eps;
+            if (wrongDir)
+            {
+                loop = ReverseBulgeLoop(loop);
+                // ReverseBulgeLoop başlangıç köşesini değiştirir; (0,0) anchor'ı yeniden index 0 yap.
+                int originAfterReverse = FindVertexNearOrigin(loop, eps);
+                loop = RotateLoop(loop, originAfterReverse);
+            }
+        }
+
+        return loop;
+    }
+
+    private static int FindVertexNearOrigin(List<(double X, double Y, double Bulge)> loop, double eps)
+    {
+        double originEps = Math.Max(eps, 1e-4);
+        for (int i = 0; i < loop.Count; i++)
+        {
+            if (Math.Abs(loop[i].X) <= originEps && Math.Abs(loop[i].Y) <= originEps)
+                return i;
+        }
+
+        int best = 0;
+        double bestDist = double.PositiveInfinity;
+        for (int i = 0; i < loop.Count; i++)
+        {
+            double d = loop[i].X * loop[i].X + loop[i].Y * loop[i].Y;
+            if (d < bestDist)
+            {
+                bestDist = d;
+                best = i;
+            }
+        }
+
+        return best;
+    }
 
     public static List<(double X, double Y, double Bulge)> Apply(
         List<(double X, double Y, double Bulge)> loop,

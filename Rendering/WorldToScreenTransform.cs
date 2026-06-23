@@ -58,4 +58,18 @@ public readonly struct WorldToScreenTransform
         float sy = (float)(OffsetY - worldY * Scale);
         return new PointF(sx, sy);
     }
+
+    public bool TryToWorld(PointF screen, out double worldX, out double worldY)
+    {
+        if (Math.Abs(Scale) < 1e-18)
+        {
+            worldX = 0;
+            worldY = 0;
+            return false;
+        }
+
+        worldX = (screen.X - OffsetX) / Scale;
+        worldY = (OffsetY - screen.Y) / Scale;
+        return true;
+    }
 }

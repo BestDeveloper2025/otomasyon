@@ -17,14 +17,14 @@ public static class EdgeLabelRenderer
             DrawLabel(g, seg.EdgeIndex, seg, transform, highlightEdgeIndex);
     }
 
-    public static void DrawForScene(Graphics g, DxfScene scene, in WorldToScreenTransform transform)
+    public static void DrawForScene(Graphics g, DxfScene scene, in WorldToScreenTransform transform, int? highlightEdgeIndex = null)
     {
         if (ContourPathOrderer.TryBuildOrderedSegments(scene, out var ordered))
         {
             foreach (var s in ordered)
             {
                 var seg = ToPathSegment(s);
-                DrawLabel(g, s.EdgeIndex, seg, transform, null);
+                DrawLabel(g, s.EdgeIndex, seg, transform, highlightEdgeIndex);
             }
 
             return;
@@ -46,7 +46,7 @@ public static class EdgeLabelRenderer
                 IsArc = e.IsRadiusSegment
             };
             EnrichArcParams(seg, out var enriched);
-            DrawLabel(g, e.Index, enriched, transform, null);
+            DrawLabel(g, e.Index, enriched, transform, highlightEdgeIndex);
         }
     }
 

@@ -104,6 +104,11 @@
     "tr": "Ayarlar",
     "de": "Einstellungen"
   },
+  "Btn.SetBaseEdge": {
+    "en": "Set Base Edge",
+    "tr": "Taban Kenarı Seç",
+    "de": "Basis-Kante wählen"
+  },
   "Btn.Cancel": {
     "en": "Cancel",
     "tr": "İptal",
@@ -223,6 +228,11 @@
     "en": "Contour edges: {0} | Radius: {1} | Arc: {2} | Circle: {3} | Entity: {4}",
     "tr": "Kontur kenar: {0} | Radius: {1} | Yay: {2} | Daire: {3} | Entity: {4}",
     "de": "Konturkanten: {0} | Radius: {1} | Bogen: {2} | Kreis: {3} | Entität: {4}"
+  },
+  "Status.PickBaseEdge": {
+    "en": "Click the edge that should become the bottom base (L1).",
+    "tr": "Taban olacak kenara tıklayın (L1).",
+    "de": "Klicken Sie auf die Kante, die zur unteren Basis (L1) werden soll."
   },
   "Status.RecipeCount": {
     "en": "Recipe: {0} shapes",
@@ -379,6 +389,11 @@
     "tr": "Boyut sınırı aşıldı",
     "de": "Größenlimit überschritten"
   },
+  "Title.BaseEdge": {
+    "en": "Base edge",
+    "tr": "Taban kenarı",
+    "de": "Basiskante"
+  },
   "Title.Dxf": {
     "en": "DXF",
     "tr": "DXF",
@@ -423,6 +438,31 @@
     "en": "Shape size exceeds the configured limits.",
     "tr": "Şekil boyutu tanımlı sınırları aşıyor.",
     "de": "Die Formgröße überschreitet die konfigurierten Grenzen."
+  },
+  "Msg.NoContourForBaseEdge": {
+    "en": "No closed contour found. Load a simulatable shape first.",
+    "tr": "Kapalı kontur bulunamadı. Önce simüle edilebilir bir şekil yükleyin.",
+    "de": "Keine geschlossene Kontur gefunden. Laden Sie zuerst eine simulierbare Form."
+  },
+  "Msg.BaseEdgePickMiss": {
+    "en": "Could not detect an edge at that point. Click closer to a contour edge.",
+    "tr": "Bu noktada kenar bulunamadı. Kontur kenarına daha yakın tıklayın.",
+    "de": "An dieser Stelle wurde keine Kante erkannt. Klicken Sie näher an eine Konturkante."
+  },
+  "Msg.BaseEdgeApplied": {
+    "en": "Shape oriented with the selected edge as L1 (edge {0}).",
+    "tr": "Şekil, seçilen kenar L1 olacak şekilde hizalandı (kenar {0}).",
+    "de": "Form mit der gewählten Kante als L1 ausgerichtet (Kante {0})."
+  },
+  "Msg.BaseEdgeApplyFailed": {
+    "en": "The selected edge could not be applied to the source file.",
+    "tr": "Seçilen kenar kaynak dosyaya uygulanamadı.",
+    "de": "Die gewählte Kante konnte nicht auf die Quelldatei angewendet werden."
+  },
+  "Msg.BaseEdgeApplyFailedDetail": {
+    "en": "Orientation failed:\n{0}",
+    "tr": "Hizalama başarısız:\n{0}",
+    "de": "Ausrichtung fehlgeschlagen:\n{0}"
   },
   "Msg.DxfLoadNull": {
     "en": "DXF file could not be loaded (operation returned null).",
