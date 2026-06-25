@@ -27,6 +27,8 @@ public static class VentsTextFormatter
                 v.CenterY.ToString("G9", CultureInfo.InvariantCulture)));
             sb.AppendLine(L.F("Analysis.VentDistance",
                 v.DistanceFromOriginMm.ToString("G6", CultureInfo.InvariantCulture)));
+            sb.AppendLine(L.F("Analysis.VentRadius",
+                v.RadiusMm.ToString("G6", CultureInfo.InvariantCulture)));
         }
 
         return sb.ToString().TrimEnd();

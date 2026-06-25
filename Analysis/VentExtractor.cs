@@ -17,6 +17,7 @@ public static class VentExtractor
         public double Area { get; init; }
         public double CenterX { get; init; }
         public double CenterY { get; init; }
+        public double RadiusMm { get; init; }
     }
 
     public static IReadOnlyList<VentFeature> Extract(DxfScene scene)
@@ -55,7 +56,8 @@ public static class VentExtractor
                 CenterX = c.CenterX,
                 CenterY = c.CenterY,
                 DistanceFromOriginMm = dist,
-                AreaMm2 = c.Area
+                AreaMm2 = c.Area,
+                RadiusMm = c.RadiusMm
             });
         }
 
@@ -79,7 +81,8 @@ public static class VentExtractor
                 CenterX = v.CenterX,
                 CenterY = v.CenterY,
                 DistanceFromOriginMm = v.DistanceFromOriginMm,
-                AreaMm2 = v.AreaMm2
+                AreaMm2 = v.AreaMm2,
+                RadiusMm = v.RadiusMm
             };
         }
 
@@ -131,7 +134,8 @@ public static class VentExtractor
                 Vertices = new List<(double X, double Y, double Bulge)>(),
                 Area = area,
                 CenterX = cx,
-                CenterY = cy
+                CenterY = cy,
+                RadiusMm = circle.Radius
             });
         }
     }
@@ -193,8 +197,27 @@ public static class VentExtractor
             Vertices = loop,
             Area = area,
             CenterX = cx,
-            CenterY = cy
+            CenterY = cy,
+            RadiusMm = ComputeRadiusMm(loop, cx, cy)
         });
+    }
+
+    private static double ComputeRadiusMm(
+        IReadOnlyList<(double X, double Y, double Bulge)> loop,
+        double cx,
+        double cy)
+    {
+        double maxR = 0;
+        foreach (var v in loop)
+        {
+            double dx = v.X - cx;
+            double dy = v.Y - cy;
+            double d = Math.Sqrt(dx * dx + dy * dy);
+            if (d > maxR)
+                maxR = d;
+        }
+
+        return maxR;
     }
 
     private static void ComputeCentroid(

@@ -10,4 +10,5 @@ public sealed class VentFeature
     public double CenterY { get; init; }
     public double DistanceFromOriginMm { get; init; }
     public double AreaMm2 { get; init; }
+    public double RadiusMm { get; init; }
 }

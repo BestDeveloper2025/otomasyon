@@ -704,6 +704,21 @@
     "tr": "L{0} (K{1}, R{2})",
     "de": "L{0} (K{1}, R{2})"
   },
+  "Setup.VentsHint": {
+    "en": "Vent stripping (M1…M12)",
+    "tr": "Menfez sıyırma alanları (M1…M12)",
+    "de": "Entlüftungsabschliff (M1…M12)"
+  },
+  "Setup.ColVent": {
+    "en": "Vent",
+    "tr": "Menfez",
+    "de": "Entlüftung"
+  },
+  "Setup.VentLabel": {
+    "en": "M{0}",
+    "tr": "M{0}",
+    "de": "M{0}"
+  },
   "Export.CsvInfo": {
     "en": "Edge thickness (SA), lengths (L), radius (R) and corner angles (A)\nare filled automatically from contour data.",
     "tr": "Kenar kalınlıkları (SA), uzunluklar (L), radius (R) ve köşe açıları (A)\nkontur verisinden otomatik doldurulur.",
@@ -1083,5 +1098,10 @@
     "en": "Distance from origin: {0}",
     "tr": "Başlangıçtan uzaklık: {0}",
     "de": "Abstand vom Ursprung: {0}"
+  },
+  "Analysis.VentRadius": {
+    "en": "Radius: {0}",
+    "tr": "Yarıçap: {0}",
+    "de": "Radius: {0}"
   }
 }

@@ -18,18 +18,23 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
     private readonly Panel _panelConfirm = new();
     private readonly Panel _panelParams = new();
     private readonly FlowLayoutPanel _edgeFlow = new();
+    private readonly FlowLayoutPanel _ventFlow = new();
     private readonly NumericUpDown _numStone = new();
     private readonly NumericUpDown _numBindirme = new();
     private readonly NumericUpDown _numKalinlik = new();
     private readonly NumericUpDown _numAdet = new();
     private readonly Dictionary<int, NumericUpDown> _edgeThicknessInputs = new();
     private readonly Dictionary<int, NumericUpDown> _edgeOffsetInputs = new();
+    private readonly Dictionary<int, NumericUpDown> _ventStrippingInputs = new();
     private readonly List<(Label Label, ContourEdge Edge)> _edgeRowLabels = new();
 
     private Label _lblConfirm = null!;
     private Button _btnNo = null!;
     private Button _btnYes = null!;
     private Label _lblEdgesHint = null!;
+    private Label _lblVentsHint = null!;
+    private Label _lblColVent = null!;
+    private Label _lblColVentThickness = null!;
     private Label _lblColEdge = null!;
     private Label _lblColThickness = null!;
     private Label _lblColOffset = null!;
@@ -46,6 +51,7 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
 
     public IReadOnlyDictionary<int, double>? ThicknessByEdge { get; private set; }
     public IReadOnlyDictionary<int, double>? OffsetByEdge { get; private set; }
+    public IReadOnlyDictionary<int, double>? VentStrippingByIndex { get; private set; }
     public StoneToolSettings? Tool { get; private set; }
     public CsvFileExporter.ExportOptions? CsvExportOptions { get; private set; }
 
@@ -57,7 +63,7 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
         MaximizeBox = false;
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterParent;
-        ClientSize = purpose == SetupPurpose.Recipe ? new Size(480, 600) : new Size(480, 520);
+        ClientSize = purpose == SetupPurpose.Recipe ? new Size(480, 640) : new Size(480, 560);
         MinimumSize = new Size(400, 400);
 
         BuildConfirmStep();
@@ -82,6 +88,12 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
         _btnNo.Text = L.Get("Btn.No");
         _btnYes.Text = L.Get("Btn.Yes");
         _lblEdgesHint.Text = L.Get("Setup.EdgesHint");
+        if (_lblVentsHint is not null)
+            _lblVentsHint.Text = L.Get("Setup.VentsHint");
+        if (_lblColVent is not null)
+            _lblColVent.Text = L.Get("Setup.ColVent");
+        if (_lblColVentThickness is not null)
+            _lblColVentThickness.Text = L.Get("Setup.ColThickness");
         _lblColEdge.Text = L.Get("Setup.ColEdge");
         _lblColThickness.Text = L.Get("Setup.ColThickness");
         _lblColOffset.Text = L.Get("Setup.ColOffset");
@@ -216,6 +228,56 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
 
         inner.Controls.Add(_edgeFlow);
 
+        if (_scene.VentFeatures.Count > 0)
+        {
+            _lblVentsHint = new Label
+            {
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
+                Margin = new Padding(0, 12, 0, 8)
+            };
+            inner.Controls.Add(_lblVentsHint);
+
+            var ventHeader = new Panel { Width = 400, Height = 22 };
+            _lblColVent = new Label { Location = new Point(0, 4), AutoSize = true, Font = new Font("Segoe UI", 8.5f, FontStyle.Bold) };
+            _lblColVentThickness = new Label { Location = new Point(200, 4), AutoSize = true, Font = new Font("Segoe UI", 8.5f, FontStyle.Bold) };
+            ventHeader.Controls.Add(_lblColVent);
+            ventHeader.Controls.Add(_lblColVentThickness);
+            inner.Controls.Add(ventHeader);
+
+            _ventFlow.FlowDirection = FlowDirection.TopDown;
+            _ventFlow.AutoSize = true;
+            _ventFlow.WrapContents = false;
+            _ventFlow.Width = 420;
+
+            foreach (var vent in _scene.VentFeatures.OrderBy(v => v.Index))
+            {
+                var row = new Panel { Width = 400, Height = 36 };
+                var lblVent = new Label
+                {
+                    Location = new Point(0, 8),
+                    AutoSize = true,
+                    Text = L.F("Setup.VentLabel", vent.Index)
+                };
+                row.Controls.Add(lblVent);
+
+                var numVent = new NumericUpDown
+                {
+                    Location = new Point(200, 4),
+                    Width = 110,
+                    DecimalPlaces = 2,
+                    Maximum = 99999,
+                    Minimum = 0,
+                    Value = 10
+                };
+                _ventStrippingInputs[vent.Index] = numVent;
+                row.Controls.Add(numVent);
+                _ventFlow.Controls.Add(row);
+            }
+
+            inner.Controls.Add(_ventFlow);
+        }
+
         _toolPanel = new GroupBox
         {
             Dock = DockStyle.Top,
@@ -338,6 +400,10 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
         foreach (var kv in _edgeOffsetInputs)
             offsets[kv.Key] = (double)kv.Value.Value;
 
+        var ventStripping = new Dictionary<int, double>();
+        foreach (var kv in _ventStrippingInputs)
+            ventStripping[kv.Key] = (double)kv.Value.Value;
+
         var tool = new StoneToolSettings
         {
             StoneWidthMm = (double)_numStone.Value,
@@ -356,6 +422,7 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
 
         ThicknessByEdge = dict;
         OffsetByEdge = offsets;
+        VentStrippingByIndex = ventStripping;
         Tool = tool;
 
         if (_purpose == SetupPurpose.Recipe)
@@ -363,7 +430,8 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
             CsvExportOptions = new CsvFileExporter.ExportOptions
             {
                 KalinlikMm = (double)_numKalinlik.Value,
-                IstenilenAdet = (int)_numAdet.Value
+                IstenilenAdet = (int)_numAdet.Value,
+                VentStrippingByIndex = ventStripping
             };
         }
 

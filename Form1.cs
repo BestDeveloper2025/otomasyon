@@ -523,11 +523,17 @@ public partial class Form1 : Form, ILocalizable
                 setup.Tool,
                 out job,
                 out error,
-                setup.OffsetByEdge))
+                setup.OffsetByEdge,
+                setup.VentStrippingByIndex))
             return false;
 
         if (purpose == SetupPurpose.Recipe)
-            exportOptions = setup.CsvExportOptions;
+        {
+            exportOptions = setup.CsvExportOptions ?? new CsvFileExporter.ExportOptions
+            {
+                VentStrippingByIndex = setup.VentStrippingByIndex ?? new Dictionary<int, double>()
+            };
+        }
 
         return true;
     }

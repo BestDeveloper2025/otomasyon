@@ -14,7 +14,8 @@ public static class SimulationJobFactory
         StoneToolSettings tool,
         out SimulationJob? job,
         out string? error,
-        IReadOnlyDictionary<int, double>? offsetByEdgeMm = null)
+        IReadOnlyDictionary<int, double>? offsetByEdgeMm = null,
+        IReadOnlyDictionary<int, double>? ventStrippingByIndex = null)
     {
         job = null;
         error = null;
@@ -48,7 +49,8 @@ public static class SimulationJobFactory
             Path = path,
             Plan = plan,
             Tool = tool,
-            SourceFilePath = sourceFilePath
+            SourceFilePath = sourceFilePath,
+            VentStrippingByIndex = ventStrippingByIndex ?? new Dictionary<int, double>()
         };
         return true;
     }

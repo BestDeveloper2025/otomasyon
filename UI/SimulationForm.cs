@@ -302,7 +302,16 @@ public sealed class SimulationForm : Form, ILocalizable
         if (saveDlg.ShowDialog(this) != DialogResult.OK)
             return;
 
-        if (!CsvFileExporter.TryWrite(_job, optionsDlg.Options, saveDlg.FileName, out string? error))
+        var exportOptions = new CsvFileExporter.ExportOptions
+        {
+            KalinlikMm = optionsDlg.Options.KalinlikMm,
+            IstenilenAdet = optionsDlg.Options.IstenilenAdet,
+            CamTipi = optionsDlg.Options.CamTipi,
+            UretilenAdet = optionsDlg.Options.UretilenAdet,
+            VentStrippingByIndex = _job.VentStrippingByIndex
+        };
+
+        if (!CsvFileExporter.TryWrite(_job, exportOptions, saveDlg.FileName, out string? error))
         {
             MessageBox.Show(this, error ?? L.Get("Msg.ExportSaveFailed"), L.Get("Title.Export"),
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);

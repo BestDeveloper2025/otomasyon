@@ -12,6 +12,7 @@ namespace otomasyon.Simulation;
 /// Makine CSV çıktısı (noktalı virgülle ayrılmış satırlar — Excel TR uyumlu).
 /// SA[1..12] kenar kalınlığı, L[1..12] kenar uzunluğu — yaylarda kiriş uzunluğu (küçük yay +, büyük yay −),
 /// R[1..12] radius (dış bükey +, iç bükey −), A[1..12] köşe açısı, O[1..12] kenar offset (mm).
+/// M_SA[1..12], M_X[1..12], M_Y[1..12], M_R[1..12] menfez alanları (alan 67–114).
 /// </summary>
 public static class CsvFileExporter
 {
@@ -34,6 +35,10 @@ public static class CsvFileExporter
 
         /// <summary>ChangedData[5] — üretilen adet (boş bırakılabilir).</summary>
         public string UretilenAdet { get; init; } = string.Empty;
+
+        /// <summary>M1..M12 menfez sıyırma alanları (mm).</summary>
+        public IReadOnlyDictionary<int, double> VentStrippingByIndex { get; init; }
+            = new Dictionary<int, double>();
     }
 
     public static ExportOptions CreateDefaultOptions()
@@ -161,8 +166,38 @@ public static class CsvFileExporter
         var offsets = new double[SlotCount + 1];
 
         FillArrays(job, sa, lengths, radii, angles, offsets);
-        fields = BuildFields(rowIndex, options, sa, lengths, radii, angles, offsets);
+        var ventSa = new double[SlotCount + 1];
+        var ventX = new double[SlotCount + 1];
+        var ventY = new double[SlotCount + 1];
+        var ventR = new double[SlotCount + 1];
+        FillVentArrays(job, options, ventSa, ventX, ventY, ventR);
+        fields = BuildFields(rowIndex, options, sa, lengths, radii, angles, offsets, ventSa, ventX, ventY, ventR);
         return true;
+    }
+
+    private static void FillVentArrays(
+        SimulationJob job,
+        ExportOptions options,
+        double[] ventSa,
+        double[] ventX,
+        double[] ventY,
+        double[] ventR)
+    {
+        foreach (var vent in job.Scene.VentFeatures)
+        {
+            int idx = vent.Index;
+            if (idx < 1 || idx > SlotCount)
+                continue;
+
+            ventX[idx] = vent.CenterX;
+            ventY[idx] = vent.CenterY;
+            ventR[idx] = vent.RadiusMm;
+
+            if (options.VentStrippingByIndex.TryGetValue(idx, out double sa))
+                ventSa[idx] = sa;
+            else if (job.VentStrippingByIndex.TryGetValue(idx, out sa))
+                ventSa[idx] = sa;
+        }
     }
 
     private static void FillArrays(
@@ -270,9 +305,13 @@ public static class CsvFileExporter
         double[] lengths,
         double[] radii,
         double[] angles,
-        double[] offsets)
+        double[] offsets,
+        double[] ventSa,
+        double[] ventX,
+        double[] ventY,
+        double[] ventR)
     {
-        var fields = new List<string>(66)
+        var fields = new List<string>(114)
         {
             rowIndex.ToString(Inv),
             SekilIsmiSerbest.ToString(Inv),
@@ -297,6 +336,18 @@ public static class CsvFileExporter
         for (int i = 1; i <= SlotCount; i++)
             fields.Add(FormatOffset(offsets[i]));
 
+        for (int i = 1; i <= SlotCount; i++)
+            fields.Add(FormatSa(ventSa[i]));
+
+        for (int i = 1; i <= SlotCount; i++)
+            fields.Add(FormatCoord(ventX[i]));
+
+        for (int i = 1; i <= SlotCount; i++)
+            fields.Add(FormatCoord(ventY[i]));
+
+        for (int i = 1; i <= SlotCount; i++)
+            fields.Add(FormatRadius(ventR[i]));
+
         return fields;
     }
 
@@ -309,6 +360,13 @@ public static class CsvFileExporter
             return "\"" + value.Replace("\"", "\"\"", StringComparison.Ordinal) + "\"";
 
         return value;
+    }
+
+    private static string FormatCoord(double v)
+    {
+        if (Math.Abs(v) < 1e-9)
+            return "0.00";
+        return v.ToString("0.00", Inv);
     }
 
     private static string FormatOffset(double v)
