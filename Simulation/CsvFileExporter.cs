@@ -104,13 +104,14 @@ public static class CsvFileExporter
         out string? error)
     {
         writtenLines = Array.Empty<string>();
-        if (!MachineExportLineBuilder.TryBuildCombinedLines(prefixLines, entries, csvFormat: true, out IReadOnlyList<string>? lines, out error))
+        if (!TryBuildBatchContent(prefixLines, entries, out string batchContent, out error))
             return false;
 
         try
         {
-            WriteCsvFile(filePath, string.Join(Environment.NewLine, lines) + Environment.NewLine);
-            writtenLines = lines;
+            WriteCsvFile(filePath, batchContent);
+            if (MachineExportLineBuilder.TryBuildCombinedLines(prefixLines, entries, csvFormat: true, out IReadOnlyList<string>? lines, out _))
+                writtenLines = lines;
             return true;
         }
         catch (Exception ex)
@@ -118,6 +119,20 @@ public static class CsvFileExporter
             error = ex.Message;
             return false;
         }
+    }
+
+    public static bool TryBuildBatchContent(
+        IReadOnlyList<string>? prefixLines,
+        IReadOnlyList<(SimulationJob Job, ExportOptions Options)> entries,
+        out string content,
+        out string? error)
+    {
+        content = string.Empty;
+        if (!MachineExportLineBuilder.TryBuildCombinedLines(prefixLines, entries, csvFormat: true, out IReadOnlyList<string>? lines, out error))
+            return false;
+
+        content = string.Join(Environment.NewLine, lines) + Environment.NewLine;
+        return true;
     }
 
     public static bool TryBuildLine(

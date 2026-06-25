@@ -46,11 +46,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Erp2\\Desktop\\otomasyon\\otomasyon\\otomasyon\\otomasyon.csproj",
+      "projectUniqueName": "c:\\Users\\Erp2\\Desktop\\otomasyon\\otomasyon\\otomasyon\\otomasyon.csproj",
       "projectName": "otomasyon",
-      "projectPath": "C:\\Users\\Erp2\\Desktop\\otomasyon\\otomasyon\\otomasyon\\otomasyon.csproj",
+      "projectPath": "c:\\Users\\Erp2\\Desktop\\otomasyon\\otomasyon\\otomasyon\\otomasyon.csproj",
       "packagesPath": "C:\\Users\\Erp2\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Erp2\\Desktop\\otomasyon\\otomasyon\\otomasyon\\obj\\",
+      "outputPath": "c:\\Users\\Erp2\\Desktop\\otomasyon\\otomasyon\\otomasyon\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Erp2\\AppData\\Roaming\\NuGet\\NuGet.Config",

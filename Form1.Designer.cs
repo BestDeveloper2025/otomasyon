@@ -15,6 +15,7 @@ namespace otomasyon
         private Button _btnImportCsv = null!;
         private Button _btnExportBatchCsv = null!;
         private Button _btnExportBatchDat = null!;
+        private Button _btnSendFtp = null!;
         private Button _btnSettings = null!;
         private Label _lblFilePath = null!;
 
@@ -89,6 +90,8 @@ namespace otomasyon
             _btnExportBatchCsv.Enabled = false;
             _btnExportBatchDat = CreateToolbarButton("Batch DAT Export", 130);
             _btnExportBatchDat.Enabled = false;
+            _btnSendFtp = CreateToolbarButton("Send via FTP", 120);
+            _btnSendFtp.Enabled = false;
 
             _toolbarFlow.Controls.Add(_btnSelectFile);
             _toolbarFlow.Controls.Add(_btnSetBaseEdge);
@@ -97,6 +100,7 @@ namespace otomasyon
             _toolbarFlow.Controls.Add(_btnImportCsv);
             _toolbarFlow.Controls.Add(_btnExportBatchCsv);
             _toolbarFlow.Controls.Add(_btnExportBatchDat);
+            _toolbarFlow.Controls.Add(_btnSendFtp);
 
             _btnSettings = CreateToolbarButton("Settings", 90);
             _btnSettings.Dock = DockStyle.Right;

@@ -40,6 +40,7 @@ public partial class Form1 : Form, ILocalizable
         _btnImportCsv.Click += BtnImportCsv_Click;
         _btnExportBatchCsv.Click += BtnExportBatchCsv_Click;
         _btnExportBatchDat.Click += BtnExportBatchDat_Click;
+        _btnSendFtp.Click += BtnSendFtp_Click;
         _btnRemoveRecipe.Click += BtnRemoveRecipe_Click;
         _btnClearRecipe.Click += BtnClearRecipe_Click;
         _btnSettings.Click += BtnSettings_Click;
@@ -278,6 +279,7 @@ public partial class Form1 : Form, ILocalizable
         _btnImportCsv.Text = L.Get("Btn.ImportCsv");
         _btnExportBatchCsv.Text = L.Get("Btn.ExportBatchCsv");
         _btnExportBatchDat.Text = L.Get("Btn.ExportBatchDat");
+        _btnSendFtp.Text = L.Get("Btn.SendFtp");
         _btnRemoveRecipe.Text = L.Get("Btn.RemoveSelected");
         _btnClearRecipe.Text = L.Get("Btn.ClearAll");
         _lblRecipeHeader.Text = L.Get("Label.Recipe");
@@ -589,6 +591,110 @@ public partial class Form1 : Form, ILocalizable
     private void BtnExportBatchDat_Click(object? sender, EventArgs e)
         => ExportRecipeBatch(csv: false);
 
+    private async void BtnSendFtp_Click(object? sender, EventArgs e)
+    {
+        if (!HasRecipeExportData())
+            return;
+
+        if (!EnsureFtpConfigured())
+            return;
+
+        string suggestedFileName = SuggestFtpRemoteFileName();
+        using var nameDlg = new FtpUploadDialog(suggestedFileName);
+        if (nameDlg.ShowDialog(this) != DialogResult.OK)
+            return;
+
+        var entries = _recipeItems
+            .Select(i => (i.Job, i.ExportOptions))
+            .ToList();
+
+        IReadOnlyList<string>? prefix = _importedCsv?.Lines;
+        if (!CsvFileExporter.TryBuildBatchContent(prefix, entries, out string content, out string? buildError))
+        {
+            MessageBox.Show(this,
+                buildError ?? L.F("Msg.ExportFailed", "CSV"),
+                L.Get("Title.FtpSend"),
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+            return;
+        }
+
+        string remoteFileName = nameDlg.FileName;
+
+        _btnSendFtp.Enabled = false;
+        UseWaitCursor = true;
+        try
+        {
+            var ftp = AppSettingsManager.Ftp;
+            string? uploadError = await Task.Run(() =>
+            {
+                bool ok = FtpFileUploader.TryUploadText(ftp, remoteFileName, content, out string? err);
+                return ok ? null : err;
+            }).ConfigureAwait(true);
+
+            if (uploadError is not null)
+            {
+                MessageBox.Show(this,
+                    uploadError,
+                    L.Get("Title.FtpSend"),
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            MessageBox.Show(this,
+                L.F("Msg.FtpUploadSuccess", ftp.GetRemoteFilePath(remoteFileName), ftp.Host),
+                L.Get("Title.FtpSend"),
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+        }
+        finally
+        {
+            UseWaitCursor = false;
+            RefreshRecipeUi();
+        }
+    }
+
+    private bool HasRecipeExportData()
+    {
+        if (_importedCsv is not null || _recipeItems.Count > 0)
+            return true;
+
+        MessageBox.Show(this,
+            L.Get("Msg.NoExportData"),
+            L.Get("Title.FtpSend"),
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information);
+        return false;
+    }
+
+    private bool EnsureFtpConfigured()
+    {
+        if (AppSettingsManager.Ftp.IsConfigured)
+            return true;
+
+        var result = MessageBox.Show(this,
+            L.Get("Msg.FtpNotConfigured"),
+            L.Get("Title.FtpSend"),
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Question);
+
+        if (result != DialogResult.Yes)
+            return false;
+
+        using var dlg = new FtpSettingsDialog();
+        dlg.ShowDialog(this);
+        return AppSettingsManager.Ftp.IsConfigured;
+    }
+
+    private string SuggestFtpRemoteFileName()
+    {
+        if (_importedCsv is not null)
+            return Path.ChangeExtension(_importedCsv.DisplayName, ".csv");
+
+        return L.Get("File.DefaultCsv");
+    }
+
     private void ExportRecipeBatch(bool csv)
     {
         bool hasImported = _importedCsv is not null;
@@ -791,6 +897,7 @@ public partial class Form1 : Form, ILocalizable
         bool hasData = importedCount > 0 || newCount > 0;
         _btnExportBatchCsv.Enabled = hasData;
         _btnExportBatchDat.Enabled = hasData;
+        _btnSendFtp.Enabled = hasData;
         _btnClearRecipe.Enabled = hasData;
         RefreshRecipeActionButtons();
     }

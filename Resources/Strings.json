@@ -54,6 +54,66 @@
     "tr": "Maks. şekil boyu (mm)",
     "de": "Max. Formhöhe (mm)"
   },
+  "Settings.FtpButton": {
+    "en": "FTP settings…",
+    "tr": "FTP ayarları…",
+    "de": "FTP-Einstellungen…"
+  },
+  "Settings.FtpHint": {
+    "en": "Connection details and target folder for uploading recipe files via FTP.",
+    "tr": "Reçete dosyalarını FTP ile göndermek için bağlantı bilgileri ve hedef klasör.",
+    "de": "Verbindungsdaten und Zielordner zum Hochladen von Rezeptdateien per FTP."
+  },
+  "Settings.FtpHost": {
+    "en": "Server (IP / host)",
+    "tr": "Sunucu (IP / adres)",
+    "de": "Server (IP / Host)"
+  },
+  "Settings.FtpHostExample": {
+    "en": "e.g. 192.168.1.50",
+    "tr": "örn: 192.168.1.50",
+    "de": "z. B. 192.168.1.50"
+  },
+  "Settings.FtpPort": {
+    "en": "Port",
+    "tr": "Port",
+    "de": "Port"
+  },
+  "Settings.FtpPortExample": {
+    "en": "e.g. 21",
+    "tr": "örn: 21",
+    "de": "z. B. 21"
+  },
+  "Settings.FtpUsername": {
+    "en": "Username",
+    "tr": "Kullanıcı adı",
+    "de": "Benutzername"
+  },
+  "Settings.FtpUsernameExample": {
+    "en": "e.g. ftpuser",
+    "tr": "örn: ftpuser",
+    "de": "z. B. ftpuser"
+  },
+  "Settings.FtpPassword": {
+    "en": "Password",
+    "tr": "Şifre",
+    "de": "Passwort"
+  },
+  "Settings.FtpPasswordExample": {
+    "en": "e.g. machine password",
+    "tr": "örn: makine şifresi",
+    "de": "z. B. Maschinenpasswort"
+  },
+  "Settings.FtpRemoteDirectory": {
+    "en": "Remote folder",
+    "tr": "Uzak klasör",
+    "de": "Remote-Ordner"
+  },
+  "Settings.FtpRemoteDirectoryExample": {
+    "en": "e.g. programs or /data/recipes",
+    "tr": "örn: programs veya /data/recipes",
+    "de": "z. B. programs oder /data/recipes"
+  },
   "Label.Required": {
     "en": "(*)",
     "tr": "(*)",
@@ -89,6 +149,11 @@
     "tr": "Toplu DAT Çıktı",
     "de": "DAT-Sammelexport"
   },
+  "Btn.SendFtp": {
+    "en": "Send via FTP",
+    "tr": "FTP ile Gönder",
+    "de": "Per FTP senden"
+  },
   "Btn.RemoveSelected": {
     "en": "Remove Selected",
     "tr": "Seçileni Kaldır",
@@ -118,6 +183,11 @@
     "en": "Save…",
     "tr": "Kaydet…",
     "de": "Speichern…"
+  },
+  "Btn.Send": {
+    "en": "Send",
+    "tr": "Gönder",
+    "de": "Senden"
   },
   "Btn.Yes": {
     "en": "Yes, continue",
@@ -314,6 +384,31 @@
     "tr": "Ayarlar",
     "de": "Einstellungen"
   },
+  "Dialog.FtpSettings": {
+    "en": "FTP Settings",
+    "tr": "FTP Ayarları",
+    "de": "FTP-Einstellungen"
+  },
+  "Dialog.FtpUpload": {
+    "en": "FTP Upload",
+    "tr": "FTP Gönderimi",
+    "de": "FTP-Upload"
+  },
+  "Ftp.UploadHint": {
+    "en": "Enter the file name to upload to the machine.",
+    "tr": "Makineye gönderilecek dosya adını girin.",
+    "de": "Geben Sie den Dateinamen für den Upload auf die Maschine ein."
+  },
+  "Ftp.FileName": {
+    "en": "File name",
+    "tr": "Dosya adı",
+    "de": "Dateiname"
+  },
+  "Ftp.FileNameExample": {
+    "en": "e.g. order_2026.csv",
+    "tr": "örn: siparis_2026.csv",
+    "de": "z. B. auftrag_2026.csv"
+  },
   "Filter.Dxf": {
     "en": "DXF Files (*.dxf)|*.dxf",
     "tr": "DXF Dosyaları (*.dxf)|*.dxf",
@@ -363,6 +458,11 @@
     "en": "Batch DAT",
     "tr": "Toplu DAT",
     "de": "DAT-Sammel"
+  },
+  "Title.FtpSend": {
+    "en": "FTP Upload",
+    "tr": "FTP Gönderimi",
+    "de": "FTP-Upload"
   },
   "Title.DatExport": {
     "en": "DAT Export",
@@ -498,6 +598,16 @@
     "en": "Nothing to save. Import a CSV or add shapes to the recipe.",
     "tr": "Kaydedilecek veri yok. CSV içe aktarın veya reçeteye şekil ekleyin.",
     "de": "Nichts zu speichern. CSV importieren oder Formen zum Rezept hinzufügen."
+  },
+  "Msg.FtpNotConfigured": {
+    "en": "FTP settings are not configured. Open FTP settings now?",
+    "tr": "FTP ayarları yapılandırılmamış. FTP ayarlarını şimdi açmak ister misiniz?",
+    "de": "FTP-Einstellungen sind nicht konfiguriert. FTP-Einstellungen jetzt öffnen?"
+  },
+  "Msg.FtpUploadSuccess": {
+    "en": "Recipe file \"{0}\" was uploaded to {1}.",
+    "tr": "Reçete dosyası \"{0}\" sunucuya ({1}) yüklendi.",
+    "de": "Rezeptdatei \"{0}\" wurde auf {1} hochgeladen."
   },
   "Msg.ExportFailed": {
     "en": "{0} file could not be written.",
@@ -778,6 +888,46 @@
     "en": "Max width and height must be greater than 0.",
     "tr": "Maks. en ve boy 0'dan büyük olmalıdır.",
     "de": "Max. Breite und Höhe müssen größer als 0 sein."
+  },
+  "Error.FtpHostRequired": {
+    "en": "Please enter the FTP server address.",
+    "tr": "Lütfen FTP sunucu adresini girin.",
+    "de": "Bitte geben Sie die FTP-Serveradresse ein."
+  },
+  "Error.FtpPortInvalid": {
+    "en": "FTP port must be between 1 and 65535.",
+    "tr": "FTP portu 1 ile 65535 arasında olmalıdır.",
+    "de": "Der FTP-Port muss zwischen 1 und 65535 liegen."
+  },
+  "Error.FtpUsernameRequired": {
+    "en": "Please enter the FTP username.",
+    "tr": "Lütfen FTP kullanıcı adını girin.",
+    "de": "Bitte geben Sie den FTP-Benutzernamen ein."
+  },
+  "Error.FtpSaveFailed": {
+    "en": "FTP settings could not be saved.",
+    "tr": "FTP ayarları kaydedilemedi.",
+    "de": "FTP-Einstellungen konnten nicht gespeichert werden."
+  },
+  "Error.FtpUploadFailed": {
+    "en": "FTP upload failed: {0}",
+    "tr": "FTP yükleme başarısız: {0}",
+    "de": "FTP-Upload fehlgeschlagen: {0}"
+  },
+  "Error.FtpEmptyContent": {
+    "en": "Recipe content is empty.",
+    "tr": "Reçete içeriği boş.",
+    "de": "Rezeptinhalt ist leer."
+  },
+  "Error.FtpInvalidFileName": {
+    "en": "Invalid remote file name.",
+    "tr": "Geçersiz uzak dosya adı.",
+    "de": "Ungültiger Remote-Dateiname."
+  },
+  "Error.FtpFileNameRequired": {
+    "en": "Please enter a file name.",
+    "tr": "Lütfen bir dosya adı girin.",
+    "de": "Bitte geben Sie einen Dateinamen ein."
   },
   "Error.LimitsRequired": {
     "en": "Please enter max shape width and height.",

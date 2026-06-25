@@ -14,6 +14,7 @@ public sealed class SettingsDialog : Form, ILocalizable
     private readonly Label _lblMachine = new();
     private readonly Label _lblMaxWidth = new();
     private readonly Label _lblMaxHeight = new();
+    private readonly Button _btnFtpSettings = new();
     private readonly Button _btnCancel = new();
     private readonly Button _btnOk = new();
 
@@ -23,7 +24,7 @@ public sealed class SettingsDialog : Form, ILocalizable
         MaximizeBox = false;
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterParent;
-        ClientSize = new Size(440, 260);
+        ClientSize = new Size(440, 300);
 
         _lblHint.Location = new Point(16, 12);
         _lblHint.Size = new Size(400, 32);
@@ -60,6 +61,10 @@ public sealed class SettingsDialog : Form, ILocalizable
         _numMaxHeight.Maximum = 999999;
         _numMaxHeight.Increment = 10;
 
+        _btnFtpSettings.Location = new Point(16, 188);
+        _btnFtpSettings.Size = new Size(394, 32);
+        _btnFtpSettings.Click += OnFtpSettingsClick;
+
         var flow = new FlowLayoutPanel
         {
             Dock = DockStyle.Bottom,
@@ -77,6 +82,7 @@ public sealed class SettingsDialog : Form, ILocalizable
         flow.Controls.Add(_btnOk);
 
         Controls.Add(flow);
+        Controls.Add(_btnFtpSettings);
         Controls.Add(_numMaxHeight);
         Controls.Add(_lblMaxHeight);
         Controls.Add(_numMaxWidth);
@@ -103,6 +109,7 @@ public sealed class SettingsDialog : Form, ILocalizable
         _lblMachine.Text = RequiredLabel("Settings.MachineDirection");
         _lblMaxWidth.Text = RequiredLabel("Settings.MaxShapeWidth");
         _lblMaxHeight.Text = RequiredLabel("Settings.MaxShapeHeight");
+        _btnFtpSettings.Text = L.Get("Settings.FtpButton");
         _btnCancel.Text = L.Get("Btn.Cancel");
         _btnOk.Text = L.Get("Btn.Save");
 
@@ -161,6 +168,12 @@ public sealed class SettingsDialog : Form, ILocalizable
 
         DialogResult = DialogResult.OK;
         Close();
+    }
+
+    private void OnFtpSettingsClick(object? sender, EventArgs e)
+    {
+        using var dlg = new FtpSettingsDialog();
+        dlg.ShowDialog(this);
     }
 
     private void PopulateCombos()

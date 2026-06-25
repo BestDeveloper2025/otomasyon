@@ -15,6 +15,7 @@ public static class AppSettingsManager
     public static bool IsConfigured { get; private set; }
     public static MachineDirection MachineDirection { get; private set; } = MachineDirection.LeftToRight;
     public static ShapeLimits Limits { get; private set; } = new();
+    public static FtpSettings Ftp { get; private set; } = new();
 
     public static event EventHandler? MachineDirectionChanged;
     public static event EventHandler? SettingsChanged;
@@ -55,6 +56,42 @@ public static class AppSettingsManager
         return true;
     }
 
+    public static bool TrySaveFtp(FtpSettings ftp, out string? error)
+    {
+        error = null;
+
+        if (string.IsNullOrWhiteSpace(ftp.Host))
+        {
+            error = L.Get("Error.FtpHostRequired");
+            return false;
+        }
+
+        if (ftp.Port is < 1 or > 65535)
+        {
+            error = L.Get("Error.FtpPortInvalid");
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(ftp.Username))
+        {
+            error = L.Get("Error.FtpUsernameRequired");
+            return false;
+        }
+
+        Ftp = new FtpSettings
+        {
+            Host = ftp.Host.Trim(),
+            Port = ftp.Port,
+            Username = ftp.Username.Trim(),
+            Password = ftp.Password,
+            RemoteDirectory = FtpSettings.NormalizeRemoteDirectory(ftp.RemoteDirectory)
+        };
+
+        Persist();
+        SettingsChanged?.Invoke(null, EventArgs.Empty);
+        return true;
+    }
+
     public static void SetMachineDirection(MachineDirection direction, bool save = true)
     {
         if (MachineDirection == direction)
@@ -79,7 +116,12 @@ public static class AppSettingsManager
                 MachineDirection = MachineDirection.ToCode(),
                 MaxShapeWidthMm = Limits.MaxWidthMm,
                 MaxShapeHeightMm = Limits.MaxHeightMm,
-                IsConfigured = IsConfigured
+                IsConfigured = IsConfigured,
+                FtpHost = Ftp.Host,
+                FtpPort = Ftp.Port,
+                FtpUsername = Ftp.Username,
+                FtpPassword = Ftp.Password,
+                FtpRemoteDirectory = Ftp.RemoteDirectory
             };
             string json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(SettingsPath, json);
@@ -115,6 +157,15 @@ public static class AppSettingsManager
                         };
                     }
 
+                    Ftp = new FtpSettings
+                    {
+                        Host = data.FtpHost ?? string.Empty,
+                        Port = data.FtpPort is >= 1 and <= 65535 ? data.FtpPort : FtpSettings.DefaultPort,
+                        Username = data.FtpUsername ?? string.Empty,
+                        Password = data.FtpPassword ?? string.Empty,
+                        RemoteDirectory = FtpSettings.NormalizeRemoteDirectory(data.FtpRemoteDirectory)
+                    };
+
                     return;
                 }
             }
@@ -138,5 +189,10 @@ public static class AppSettingsManager
         public double MaxShapeWidthMm { get; set; }
         public double MaxShapeHeightMm { get; set; }
         public bool IsConfigured { get; set; }
+        public string? FtpHost { get; set; }
+        public int FtpPort { get; set; } = FtpSettings.DefaultPort;
+        public string? FtpUsername { get; set; }
+        public string? FtpPassword { get; set; }
+        public string? FtpRemoteDirectory { get; set; }
     }
 }
