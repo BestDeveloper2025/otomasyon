@@ -189,6 +189,26 @@
     "tr": "Gönder",
     "de": "Senden"
   },
+  "Btn.Refresh": {
+    "en": "Refresh",
+    "tr": "Yenile",
+    "de": "Aktualisieren"
+  },
+  "Btn.Close": {
+    "en": "Close",
+    "tr": "Kapat",
+    "de": "Schließen"
+  },
+  "Btn.DeleteSelected": {
+    "en": "Delete",
+    "tr": "Sil",
+    "de": "Löschen"
+  },
+  "Btn.FtpBrowseRemote": {
+    "en": "Browse remote folder…",
+    "tr": "Uzak klasörü görüntüle…",
+    "de": "Remote-Ordner anzeigen…"
+  },
   "Btn.Yes": {
     "en": "Yes, continue",
     "tr": "Evet, devam",
@@ -394,6 +414,11 @@
     "tr": "FTP Gönderimi",
     "de": "FTP-Upload"
   },
+  "Dialog.FtpRemoteFiles": {
+    "en": "Remote FTP Files",
+    "tr": "Uzak FTP Dosyaları",
+    "de": "Remote-FTP-Dateien"
+  },
   "Ftp.UploadHint": {
     "en": "Enter the file name to upload to the machine.",
     "tr": "Makineye gönderilecek dosya adını girin.",
@@ -408,6 +433,46 @@
     "en": "e.g. order_2026.csv",
     "tr": "örn: siparis_2026.csv",
     "de": "z. B. auftrag_2026.csv"
+  },
+  "Ftp.RemoteFilesHint": {
+    "en": "Files in the configured remote folder. Select a file and delete if needed.",
+    "tr": "Yapılandırılmış uzak klasördeki dosyalar. Seçip silebilirsiniz.",
+    "de": "Dateien im konfigurierten Remote-Ordner. Auswählen und bei Bedarf löschen."
+  },
+  "Ftp.RemotePath": {
+    "en": "{0} / {1}",
+    "tr": "{0} / {1}",
+    "de": "{0} / {1}"
+  },
+  "Ftp.RemotePathRoot": {
+    "en": "{0} / (root)",
+    "tr": "{0} / (kök)",
+    "de": "{0} / (Stamm)"
+  },
+  "Ftp.ColFileName": {
+    "en": "File name",
+    "tr": "Dosya adı",
+    "de": "Dateiname"
+  },
+  "Ftp.Loading": {
+    "en": "Loading…",
+    "tr": "Yükleniyor…",
+    "de": "Wird geladen…"
+  },
+  "Ftp.Deleting": {
+    "en": "Deleting…",
+    "tr": "Siliniyor…",
+    "de": "Wird gelöscht…"
+  },
+  "Ftp.EmptyFolder": {
+    "en": "Folder is empty.",
+    "tr": "Klasör boş.",
+    "de": "Ordner ist leer."
+  },
+  "Ftp.FileCount": {
+    "en": "{0} file(s)",
+    "tr": "{0} dosya",
+    "de": "{0} Datei(en)"
   },
   "Filter.Dxf": {
     "en": "DXF Files (*.dxf)|*.dxf",
@@ -603,6 +668,21 @@
     "en": "FTP settings are not configured. Open FTP settings now?",
     "tr": "FTP ayarları yapılandırılmamış. FTP ayarlarını şimdi açmak ister misiniz?",
     "de": "FTP-Einstellungen sind nicht konfiguriert. FTP-Einstellungen jetzt öffnen?"
+  },
+  "Msg.FtpNotConfiguredShort": {
+    "en": "FTP connection settings are incomplete.",
+    "tr": "FTP bağlantı ayarları eksik.",
+    "de": "FTP-Verbindungseinstellungen sind unvollständig."
+  },
+  "Msg.FtpDeleteConfirm": {
+    "en": "Delete \"{0}\" from the remote folder?",
+    "tr": "\"{0}\" uzak klasörden silinsin mi?",
+    "de": "\"{0}\" aus dem Remote-Ordner löschen?"
+  },
+  "Msg.FtpDeleteSuccess": {
+    "en": "\"{0}\" was deleted.",
+    "tr": "\"{0}\" silindi.",
+    "de": "\"{0}\" wurde gelöscht."
   },
   "Msg.FtpUploadSuccess": {
     "en": "Recipe file \"{0}\" was uploaded to {1}.",
@@ -928,6 +1008,21 @@
     "en": "Please enter a file name.",
     "tr": "Lütfen bir dosya adı girin.",
     "de": "Bitte geben Sie einen Dateinamen ein."
+  },
+  "Error.FtpListFailed": {
+    "en": "Remote folder could not be listed.",
+    "tr": "Uzak klasör listelenemedi.",
+    "de": "Remote-Ordner konnte nicht aufgelistet werden."
+  },
+  "Error.FtpListFailedDetail": {
+    "en": "Could not list remote folder: {0}",
+    "tr": "Uzak klasör listelenemedi: {0}",
+    "de": "Remote-Ordner konnte nicht aufgelistet werden: {0}"
+  },
+  "Error.FtpDeleteFailed": {
+    "en": "Could not delete file: {0}",
+    "tr": "Dosya silinemedi: {0}",
+    "de": "Datei konnte nicht gelöscht werden: {0}"
   },
   "Error.LimitsRequired": {
     "en": "Please enter max shape width and height.",

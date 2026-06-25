@@ -21,6 +21,7 @@ public sealed class FtpSettingsDialog : Form, ILocalizable
     private readonly Label _lblRemoteDirectory = new();
     private readonly Label _lblRemoteDirectoryExample = new();
     private readonly TextBox _txtRemoteDirectory = new();
+    private readonly Button _btnBrowseRemote = new();
     private readonly Button _btnCancel = new();
     private readonly Button _btnOk = new();
 
@@ -35,7 +36,7 @@ public sealed class FtpSettingsDialog : Form, ILocalizable
         MaximizeBox = false;
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterParent;
-        ClientSize = new Size(440, 360);
+        ClientSize = new Size(440, 400);
 
         _lblHint.Location = new Point(LabelX, 12);
         _lblHint.Size = new Size(400, 28);
@@ -53,6 +54,10 @@ public sealed class FtpSettingsDialog : Form, ILocalizable
         _txtPassword.UseSystemPasswordChar = true;
         rowTop += RowHeight;
         PlaceFieldRow(rowTop, _lblRemoteDirectory, _lblRemoteDirectoryExample, _txtRemoteDirectory);
+
+        _btnBrowseRemote.Location = new Point(FieldX, rowTop + RowHeight - 4);
+        _btnBrowseRemote.Size = new Size(FieldWidth, 30);
+        _btnBrowseRemote.Click += OnBrowseRemoteClick;
 
         _numPort.Minimum = 1;
         _numPort.Maximum = 65535;
@@ -76,6 +81,7 @@ public sealed class FtpSettingsDialog : Form, ILocalizable
         flow.Controls.Add(_btnOk);
 
         Controls.Add(flow);
+        Controls.Add(_btnBrowseRemote);
         Controls.Add(_txtRemoteDirectory);
         Controls.Add(_lblRemoteDirectoryExample);
         Controls.Add(_lblRemoteDirectory);
@@ -115,6 +121,7 @@ public sealed class FtpSettingsDialog : Form, ILocalizable
         _lblPasswordExample.Text = L.Get("Settings.FtpPasswordExample");
         _lblRemoteDirectory.Text = L.Get("Settings.FtpRemoteDirectory");
         _lblRemoteDirectoryExample.Text = L.Get("Settings.FtpRemoteDirectoryExample");
+        _btnBrowseRemote.Text = L.Get("Btn.FtpBrowseRemote");
         _btnCancel.Text = L.Get("Btn.Cancel");
         _btnOk.Text = L.Get("Btn.Save");
     }
@@ -150,6 +157,37 @@ public sealed class FtpSettingsDialog : Form, ILocalizable
         DialogResult = DialogResult.OK;
         Close();
     }
+
+    private void OnBrowseRemoteClick(object? sender, EventArgs e)
+    {
+        var settings = ReadCurrentSettings();
+        if (string.IsNullOrWhiteSpace(settings.Host))
+        {
+            MessageBox.Show(this, L.Get("Error.FtpHostRequired"),
+                L.Get("Dialog.FtpSettings"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(settings.Username))
+        {
+            MessageBox.Show(this, L.Get("Error.FtpUsernameRequired"),
+                L.Get("Dialog.FtpSettings"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        using var dlg = new FtpRemoteFilesDialog(settings);
+        dlg.ShowDialog(this);
+    }
+
+    private FtpSettings ReadCurrentSettings()
+        => new()
+        {
+            Host = _txtHost.Text.Trim(),
+            Port = (int)_numPort.Value,
+            Username = _txtUsername.Text.Trim(),
+            Password = _txtPassword.Text,
+            RemoteDirectory = _txtRemoteDirectory.Text.Trim()
+        };
 
     private static void PlaceFieldRow(int top, Label caption, Label example, TextBox input)
     {

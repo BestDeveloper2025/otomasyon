@@ -49,12 +49,10 @@ public static class FtpFileUploader
 
         try
         {
-            var request = (FtpWebRequest)WebRequest.Create(BuildFtpUri(settings, fileName));
-            request.Method = WebRequestMethods.Ftp.UploadFile;
-            request.Credentials = new NetworkCredential(settings.Username, settings.Password);
-            request.UseBinary = true;
-            request.UsePassive = true;
-            request.KeepAlive = false;
+            var request = FtpClientHelper.CreateRequest(
+                settings,
+                WebRequestMethods.Ftp.UploadFile,
+                FtpClientHelper.BuildFileUri(settings, fileName));
             request.ContentLength = content.Length;
 
             using (var requestStream = request.GetRequestStream())
@@ -81,15 +79,6 @@ public static class FtpFileUploader
             error = L.F("Error.FtpUploadFailed", ex.Message);
             return false;
         }
-    }
-
-    private static string BuildFtpUri(FtpSettings settings, string remoteFileName)
-    {
-        string host = settings.Host.Trim();
-        string remotePath = settings.GetRemoteFilePath(remoteFileName);
-        return settings.Port == FtpSettings.DefaultPort
-            ? $"ftp://{host}/{remotePath}"
-            : $"ftp://{host}:{settings.Port}/{remotePath}";
     }
 
     private static string SanitizeRemoteFileName(string remoteFileName)
