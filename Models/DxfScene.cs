@@ -14,7 +14,8 @@ public sealed class DxfScene
         SceneBoundingBox.Empty,
         SceneStatistics.Zero,
         Array.Empty<RadiusFeature>(),
-        Array.Empty<ContourEdge>());
+        Array.Empty<ContourEdge>(),
+        Array.Empty<VentFeature>());
 
     public IReadOnlyList<EntityObject> Entities { get; }
     public IReadOnlyList<IReadOnlyList<(double X, double Y)>> EntityPointLists { get; }
@@ -22,6 +23,7 @@ public sealed class DxfScene
     public SceneStatistics Statistics { get; }
     public IReadOnlyList<RadiusFeature> RadiusFeatures { get; }
     public IReadOnlyList<ContourEdge> ContourEdges { get; }
+    public IReadOnlyList<VentFeature> VentFeatures { get; }
 
     public DxfScene(
         IReadOnlyList<EntityObject> entities,
@@ -29,7 +31,8 @@ public sealed class DxfScene
         SceneBoundingBox bounds,
         SceneStatistics statistics,
         IReadOnlyList<RadiusFeature> radiusFeatures,
-        IReadOnlyList<ContourEdge> contourEdges)
+        IReadOnlyList<ContourEdge> contourEdges,
+        IReadOnlyList<VentFeature> ventFeatures)
     {
         if (entities.Count != entityPointLists.Count)
             throw new ArgumentException(L.Get("Error.EntityPointLists"), nameof(entityPointLists));
@@ -40,5 +43,6 @@ public sealed class DxfScene
         Statistics = statistics;
         RadiusFeatures = radiusFeatures;
         ContourEdges = contourEdges;
+        VentFeatures = ventFeatures;
     }
 }

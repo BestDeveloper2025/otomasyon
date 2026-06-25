@@ -6,7 +6,7 @@ namespace otomasyon.Analysis;
 /// <summary>
 /// Kontur başlangıcını makine yönüne göre belirler:
 /// x eksenine paralel (açı ≈ 0°) düz kenarlar arasından en düşük Y'li kenar seçilir;
-/// LTR → sol köşe + CCW, RTL → sağ köşe + CW.
+/// LTR → sol köşe + taban +X, RTL → sağ köşe + taban −X (saat yönü).
 /// </summary>
 public static class ContourStartResolver
 {
@@ -17,9 +17,12 @@ public static class ContourStartResolver
         if (ShapeOrientationContext.UseOriginAnchor)
             return ApplyFromOriginAnchor(loop, eps, AppSettingsManager.MachineDirection);
 
-        return Apply(loop, eps, AppSettingsManager.MachineDirection);
+        return ApplyStandard(loop, eps, AppSettingsManager.MachineDirection);
     }
 
+    /// <summary>
+    /// (0,0) anchor köşesinden başlar; L1 taban kenarı makine yönüne göre +X veya −X olur.
+    /// </summary>
     public static List<(double X, double Y, double Bulge)> ApplyFromOriginAnchor(
         List<(double X, double Y, double Bulge)> loop,
         double eps,
@@ -34,22 +37,64 @@ public static class ContourStartResolver
         int origin = FindVertexNearOrigin(loop, eps);
         loop = RotateLoop(loop, origin);
 
-        if (loop.Count >= 2)
+        int n = loop.Count;
+        var anchor = loop[0];
+        var next = loop[1];
+        var prev = loop[n - 1];
+
+        bool nextIsBase = IsBaseEdgeFromAnchor(anchor, next, direction, eps);
+        bool prevIsBase = IsBaseEdgeFromAnchor(anchor, prev, direction, eps);
+
+        if (prevIsBase && !nextIsBase)
+            loop = ReverseLoopKeepingFirstVertex(loop);
+        else if (!nextIsBase && !prevIsBase)
+            loop = ApplyStandard(loop, eps, direction);
+        else if (nextIsBase && prevIsBase)
         {
-            double edx = loop[1].X - loop[0].X;
-            bool wrongDir = direction == MachineDirection.LeftToRight
-                ? edx < -eps
-                : edx > eps;
-            if (wrongDir)
-            {
-                loop = ReverseBulgeLoop(loop);
-                // ReverseBulgeLoop başlangıç köşesini değiştirir; (0,0) anchor'ı yeniden index 0 yap.
-                int originAfterReverse = FindVertexNearOrigin(loop, eps);
-                loop = RotateLoop(loop, originAfterReverse);
-            }
+            // İki yatay kenar birleşimi (nadir): makine yönüne uygun olanı seç.
+            double nextDx = next.X - anchor.X;
+            double prevDx = prev.X - anchor.X;
+            bool pickNext = direction == MachineDirection.LeftToRight
+                ? nextDx >= prevDx
+                : nextDx <= prevDx;
+            if (!pickNext)
+                loop = ReverseLoopKeepingFirstVertex(loop);
         }
 
         return loop;
+    }
+
+    private static bool IsBaseEdgeFromAnchor(
+        (double X, double Y, double Bulge) anchor,
+        (double X, double Y, double Bulge) neighbor,
+        MachineDirection direction,
+        double eps)
+    {
+        if (!IsHorizontalLine(anchor.X, anchor.Y, neighbor.X, neighbor.Y, 0, eps))
+            return false;
+
+        double dx = neighbor.X - anchor.X;
+        return direction == MachineDirection.LeftToRight
+            ? dx > eps
+            : dx < -eps;
+    }
+
+    /// <summary>
+    /// İlk köşe sabit kalır; taban kenarı önce gelecek şekilde dönüş yönünü çevirir.
+    /// </summary>
+    private static List<(double X, double Y, double Bulge)> ReverseLoopKeepingFirstVertex(
+        List<(double X, double Y, double Bulge)> loop)
+    {
+        int n = loop.Count;
+        if (n < 3)
+            return loop;
+
+        var rev = new List<(double X, double Y, double Bulge)>(n);
+        rev.Add((loop[0].X, loop[0].Y, -loop[n - 1].Bulge));
+        for (int i = n - 1; i >= 1; i--)
+            rev.Add((loop[i].X, loop[i].Y, i > 1 ? -loop[i - 1].Bulge : -loop[0].Bulge));
+
+        return rev;
     }
 
     private static int FindVertexNearOrigin(List<(double X, double Y, double Bulge)> loop, double eps)
@@ -77,6 +122,12 @@ public static class ContourStartResolver
     }
 
     public static List<(double X, double Y, double Bulge)> Apply(
+        List<(double X, double Y, double Bulge)> loop,
+        double eps,
+        MachineDirection direction)
+        => ApplyStandard(loop, eps, direction);
+
+    private static List<(double X, double Y, double Bulge)> ApplyStandard(
         List<(double X, double Y, double Bulge)> loop,
         double eps,
         MachineDirection direction)

@@ -225,9 +225,9 @@
     "de": "Neu"
   },
   "Status.Stats": {
-    "en": "Contour edges: {0} | Radius: {1} | Arc: {2} | Circle: {3} | Entity: {4}",
-    "tr": "Kontur kenar: {0} | Radius: {1} | Yay: {2} | Daire: {3} | Entity: {4}",
-    "de": "Konturkanten: {0} | Radius: {1} | Bogen: {2} | Kreis: {3} | Entität: {4}"
+    "en": "Contour edges: {0} | Radius: {1} | Arc: {2} | Circle: {3} | Vent: {4} | Entity: {5}",
+    "tr": "Kontur kenar: {0} | Radius: {1} | Yay: {2} | Daire: {3} | Menfez: {4} | Entity: {5}",
+    "de": "Konturkanten: {0} | Radius: {1} | Bogen: {2} | Kreis: {3} | Entlüftung: {4} | Entität: {5}"
   },
   "Status.PickBaseEdge": {
     "en": "Click the edge that should become the bottom base (L1).",
@@ -1068,5 +1068,20 @@
     "en": "R{0} end {1}°",
     "tr": "R{0} bit {1}°",
     "de": "R{0} Ende {1}°"
+  },
+  "Analysis.VentSection": {
+    "en": "Vent M{0}",
+    "tr": "Menfez M{0}",
+    "de": "Entlüftung M{0}"
+  },
+  "Analysis.VentCenter": {
+    "en": "Center: {0} , {1}",
+    "tr": "Merkez: {0} , {1}",
+    "de": "Mitte: {0} , {1}"
+  },
+  "Analysis.VentDistance": {
+    "en": "Distance from origin: {0}",
+    "tr": "Başlangıçtan uzaklık: {0}",
+    "de": "Abstand vom Ursprung: {0}"
   }
 }

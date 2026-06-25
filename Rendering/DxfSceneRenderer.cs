@@ -1,7 +1,6 @@
 using System.Drawing.Text;
 using System.Globalization;
 using netDxf.Entities;
-using otomasyon.Analysis;
 using otomasyon.Geometry;
 using otomasyon.Localization;
 using otomasyon.Models;
@@ -57,14 +56,19 @@ public sealed class DxfSceneRenderer
         if (drawEdgeLabels)
             EdgeLabelRenderer.DrawForScene(graphics, scene, transform, highlightEdgeIndex);
 
-        if (ShapeOrientationContext.UseOriginAnchor)
-            DrawOriginMarker(graphics, transform);
+        VentLabelRenderer.DrawForScene(graphics, scene, transform);
+
+        DrawStartMarker(graphics, scene, transform);
         _radiusRenderer.Paint(graphics, scene, scene.RadiusFeatures, clip, transform);
     }
 
-    private static void DrawOriginMarker(Graphics g, in WorldToScreenTransform transform)
+    private static void DrawStartMarker(Graphics g, DxfScene scene, in WorldToScreenTransform transform)
     {
-        var o = transform.ToScreen(0, 0);
+        if (scene.ContourEdges.Count == 0)
+            return;
+
+        var start = scene.ContourEdges[0];
+        var o = transform.ToScreen(start.StartX, start.StartY);
         using var pen = new Pen(Color.FromArgb(220, 200, 40, 40), 2f);
         const float r = 5f;
         g.DrawEllipse(pen, o.X - r, o.Y - r, r * 2f, r * 2f);

@@ -114,6 +114,26 @@ public static class LineLoopContourBuilder
         return snapped;
     }
 
+    public static void CollectAllClosedLoops(
+        DxfScene scene,
+        List<List<(double X, double Y, double Bulge)>> loops)
+    {
+        loops.Clear();
+        if (!scene.Bounds.HasBounds)
+            return;
+
+        double eps = ContourTolerance.FromScene(scene);
+        var raw = SnapEdgeEndpoints(CollectChainEdges(scene), eps);
+        if (raw.Count < 2)
+            return;
+
+        foreach (var comp in SplitIntoComponents(raw, eps))
+        {
+            if (TryTraceSingleLoop(comp, eps, out var candidate) && candidate.Count >= 3)
+                loops.Add(candidate);
+        }
+    }
+
     private static bool TryFindLargestClosedLoop(List<RawEdge> raw, double eps, out List<(double X, double Y, double Bulge)> loop)
     {
         loop = new List<(double X, double Y, double Bulge)>();

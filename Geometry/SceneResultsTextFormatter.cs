@@ -10,13 +10,17 @@ public static class SceneResultsTextFormatter
     public static string Format(DxfScene scene)
     {
         string edges = ContourEdgesTextFormatter.Format(scene.ContourEdges);
+        string vents = VentsTextFormatter.Format(scene.VentFeatures);
         string radii = RadiusFeaturesTextFormatter.Format(scene.RadiusFeatures);
 
-        if (string.IsNullOrEmpty(edges))
-            return radii;
-        if (string.IsNullOrEmpty(radii))
-            return edges;
+        var parts = new List<string>(3);
+        if (!string.IsNullOrEmpty(edges))
+            parts.Add(edges);
+        if (!string.IsNullOrEmpty(vents))
+            parts.Add(vents);
+        if (!string.IsNullOrEmpty(radii))
+            parts.Add(radii);
 
-        return edges + "\r\n\r\n" + radii;
+        return parts.Count == 0 ? string.Empty : string.Join("\r\n\r\n", parts);
     }
 }

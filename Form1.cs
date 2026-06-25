@@ -68,6 +68,7 @@ public partial class Form1 : Form, ILocalizable
         dlg.ShowDialog(this);
         RefreshResultsUi();
         RefreshRecipeUi();
+        _drawPanel.Invalidate();
     }
 
     private bool EnsureConfiguredForAction()
@@ -257,6 +258,7 @@ public partial class Form1 : Form, ILocalizable
         }
 
         RefreshResultsUi();
+        _drawPanel.Invalidate();
     }
 
     private void OnLanguageChanged(object? sender, EventArgs e)
@@ -294,7 +296,7 @@ public partial class Form1 : Form, ILocalizable
         }
 
         RefreshResultsUi();
-        if (_scene.ContourEdges.Count > 0 || _scene.RadiusFeatures.Count > 0)
+        if (_scene.ContourEdges.Count > 0 || _scene.RadiusFeatures.Count > 0 || _scene.VentFeatures.Count > 0)
             _txtCoordinates.Text = SceneResultsTextFormatter.Format(_scene);
         RebuildRecipeList();
         RefreshRecipeUi();
@@ -418,6 +420,7 @@ public partial class Form1 : Form, ILocalizable
                 s.RadiusFeatureCount,
                 s.ArcCount,
                 s.CircleCount,
+                s.VentFeatureCount,
                 s.TrackedEntityCount);
         }
 

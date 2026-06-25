@@ -12,5 +12,6 @@ public readonly struct SceneStatistics
     public int CircleCount { get; init; }
     public int RadiusFeatureCount { get; init; }
     public int ContourEdgeCount { get; init; }
+    public int VentFeatureCount { get; init; }
     public int TrackedEntityCount { get; init; }
 }

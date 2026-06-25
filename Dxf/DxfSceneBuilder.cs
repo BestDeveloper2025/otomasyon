@@ -61,9 +61,19 @@ public sealed class DxfSceneBuilder
             bounds,
             SceneStatistics.Zero,
             Array.Empty<RadiusFeature>(),
-            Array.Empty<ContourEdge>());
+            Array.Empty<ContourEdge>(),
+            Array.Empty<VentFeature>());
 
         var analysis = _radiusExtractor.Extract(draft);
+        var analyzedScene = new DxfScene(
+            _entities,
+            pointListsReadOnly,
+            bounds,
+            SceneStatistics.Zero,
+            analysis.RadiusFeatures,
+            analysis.ContourEdges,
+            Array.Empty<VentFeature>());
+        var ventFeatures = VentExtractor.Extract(analyzedScene);
 
         var stats = new SceneStatistics
         {
@@ -72,6 +82,7 @@ public sealed class DxfSceneBuilder
             CircleCount = _circleCount,
             RadiusFeatureCount = analysis.RadiusFeatures.Count,
             ContourEdgeCount = analysis.ContourEdges.Count,
+            VentFeatureCount = ventFeatures.Count,
             TrackedEntityCount = _trackedEntityCount
         };
 
@@ -81,7 +92,8 @@ public sealed class DxfSceneBuilder
             bounds,
             stats,
             analysis.RadiusFeatures,
-            analysis.ContourEdges);
+            analysis.ContourEdges,
+            ventFeatures);
     }
 
     private void Reset()
