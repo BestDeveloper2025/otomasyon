@@ -5,12 +5,12 @@ namespace otomasyon.Models.Recipe;
 /// <summary>İçe aktarılmış CSV'deki tek şekil satırı.</summary>
 public sealed class ImportedCsvRow
 {
-    public required string RawLine { get; init; }
-    public int RowIndex { get; init; }
-    public int ShapeCode { get; init; }
-    public double CamKalinlikMm { get; init; }
-    public int Adet { get; init; }
-    public int EdgeCount { get; init; }
+    public string RawLine { get; set; } = string.Empty;
+    public int RowIndex { get; set; }
+    public int ShapeCode { get; set; }
+    public double CamKalinlikMm { get; set; }
+    public int Adet { get; set; }
+    public int EdgeCount { get; set; }
     public required string SourceFileName { get; init; }
 
     public string GetDisplayName() => L.F("Import.RowLabel", SourceFileName, RowIndex);

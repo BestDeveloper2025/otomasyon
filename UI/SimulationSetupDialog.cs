@@ -1,5 +1,6 @@
 using otomasyon.Localization;
 using otomasyon.Models;
+using otomasyon.Models.Recipe;
 using otomasyon.Models.Simulation;
 using otomasyon.Simulation;
 
@@ -15,6 +16,8 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
 {
     private readonly DxfScene _scene;
     private readonly SetupPurpose _purpose;
+    private readonly bool _isEditMode;
+    private readonly RecipeSetupInitialValues? _initialValues;
     private readonly Panel _panelConfirm = new();
     private readonly Panel _panelParams = new();
     private readonly FlowLayoutPanel _edgeFlow = new();
@@ -55,10 +58,16 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
     public StoneToolSettings? Tool { get; private set; }
     public CsvFileExporter.ExportOptions? CsvExportOptions { get; private set; }
 
-    public SimulationSetupDialog(DxfScene scene, SetupPurpose purpose = SetupPurpose.Simulation)
+    public SimulationSetupDialog(
+        DxfScene scene,
+        SetupPurpose purpose = SetupPurpose.Simulation,
+        RecipeSetupInitialValues? initialValues = null,
+        bool isEditMode = false)
     {
         _scene = scene;
         _purpose = purpose;
+        _isEditMode = isEditMode;
+        _initialValues = initialValues;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -76,13 +85,58 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
             ShowParamsStep();
         else
             ShowConfirmStep();
+
+        if (_initialValues is not null)
+            ApplyInitialValues(_initialValues);
+    }
+
+    private void ApplyInitialValues(RecipeSetupInitialValues initial)
+    {
+        foreach (var kv in initial.ThicknessByEdge)
+        {
+            if (_edgeThicknessInputs.TryGetValue(kv.Key, out var num))
+                num.Value = ClampDecimal(num, kv.Value);
+        }
+
+        foreach (var kv in initial.OffsetByEdge)
+        {
+            if (_edgeOffsetInputs.TryGetValue(kv.Key, out var num))
+                num.Value = ClampDecimal(num, kv.Value);
+        }
+
+        foreach (var kv in initial.VentStrippingByIndex)
+        {
+            if (_ventStrippingInputs.TryGetValue(kv.Key, out var num))
+                num.Value = ClampDecimal(num, kv.Value);
+        }
+
+        _numStone.Value = ClampDecimal(_numStone, initial.Tool.StoneWidthMm);
+        _numBindirme.Value = ClampDecimal(_numBindirme, initial.Tool.BindirmeMm);
+
+        if (_purpose == SetupPurpose.Recipe)
+        {
+            _numKalinlik.Value = ClampDecimal(_numKalinlik, initial.ExportOptions.KalinlikMm);
+            _numAdet.Value = Math.Clamp(initial.ExportOptions.IstenilenAdet, (int)_numAdet.Minimum, (int)_numAdet.Maximum);
+        }
+    }
+
+    private static decimal ClampDecimal(NumericUpDown control, double value)
+    {
+        decimal d = (decimal)value;
+        if (d < control.Minimum)
+            return control.Minimum;
+        if (d > control.Maximum)
+            return control.Maximum;
+        return d;
     }
 
     public void ApplyLocalization()
     {
-        Text = _purpose == SetupPurpose.Recipe
-            ? L.Get("Dialog.SetupRecipe")
-            : L.Get("Dialog.SetupSimulation");
+        Text = _isEditMode
+            ? L.Get("Dialog.EditRecipe")
+            : _purpose == SetupPurpose.Recipe
+                ? L.Get("Dialog.SetupRecipe")
+                : L.Get("Dialog.SetupSimulation");
 
         _lblConfirm.Text = L.Get("Setup.ConfirmText");
         _btnNo.Text = L.Get("Btn.No");
@@ -103,9 +157,11 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
         _lblToolHint.Text = L.Get("Setup.ToolHint");
         _btnCancel.Text = L.Get("Btn.Cancel");
         _btnBack.Text = L.Get("Btn.Back");
-        _btnOk.Text = _purpose == SetupPurpose.Recipe
-            ? L.Get("Btn.AddToRecipe")
-            : L.Get("Btn.StartSimulation");
+        _btnOk.Text = _isEditMode
+            ? L.Get("Btn.SaveRecipeChanges")
+            : _purpose == SetupPurpose.Recipe
+                ? L.Get("Btn.AddToRecipe")
+                : L.Get("Btn.StartSimulation");
 
         if (_exportPanel is not null)
             _exportPanel.Text = L.Get("Setup.CsvGroup");
@@ -364,7 +420,7 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
         _btnBack = new Button { Width = 90 };
         _btnBack.Click += (_, _) => ShowConfirmStep();
         _btnBack.Visible = _purpose == SetupPurpose.Simulation;
-        _btnOk = new Button { Width = 150 };
+        _btnOk = new Button { Width = 150, DialogResult = DialogResult.None };
         _btnOk.Click += OnStartClick;
 
         bottom.Controls.Add(_btnCancel);
@@ -436,6 +492,5 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
         }
 
         DialogResult = DialogResult.OK;
-        Close();
     }
 }

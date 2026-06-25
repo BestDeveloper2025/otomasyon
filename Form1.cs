@@ -42,9 +42,11 @@ public partial class Form1 : Form, ILocalizable
         _btnExportBatchDat.Click += BtnExportBatchDat_Click;
         _btnSendFtp.Click += BtnSendFtp_Click;
         _btnRemoveRecipe.Click += BtnRemoveRecipe_Click;
+        _btnEditRecipe.Click += BtnEditRecipe_Click;
         _btnClearRecipe.Click += BtnClearRecipe_Click;
         _btnSettings.Click += BtnSettings_Click;
         _lvRecipe.SelectedIndexChanged += (_, _) => RefreshRecipeActionButtons();
+        _lvRecipe.DoubleClick += (_, _) => BtnEditRecipe_Click(null, EventArgs.Empty);
         _drawPanel.Paint += DrawPanel_Paint;
         _drawPanel.MouseClick += DrawPanel_MouseClick;
         LocalizationManager.LanguageChanged += OnLanguageChanged;
@@ -281,6 +283,7 @@ public partial class Form1 : Form, ILocalizable
         _btnExportBatchDat.Text = L.Get("Btn.ExportBatchDat");
         _btnSendFtp.Text = L.Get("Btn.SendFtp");
         _btnRemoveRecipe.Text = L.Get("Btn.RemoveSelected");
+        _btnEditRecipe.Text = L.Get("Btn.EditRecipe");
         _btnClearRecipe.Text = L.Get("Btn.ClearAll");
         _lblRecipeHeader.Text = L.Get("Label.Recipe");
 
@@ -470,6 +473,135 @@ public partial class Form1 : Form, ILocalizable
             MessageBoxIcon.Information);
     }
 
+    private void BtnEditRecipe_Click(object? sender, EventArgs e)
+    {
+        if (_lvRecipe.SelectedItems.Count == 0)
+            return;
+
+        var selected = _lvRecipe.SelectedItems[0];
+
+        if (selected.Tag is ImportedCsvRow importedRow)
+        {
+            string? saveError = null;
+            if (!TryUpdateImportedCsvRow(importedRow, out string? importError))
+            {
+                if (!string.IsNullOrEmpty(importError))
+                    MessageBox.Show(this, importError, L.Get("Title.Recipe"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            RebuildRecipeList();
+            RefreshRecipeUi();
+
+            string detail = L.F("Msg.ImportedRowUpdated", importedRow.GetDisplayName());
+            if (_importedCsv is not null && ImportedCsvBatchWriter.TryWrite(_importedCsv, out saveError))
+                detail += Environment.NewLine + L.F("Msg.ImportedCsvSaved", _importedCsv.SourceFilePath);
+            else if (!string.IsNullOrEmpty(saveError))
+                detail += Environment.NewLine + L.F("Msg.ImportedCsvSaveSkipped", saveError);
+
+            MessageBox.Show(this,
+                detail,
+                L.Get("Title.Recipe"),
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+            return;
+        }
+
+        if (!EnsureConfiguredForAction())
+            return;
+
+        if (selected.Tag is not RecipeItem item)
+            return;
+
+        if (!TryUpdateRecipeItem(item, out string? error))
+        {
+            if (!string.IsNullOrEmpty(error))
+                MessageBox.Show(this, error, L.Get("Title.Recipe"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        RebuildRecipeList();
+        RefreshRecipeUi();
+
+        MessageBox.Show(this,
+            L.F("Msg.RecipeUpdatedDetail", item.DisplayName),
+            L.Get("Title.Recipe"),
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information);
+    }
+
+    private bool TryUpdateRecipeItem(RecipeItem item, out string? error)
+    {
+        error = null;
+        var initial = RecipeSetupInitialValues.FromRecipeItem(item);
+
+        using var setup = new SimulationSetupDialog(
+            item.Job.Scene,
+            SetupPurpose.Recipe,
+            initial,
+            isEditMode: true);
+
+        if (setup.ShowDialog(this) != DialogResult.OK ||
+            setup.ThicknessByEdge is null ||
+            setup.Tool is null ||
+            setup.CsvExportOptions is null)
+            return false;
+
+        if (!SimulationJobFactory.TryCreate(
+                item.Job.Scene,
+                item.SourceFilePath,
+                setup.ThicknessByEdge,
+                setup.Tool,
+                out SimulationJob? job,
+                out error,
+                setup.OffsetByEdge,
+                setup.VentStrippingByIndex))
+            return false;
+
+        var exportOptions = new CsvFileExporter.ExportOptions
+        {
+            KalinlikMm = setup.CsvExportOptions.KalinlikMm,
+            IstenilenAdet = setup.CsvExportOptions.IstenilenAdet,
+            CamTipi = item.ExportOptions.CamTipi,
+            UretilenAdet = item.ExportOptions.UretilenAdet,
+            VentStrippingByIndex = setup.VentStrippingByIndex ?? new Dictionary<int, double>()
+        };
+
+        int index = _recipeItems.FindIndex(i => i.Id == item.Id);
+        if (index < 0)
+        {
+            error = L.Get("Error.RecipeItemNotFound");
+            return false;
+        }
+
+        _recipeItems[index] = new RecipeItem
+        {
+            Id = item.Id,
+            DisplayName = item.DisplayName,
+            SourceFilePath = item.SourceFilePath,
+            Job = job!,
+            ExportOptions = exportOptions,
+            AddedAt = item.AddedAt
+        };
+
+        return true;
+    }
+
+    private bool TryUpdateImportedCsvRow(ImportedCsvRow row, out string? error)
+    {
+        error = null;
+
+        if (!CsvRowEditor.TryLoad(row, out CsvRowEditModel? model, out error))
+            return false;
+
+        using var dlg = new ImportedCsvRowEditDialog(model);
+        if (dlg.ShowDialog(this) != DialogResult.OK)
+            return false;
+
+        CsvRowEditor.ApplyToRow(row, model);
+        return true;
+    }
+
     private void BtnSimulation_Click(object? sender, EventArgs e)
     {
         if (!EnsureConfiguredForAction())
@@ -621,6 +753,16 @@ public partial class Form1 : Form, ILocalizable
 
         string remoteFileName = nameDlg.FileName;
 
+        if (!RecipeBackupSaver.TrySaveToDesktopFolder(remoteFileName, content, out string backupPath, out string? backupError))
+        {
+            MessageBox.Show(this,
+                backupError ?? L.Get("Error.RecipeBackupFailedGeneric"),
+                L.Get("Title.FtpSend"),
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+            return;
+        }
+
         _btnSendFtp.Enabled = false;
         UseWaitCursor = true;
         try
@@ -643,7 +785,7 @@ public partial class Form1 : Form, ILocalizable
             }
 
             MessageBox.Show(this,
-                L.F("Msg.FtpUploadSuccess", ftp.GetRemoteFilePath(remoteFileName), ftp.Host),
+                L.F("Msg.FtpUploadSuccessWithBackup", ftp.GetRemoteFilePath(remoteFileName), ftp.Host, backupPath),
                 L.Get("Title.FtpSend"),
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
@@ -904,7 +1046,15 @@ public partial class Form1 : Form, ILocalizable
 
     private void RefreshRecipeActionButtons()
     {
-        _btnRemoveRecipe.Enabled = _lvRecipe.SelectedItems.Count > 0;
+        if (_lvRecipe.SelectedItems.Count == 0)
+        {
+            _btnRemoveRecipe.Enabled = false;
+            _btnEditRecipe.Enabled = false;
+            return;
+        }
+
+        _btnRemoveRecipe.Enabled = true;
+        _btnEditRecipe.Enabled = true;
     }
 
     private void DrawPanel_Paint(object? sender, PaintEventArgs e)

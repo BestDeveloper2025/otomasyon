@@ -29,6 +29,7 @@ namespace otomasyon
         private ListView _lvRecipe = null!;
         private FlowLayoutPanel _recipeActions = null!;
         private Button _btnRemoveRecipe = null!;
+        private Button _btnEditRecipe = null!;
         private Button _btnClearRecipe = null!;
 
         private TextBox _txtCoordinates = null!;
@@ -186,10 +187,13 @@ namespace otomasyon
 
             _btnRemoveRecipe = CreateSmallButton("Remove Selected", 120);
             _btnRemoveRecipe.Enabled = false;
+            _btnEditRecipe = CreateSmallButton("Edit Selected", 110);
+            _btnEditRecipe.Enabled = false;
             _btnClearRecipe = CreateSmallButton("Clear All", 110);
             _btnClearRecipe.Enabled = false;
 
             _recipeActions.Controls.Add(_btnRemoveRecipe);
+            _recipeActions.Controls.Add(_btnEditRecipe);
             _recipeActions.Controls.Add(_btnClearRecipe);
 
             _lvRecipe = new ListView

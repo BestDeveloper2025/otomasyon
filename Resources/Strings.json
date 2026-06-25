@@ -154,6 +154,16 @@
     "tr": "FTP ile Gönder",
     "de": "Per FTP senden"
   },
+  "Btn.EditRecipe": {
+    "en": "Edit Selected",
+    "tr": "Seçileni Düzenle",
+    "de": "Auswahl bearbeiten"
+  },
+  "Btn.SaveRecipeChanges": {
+    "en": "Save Changes",
+    "tr": "Değişiklikleri Kaydet",
+    "de": "Änderungen speichern"
+  },
   "Btn.RemoveSelected": {
     "en": "Remove Selected",
     "tr": "Seçileni Kaldır",
@@ -398,6 +408,26 @@
     "en": "Recipe Parameters",
     "tr": "Reçete Parametreleri",
     "de": "Rezeptparameter"
+  },
+  "Dialog.EditRecipe": {
+    "en": "Edit Recipe Shape",
+    "tr": "Reçete Şeklini Düzenle",
+    "de": "Rezeptform bearbeiten"
+  },
+  "Dialog.EditImportedCsvRow": {
+    "en": "Edit Imported CSV Row",
+    "tr": "İçe Aktarılmış CSV Satırını Düzenle",
+    "de": "Importierte CSV-Zeile bearbeiten"
+  },
+  "Import.EditHint": {
+    "en": "Geometry (L, R, A, vent positions) is kept unchanged. Only user parameters can be edited.",
+    "tr": "Geometri (L, R, A, menfez konumları) değişmez. Yalnızca kullanıcı parametreleri düzenlenebilir.",
+    "de": "Geometrie (L, R, A, Entlüftungspositionen) bleibt unverändert. Nur Benutzerparameter können bearbeitet werden."
+  },
+  "Setup.CsvEdgeLabel": {
+    "en": "L{0}",
+    "tr": "L{0}",
+    "de": "L{0}"
   },
   "Dialog.Settings": {
     "en": "Settings",
@@ -649,6 +679,36 @@
     "tr": "\"{0}\" reçeteye eklendi.\nBaşka bir DXF yükleyip işleme devam edebilirsiniz.",
     "de": "\"{0}\" zum Rezept hinzugefügt.\nSie können eine weitere DXF laden und fortfahren."
   },
+  "Msg.RecipeUpdated": {
+    "en": "\"{0}\" recipe parameters were updated.",
+    "tr": "\"{0}\" reçete parametreleri güncellendi.",
+    "de": "Rezeptparameter für \"{0}\" wurden aktualisiert."
+  },
+  "Msg.CannotEditImportedRow": {
+    "en": "Imported CSV rows cannot be edited here. Add a new shape from DXF or edit the CSV file directly.",
+    "tr": "İçe aktarılmış CSV satırları burada düzenlenemez. DXF'ten yeni şekil ekleyin veya CSV dosyasını doğrudan düzenleyin.",
+    "de": "Importierte CSV-Zeilen können hier nicht bearbeitet werden. Fügen Sie eine neue Form aus DXF hinzu oder bearbeiten Sie die CSV-Datei direkt."
+  },
+  "Msg.ImportedRowUpdated": {
+    "en": "\"{0}\" parameters were updated.",
+    "tr": "\"{0}\" parametreleri güncellendi.",
+    "de": "Parameter für \"{0}\" wurden aktualisiert."
+  },
+  "Msg.RecipeUpdatedDetail": {
+    "en": "\"{0}\" recipe parameters were updated in memory.\nUse Batch CSV Export or Send via FTP to write the changes to a file.",
+    "tr": "\"{0}\" reçete parametreleri güncellendi.\nDosyaya yazmak için Toplu CSV Çıktı veya FTP ile Gönder kullanın.",
+    "de": "Rezeptparameter für \"{0}\" wurden im Speicher aktualisiert.\nVerwenden Sie Stapel-CSV-Export oder Per FTP senden, um die Änderungen in eine Datei zu schreiben."
+  },
+  "Msg.ImportedCsvSaved": {
+    "en": "Imported CSV file was also saved:\n{0}",
+    "tr": "İçe aktarılan CSV dosyası da kaydedildi:\n{0}",
+    "de": "Importierte CSV-Datei wurde ebenfalls gespeichert:\n{0}"
+  },
+  "Msg.ImportedCsvSaveSkipped": {
+    "en": "Changes are kept in the recipe list, but the CSV file could not be saved: {0}",
+    "tr": "Değişiklikler reçete listesinde tutuldu, ancak CSV dosyası kaydedilemedi: {0}",
+    "de": "Änderungen bleiben in der Rezeptliste, aber die CSV-Datei konnte nicht gespeichert werden: {0}"
+  },
   "Msg.ImportReplaceConfirm": {
     "en": "A CSV is already imported ({0}, {1} rows).\nReplace with the new file?",
     "tr": "Zaten içe aktarılmış bir CSV var ({0}, {1} satır).\nYeni dosya ile değiştirilsin mi?",
@@ -688,6 +748,11 @@
     "en": "Recipe file \"{0}\" was uploaded to {1}.",
     "tr": "Reçete dosyası \"{0}\" sunucuya ({1}) yüklendi.",
     "de": "Rezeptdatei \"{0}\" wurde auf {1} hochgeladen."
+  },
+  "Msg.FtpUploadSuccessWithBackup": {
+    "en": "Recipe file \"{0}\" was uploaded to {1}.\nDesktop backup: {2}",
+    "tr": "Reçete dosyası \"{0}\" sunucuya ({1}) yüklendi.\nMasaüstü yedeği: {2}",
+    "de": "Rezeptdatei \"{0}\" wurde auf {1} hochgeladen.\nDesktop-Sicherung: {2}"
   },
   "Msg.ExportFailed": {
     "en": "{0} file could not be written.",
@@ -1023,6 +1088,31 @@
     "en": "Could not delete file: {0}",
     "tr": "Dosya silinemedi: {0}",
     "de": "Datei konnte nicht gelöscht werden: {0}"
+  },
+  "Error.RecipeItemNotFound": {
+    "en": "Recipe item could not be found.",
+    "tr": "Reçete öğesi bulunamadı.",
+    "de": "Rezeptelement wurde nicht gefunden."
+  },
+  "Error.ImportedCsvSourceMissing": {
+    "en": "Imported CSV source path is missing.",
+    "tr": "İçe aktarılan CSV kaynak yolu bulunamadı.",
+    "de": "Importierter CSV-Quellpfad fehlt."
+  },
+  "Error.ImportedCsvSaveFailed": {
+    "en": "Imported CSV could not be saved: {0}",
+    "tr": "İçe aktarılan CSV kaydedilemedi: {0}",
+    "de": "Importierte CSV konnte nicht gespeichert werden: {0}"
+  },
+  "Error.RecipeBackupFailed": {
+    "en": "Desktop backup could not be saved: {0}",
+    "tr": "Masaüstü yedeği kaydedilemedi: {0}",
+    "de": "Desktop-Sicherung konnte nicht gespeichert werden: {0}"
+  },
+  "Error.RecipeBackupFailedGeneric": {
+    "en": "Desktop backup could not be saved.",
+    "tr": "Masaüstü yedeği kaydedilemedi.",
+    "de": "Desktop-Sicherung konnte nicht gespeichert werden."
   },
   "Error.LimitsRequired": {
     "en": "Please enter max shape width and height.",
