@@ -72,3 +72,9 @@ c:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\build-check\otomasyon.ru
 c:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\build-check\otomasyon.dll
 c:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\build-check\otomasyon.pdb
 c:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\build-check\netDxf.dll
+c:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\_buildcheck_ftp\otomasyon.exe
+c:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\_buildcheck_ftp\otomasyon.deps.json
+c:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\_buildcheck_ftp\otomasyon.runtimeconfig.json
+c:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\_buildcheck_ftp\otomasyon.dll
+c:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\_buildcheck_ftp\otomasyon.pdb
+c:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\_buildcheck_ftp\netDxf.dll

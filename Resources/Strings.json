@@ -750,9 +750,9 @@
     "de": "Rezeptdatei \"{0}\" wurde auf {1} hochgeladen."
   },
   "Msg.FtpUploadSuccessWithBackup": {
-    "en": "Recipe file \"{0}\" was uploaded to {1}.\nDesktop backup: {2}",
-    "tr": "Reçete dosyası \"{0}\" sunucuya ({1}) yüklendi.\nMasaüstü yedeği: {2}",
-    "de": "Rezeptdatei \"{0}\" wurde auf {1} hochgeladen.\nDesktop-Sicherung: {2}"
+    "en": "Recipe file \"{0}\" was uploaded to {1}.\nLocal backup (otomasyonreceteler): {2}",
+    "tr": "Reçete dosyası \"{0}\" sunucuya ({1}) yüklendi.\nYerel yedek (otomasyonreceteler): {2}",
+    "de": "Rezeptdatei \"{0}\" wurde auf {1} hochgeladen.\nLokale Sicherung (otomasyonreceteler): {2}"
   },
   "Msg.ExportFailed": {
     "en": "{0} file could not be written.",
@@ -1105,14 +1105,14 @@
     "de": "Importierte CSV konnte nicht gespeichert werden: {0}"
   },
   "Error.RecipeBackupFailed": {
-    "en": "Desktop backup could not be saved: {0}",
-    "tr": "Masaüstü yedeği kaydedilemedi: {0}",
-    "de": "Desktop-Sicherung konnte nicht gespeichert werden: {0}"
+    "en": "Local backup could not be saved to otomasyonreceteler: {0}",
+    "tr": "Yerel yedek (otomasyonreceteler) kaydedilemedi: {0}",
+    "de": "Lokale Sicherung in otomasyonreceteler konnte nicht gespeichert werden: {0}"
   },
   "Error.RecipeBackupFailedGeneric": {
-    "en": "Desktop backup could not be saved.",
-    "tr": "Masaüstü yedeği kaydedilemedi.",
-    "de": "Desktop-Sicherung konnte nicht gespeichert werden."
+    "en": "Local backup could not be saved to otomasyonreceteler.",
+    "tr": "Yerel yedek (otomasyonreceteler) kaydedilemedi.",
+    "de": "Lokale Sicherung in otomasyonreceteler konnte nicht gespeichert werden."
   },
   "Error.LimitsRequired": {
     "en": "Please enter max shape width and height.",

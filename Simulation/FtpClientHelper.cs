@@ -95,7 +95,7 @@ internal static class FtpClientHelper
         {
             var request = CreateRequest(settings, WebRequestMethods.Ftp.DeleteFile, BuildFileUri(settings, safeName));
             using var response = (FtpWebResponse)request.GetResponse();
-            if (response.StatusCode is FtpStatusCode.FileActionOK or FtpStatusCode.CommandOK)
+            if (IsFtpSuccessResponse(response.StatusCode))
                 return true;
 
             error = L.F("Error.FtpDeleteFailed", response.StatusDescription?.Trim() ?? response.StatusCode.ToString());
@@ -111,6 +111,13 @@ internal static class FtpClientHelper
             error = L.F("Error.FtpDeleteFailed", ex.Message);
             return false;
         }
+    }
+
+    /// <summary>RFC 959: 2xx yanıtları başarılı kabul edilir (bazı sunucular DELE için 257 döner).</summary>
+    internal static bool IsFtpSuccessResponse(FtpStatusCode statusCode)
+    {
+        int code = (int)statusCode;
+        return code is >= 200 and < 300;
     }
 
     public static FtpWebRequest CreateRequest(FtpSettings settings, string method, string uri)

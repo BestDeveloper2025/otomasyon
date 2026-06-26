@@ -3,10 +3,18 @@ using otomasyon.Localization;
 
 namespace otomasyon.Simulation;
 
-/// <summary>FTP gönderimi sırasında reçete dosyasını masaüstünde yedekler.</summary>
+/// <summary>FTP gönderimi sırasında reçete dosyasını masaüstündeki otomasyonreceteler klasörüne yedekler.</summary>
 public static class RecipeBackupSaver
 {
+    public const string BackupFolderName = "otomasyonreceteler";
+
     private static readonly UTF8Encoding Utf8WithBom = new(encoderShouldEmitUTF8Identifier: true);
+
+    public static string GetBackupDirectoryPath()
+    {
+        string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+        return Path.Combine(desktop, BackupFolderName);
+    }
 
     public static bool TrySaveToDesktopFolder(string fileName, string content, out string savedPath, out string? error)
     {
@@ -20,14 +28,9 @@ public static class RecipeBackupSaver
             return false;
         }
 
-        string folderName = Path.GetFileNameWithoutExtension(safeName);
-        if (string.IsNullOrWhiteSpace(folderName))
-            folderName = "recipe";
-
         try
         {
-            string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            string folderPath = Path.Combine(desktop, folderName);
+            string folderPath = GetBackupDirectoryPath();
             Directory.CreateDirectory(folderPath);
             savedPath = Path.Combine(folderPath, safeName);
             File.WriteAllText(savedPath, content, Utf8WithBom);

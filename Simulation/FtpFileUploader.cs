@@ -59,9 +59,7 @@ public static class FtpFileUploader
                 requestStream.Write(content, 0, content.Length);
 
             using var response = (FtpWebResponse)request.GetResponse();
-            if (response.StatusCode is not FtpStatusCode.ClosingData
-                and not FtpStatusCode.FileActionOK
-                and not FtpStatusCode.CommandOK)
+            if (!FtpClientHelper.IsFtpSuccessResponse(response.StatusCode))
             {
                 error = L.F("Error.FtpUploadFailed", response.StatusDescription?.Trim() ?? response.StatusCode.ToString());
                 return false;
