@@ -1,4 +1,5 @@
 using otomasyon.Localization;
+using otomasyon.Logging;
 using otomasyon.Models.Simulation;
 using otomasyon.Rendering;
 using otomasyon.Simulation;
@@ -76,8 +77,18 @@ public sealed class SimulationForm : Form, ILocalizable
         _btnExportDat.Location = new Point(460, 10);
         _btnExportDat.Size = new Size(90, 32);
 
-        _btnPlay.Click += (_, _) => { _running = true; _timer.Start(); };
-        _btnPause.Click += (_, _) => { _running = false; _timer.Stop(); };
+        _btnPlay.Click += (_, _) =>
+        {
+            _running = true;
+            _timer.Start();
+            AppLog.UserAction("Simülasyon oynatma başlatıldı", FormatPathForLog(_job.SourceFilePath));
+        };
+        _btnPause.Click += (_, _) =>
+        {
+            _running = false;
+            _timer.Stop();
+            AppLog.UserAction("Simülasyon duraklatıldı");
+        };
         _btnStep.Click += (_, _) => { DoStep(); };
         _btnExportCsv.Click += (_, _) => ExportCsv();
         _btnExportDat.Click += (_, _) => ExportDat();
@@ -91,6 +102,7 @@ public sealed class SimulationForm : Form, ILocalizable
             _lastLoggedSegment = -1;
             AppendPlanToLog();
             RefreshUi();
+            AppLog.UserAction("Simülasyon sıfırlandı");
         };
 
         _trackSpeed.Location = new Point(566, 14);
@@ -202,6 +214,7 @@ public sealed class SimulationForm : Form, ILocalizable
             _reportShown = true;
             string report = SimulationReportBuilder.BuildReport(_job, snap);
             SafeAppendLog(Environment.NewLine + report);
+            AppLog.UserAction("Simülasyon tamamlandı", FormatPathForLog(_job.SourceFilePath));
             MessageBox.Show(this,
                 L.Get("Msg.SimCompleted"),
                 L.Get("Title.Done"),
@@ -273,10 +286,13 @@ public sealed class SimulationForm : Form, ILocalizable
 
         if (!DatFileExporter.TryWrite(_job, optionsDlg.Options, saveDlg.FileName, out string? error))
         {
+            AppLog.Warn("Simülasyon DAT dışa aktarma başarısız", error ?? FormatPathForLog(saveDlg.FileName));
             MessageBox.Show(this, error ?? L.Get("Msg.ExportSaveFailed"), L.Get("Title.DatExport"),
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
+
+        AppLog.UserAction("Simülasyondan DAT dışa aktarıldı", FormatPathForLog(saveDlg.FileName));
 
         MessageBox.Show(this,
             L.F("Msg.DatSaved", saveDlg.FileName),
@@ -313,10 +329,13 @@ public sealed class SimulationForm : Form, ILocalizable
 
         if (!CsvFileExporter.TryWrite(_job, exportOptions, saveDlg.FileName, out string? error))
         {
+            AppLog.Warn("Simülasyon CSV dışa aktarma başarısız", error ?? FormatPathForLog(saveDlg.FileName));
             MessageBox.Show(this, error ?? L.Get("Msg.ExportSaveFailed"), L.Get("Title.Export"),
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
+
+        AppLog.UserAction("Simülasyondan CSV dışa aktarıldı", FormatPathForLog(saveDlg.FileName));
 
         MessageBox.Show(this,
             L.F("Msg.CsvSaved", saveDlg.FileName),
@@ -336,4 +355,7 @@ public sealed class SimulationForm : Form, ILocalizable
 
         _renderer.Paint(e.Graphics, _job, _engine.Current, rect, transform);
     }
+
+    private static string FormatPathForLog(string? path)
+        => string.IsNullOrWhiteSpace(path) ? "(yok)" : path;
 }

@@ -1,4 +1,5 @@
 using otomasyon.Localization;
+using otomasyon.Logging;
 using otomasyon.Settings;
 using otomasyon.Simulation;
 
@@ -172,10 +173,13 @@ public sealed class FtpRemoteFilesDialog : Form, ILocalizable
 
             if (error is not null)
             {
+                AppLog.Warn("FTP uzak dosya silinemedi", $"Dosya={fileName}, Host={_settings.Host}, Hata={error}");
                 MessageBox.Show(this, error, L.Get("Dialog.FtpRemoteFiles"),
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+
+            AppLog.UserAction("FTP uzak dosya silindi", $"Dosya={fileName}, Host={_settings.Host}");
 
             MessageBox.Show(this,
                 L.F("Msg.FtpDeleteSuccess", fileName),

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using otomasyon.Localization;
+using otomasyon.Logging;
 
 namespace otomasyon.Settings;
 
@@ -53,6 +54,9 @@ public static class AppSettingsManager
             MachineDirectionChanged?.Invoke(null, EventArgs.Empty);
 
         SettingsChanged?.Invoke(null, EventArgs.Empty);
+        AppLog.UserAction(
+            "Makine ayarları kaydedildi",
+            $"Dil={language.ToCode()}, Yön={machineDirection.ToCode()}, MaxGenişlik={maxWidthMm:0.##}mm, MaxYükseklik={maxHeightMm:0.##}mm");
         return true;
     }
 
@@ -89,6 +93,9 @@ public static class AppSettingsManager
 
         Persist();
         SettingsChanged?.Invoke(null, EventArgs.Empty);
+        AppLog.UserAction(
+            "FTP ayarları kaydedildi",
+            $"Host={Ftp.Host}, Port={Ftp.Port}, Kullanıcı={Ftp.Username}, UzakDizin={Ftp.RemoteDirectory}");
         return true;
     }
 
