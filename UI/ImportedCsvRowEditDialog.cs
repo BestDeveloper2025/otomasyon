@@ -192,17 +192,11 @@ public sealed class ImportedCsvRowEditDialog : Form, ILocalizable
 
         scroll.Controls.Add(inner);
 
-        var bottom = new FlowLayoutPanel
-        {
-            Dock = DockStyle.Bottom,
-            Height = 48,
-            FlowDirection = FlowDirection.RightToLeft,
-            Padding = new Padding(12, 8, 12, 8)
-        };
+        var bottom = DialogUiHelper.CreateBottomButtonBar();
 
         _btnCancel.DialogResult = DialogResult.Cancel;
-        _btnCancel.Width = 90;
-        _btnOk.Width = 130;
+        DialogUiHelper.ConfigureButton(_btnCancel, 90);
+        DialogUiHelper.ConfigureButton(_btnOk, 130);
         _btnOk.DialogResult = DialogResult.None;
         _btnOk.Click += OnOkClick;
 

@@ -64,17 +64,11 @@ public sealed class FtpSettingsDialog : Form, ILocalizable
         _numPort.Value = FtpSettings.DefaultPort;
         _numPort.Width = 120;
 
-        var flow = new FlowLayoutPanel
-        {
-            Dock = DockStyle.Bottom,
-            Height = 48,
-            FlowDirection = FlowDirection.RightToLeft,
-            Padding = new Padding(12, 8, 12, 8)
-        };
+        var flow = DialogUiHelper.CreateBottomButtonBar();
 
         _btnCancel.DialogResult = DialogResult.Cancel;
-        _btnCancel.Width = 90;
-        _btnOk.Width = 90;
+        DialogUiHelper.ConfigureButton(_btnCancel, 90);
+        DialogUiHelper.ConfigureButton(_btnOk, 90);
         _btnOk.Click += OnOkClick;
 
         flow.Controls.Add(_btnCancel);

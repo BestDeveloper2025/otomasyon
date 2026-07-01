@@ -16,4 +16,8 @@
     <EmbeddedResource Include="Resources\Strings.json" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Assets\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

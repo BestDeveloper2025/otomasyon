@@ -39,17 +39,11 @@ public sealed class FtpUploadDialog : Form, ILocalizable
         _txtFileName.Width = 380;
         _txtFileName.Text = suggestedFileName;
 
-        var flow = new FlowLayoutPanel
-        {
-            Dock = DockStyle.Bottom,
-            Height = 48,
-            FlowDirection = FlowDirection.RightToLeft,
-            Padding = new Padding(12, 8, 12, 8)
-        };
+        var flow = DialogUiHelper.CreateBottomButtonBar();
 
         _btnCancel.DialogResult = DialogResult.Cancel;
-        _btnCancel.Width = 90;
-        _btnOk.Width = 100;
+        DialogUiHelper.ConfigureButton(_btnCancel, 90);
+        DialogUiHelper.ConfigureButton(_btnOk, 100);
         _btnOk.Click += OnOkClick;
 
         flow.Controls.Add(_btnCancel);

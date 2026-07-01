@@ -7,6 +7,7 @@ namespace otomasyon
         private System.ComponentModel.IContainer? components = null;
 
         private Panel _topPanel = null!;
+        private PictureBox _picLogo = null!;
         private FlowLayoutPanel _toolbarFlow = null!;
         private Button _btnSelectFile = null!;
         private Button _btnSetBaseEdge = null!;
@@ -57,6 +58,7 @@ namespace otomasyon
             MinimumSize = new Size(900, 560);
             Text = "DXF Analysis and Recipe Tool";
             StartPosition = FormStartPosition.CenterScreen;
+            WindowState = FormWindowState.Maximized;
             Font = uiFont;
             BackColor = Color.White;
 
@@ -77,6 +79,16 @@ namespace otomasyon
                 FlowDirection = FlowDirection.LeftToRight,
                 WrapContents = false,
                 Padding = new Padding(0)
+            };
+
+            _picLogo = new PictureBox
+            {
+                Dock = DockStyle.Left,
+                Width = 140,
+                SizeMode = PictureBoxSizeMode.Zoom,
+                BackColor = Color.Transparent,
+                Margin = new Padding(0, 0, 8, 0),
+                Visible = false
             };
 
             _btnSelectFile = CreateToolbarButton("Select File", 100);
@@ -121,6 +133,7 @@ namespace otomasyon
             _topPanel.Controls.Add(_lblFilePath);
             _topPanel.Controls.Add(_btnSettings);
             _topPanel.Controls.Add(_toolbarFlow);
+            _topPanel.Controls.Add(_picLogo);
 
             // --- Alt durum çubuğu ---
             _bottomPanel = new Panel
@@ -258,6 +271,7 @@ namespace otomasyon
             Controls.Add(_topPanel);
 
             Load += Form1_Load;
+            Shown += Form1_Shown;
         }
 
         private static Button CreateToolbarButton(string text, int width)

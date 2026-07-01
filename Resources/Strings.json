@@ -975,9 +975,9 @@
     "de": "M{0}"
   },
   "Export.CsvInfo": {
-    "en": "Edge thickness (SA), lengths (L), radius (R) and corner angles (A)\nare filled automatically from contour data.",
-    "tr": "Kenar kalınlıkları (SA), uzunluklar (L), radius (R) ve köşe açıları (A)\nkontur verisinden otomatik doldurulur.",
-    "de": "Kantendicken (SA), Längen (L), Radien (R) und Eckwinkel (A)\nwerden automatisch aus Konturdaten gefüllt."
+    "en": "Edge thickness (SA), lengths (L), radius (R) and signed turn angles (A)\nare filled automatically from contour data.",
+    "tr": "Kenar kalınlıkları (SA), uzunluklar (L), radius (R) ve imzalı kırılma açıları (A)\nkontur verisinden otomatik doldurulur.",
+    "de": "Kantendicken (SA), Längen (L), Radien (R) und vorzeichenbehaftete Knickwinkel (A)\nwerden automatisch aus Konturdaten gefüllt."
   },
   "Export.GeneralThickness": {
     "en": "General thickness (mm):",

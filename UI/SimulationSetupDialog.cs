@@ -194,16 +194,12 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
             Font = new Font("Segoe UI", 10f)
         };
 
-        var flow = new FlowLayoutPanel
-        {
-            Dock = DockStyle.Bottom,
-            Height = 50,
-            FlowDirection = FlowDirection.RightToLeft,
-            Padding = new Padding(12)
-        };
+        var flow = DialogUiHelper.CreateBottomButtonBar();
 
-        _btnNo = new Button { DialogResult = DialogResult.Cancel, Width = 100 };
-        _btnYes = new Button { Width = 120 };
+        _btnNo = new Button { DialogResult = DialogResult.Cancel };
+        DialogUiHelper.ConfigureButton(_btnNo, 100);
+        _btnYes = new Button();
+        DialogUiHelper.ConfigureButton(_btnYes, 120);
         _btnYes.Click += (_, _) => ShowParamsStep();
 
         flow.Controls.Add(_btnNo);
@@ -408,19 +404,16 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
 
         scroll.Controls.Add(inner);
 
-        var bottom = new FlowLayoutPanel
-        {
-            Dock = DockStyle.Bottom,
-            Height = 50,
-            FlowDirection = FlowDirection.RightToLeft,
-            Padding = new Padding(12)
-        };
+        var bottom = DialogUiHelper.CreateBottomButtonBar();
 
-        _btnCancel = new Button { DialogResult = DialogResult.Cancel, Width = 90 };
-        _btnBack = new Button { Width = 90 };
+        _btnCancel = new Button { DialogResult = DialogResult.Cancel };
+        DialogUiHelper.ConfigureButton(_btnCancel, 90);
+        _btnBack = new Button();
+        DialogUiHelper.ConfigureButton(_btnBack, 90);
         _btnBack.Click += (_, _) => ShowConfirmStep();
         _btnBack.Visible = _purpose == SetupPurpose.Simulation;
-        _btnOk = new Button { Width = 150, DialogResult = DialogResult.None };
+        _btnOk = new Button { DialogResult = DialogResult.None };
+        DialogUiHelper.ConfigureButton(_btnOk, 150);
         _btnOk.Click += OnStartClick;
 
         bottom.Controls.Add(_btnCancel);

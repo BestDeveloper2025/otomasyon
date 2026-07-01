@@ -11,7 +11,7 @@ namespace otomasyon.Simulation;
 /// <summary>
 /// Makine CSV çıktısı (noktalı virgülle ayrılmış satırlar — Excel TR uyumlu).
 /// SA[1..12] kenar kalınlığı, L[1..12] kenar uzunluğu — yaylarda kiriş uzunluğu (küçük yay +, büyük yay −),
-/// R[1..12] radius (dış bükey +, iç bükey −), A[1..12] köşe açısı, O[1..12] kenar offset (mm).
+/// R[1..12] radius (dış bükey +, iç bükey −), A[1..12] imzalı kırılma açısı (°), O[1..12] kenar offset (mm).
 /// M_SA[1..12], M_X[1..12], M_Y[1..12], M_R[1..12] menfez alanları (alan 67–114).
 /// </summary>
 public static class CsvFileExporter
@@ -253,11 +253,15 @@ public static class CsvFileExporter
             else if (seg.IsArc && seg.Radius is double sr && sr > 1e-9)
                 radii[idx] = SignedRadius(sr, ClassifyArcByPath(segs, seg));
 
-            double inDir = OutgoingDirAtStart(seg);
-            double prevInDir = IncomingDirAtEnd(prev);
-            angles[idx] = AngleMath.OpeningAngleDeg(prevInDir, inDir);
+            double fromDir = BeamDirectionDeg(prev);
+            double toDir = BeamDirectionDeg(seg);
+            angles[idx] = AngleMath.SignedBeamAngleDeg(fromDir, toDir);
         }
     }
+
+    /// <summary>Kiriş gidiş yönü (başlangıç→bitiş); yaylarda da kiriş doğrusu kullanılır.</summary>
+    private static double BeamDirectionDeg(ContourPathSegment s)
+        => AngleMath.DirectionDeg(s.EndX - s.StartX, s.EndY - s.StartY);
 
     private static Dictionary<int, double> BuildRadiusByEdge(DxfScene scene)
     {
@@ -306,12 +310,6 @@ public static class CsvFileExporter
             _ => radius
         };
     }
-
-    private static double OutgoingDirAtStart(ContourPathSegment s)
-        => AngleMath.DirectionDeg(s.EndX - s.StartX, s.EndY - s.StartY);
-
-    private static double IncomingDirAtEnd(ContourPathSegment s)
-        => AngleMath.DirectionDeg(s.EndX - s.StartX, s.EndY - s.StartY);
 
     private static IReadOnlyList<string> BuildFields(
         int rowIndex,
@@ -425,10 +423,9 @@ public static class CsvFileExporter
 
     private static string FormatAngle(double v)
     {
-        if (Math.Abs(v) < 1e-9 || double.IsNaN(v))
+        if (double.IsNaN(v) || Math.Abs(v) < 1e-9)
             return "0.000";
-        if (Math.Abs(v - Math.Round(v)) < 1e-3)
-            return ((int)Math.Round(v)).ToString(Inv);
+
         return v.ToString("0.000", Inv);
     }
 }

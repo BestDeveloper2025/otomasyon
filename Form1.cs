@@ -53,6 +53,25 @@ public partial class Form1 : Form, ILocalizable
         AppSettingsManager.MachineDirectionChanged += OnMachineDirectionChanged;
         AppSettingsManager.SettingsChanged += OnSettingsChanged;
         ApplyLocalization();
+        TryLoadLogo();
+    }
+
+    private void TryLoadLogo()
+    {
+        string? path = AppAssets.FindLogoPath();
+        if (path is null)
+            return;
+
+        try
+        {
+            using var stream = File.OpenRead(path);
+            _picLogo.Image = Image.FromStream(stream);
+            _picLogo.Visible = true;
+        }
+        catch
+        {
+            // Logo yüklenemezse araç çubuğu logosuz devam eder.
+        }
     }
 
     private void OnSettingsChanged(object? sender, EventArgs e)
@@ -310,6 +329,12 @@ public partial class Form1 : Form, ILocalizable
 
     private void Form1_Load(object? sender, EventArgs e)
         => ApplyInitialSplitLayout();
+
+    private void Form1_Shown(object? sender, EventArgs e)
+    {
+        // Tam ekranda bölücü boyutları ilk gösterimde yeniden hesaplanır.
+        ApplyInitialSplitLayout();
+    }
 
     private void ApplyInitialSplitLayout()
     {

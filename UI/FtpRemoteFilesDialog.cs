@@ -48,20 +48,14 @@ public sealed class FtpRemoteFilesDialog : Form, ILocalizable
         _lblStatus.Padding = new Padding(12, 0, 12, 0);
         _lblStatus.ForeColor = Color.DimGray;
 
-        var bottom = new FlowLayoutPanel
-        {
-            Dock = DockStyle.Bottom,
-            Height = 48,
-            FlowDirection = FlowDirection.RightToLeft,
-            Padding = new Padding(12, 8, 12, 8)
-        };
+        var bottom = DialogUiHelper.CreateBottomButtonBar();
 
         _btnClose.DialogResult = DialogResult.Cancel;
-        _btnClose.Width = 90;
-        _btnDelete.Width = 110;
+        DialogUiHelper.ConfigureButton(_btnClose, 90);
+        DialogUiHelper.ConfigureButton(_btnDelete, 110);
         _btnDelete.Enabled = false;
         _btnDelete.Click += async (_, _) => await DeleteSelectedAsync();
-        _btnRefresh.Width = 100;
+        DialogUiHelper.ConfigureButton(_btnRefresh, 100);
         _btnRefresh.Click += async (_, _) => await RefreshListAsync();
 
         _lvFiles.SelectedIndexChanged += (_, _) =>

@@ -31,6 +31,46 @@ public static class AngleMath
         return d;
     }
 
+    /// <summary>
+    /// fromDir yönünden toDir yönüne kontur yürüyüşündeki imzalı dönüş (°), (-180, 180].
+    /// Düz devamda 0; CCW dönüş pozitif, CW dönüş negatif.
+    /// </summary>
+    public static double SignedTurnAngleDeg(double fromDirDeg, double toDirDeg)
+    {
+        if (double.IsNaN(fromDirDeg) || double.IsNaN(toDirDeg))
+            return double.NaN;
+
+        double delta = Normalize360(toDirDeg) - Normalize360(fromDirDeg);
+        if (delta > 180.0)
+            delta -= 360.0;
+        else if (delta <= -180.0)
+            delta += 360.0;
+        return delta;
+    }
+
+    /// <summary>
+    /// Ardışık kiriş (başlangıç→bitiş) yönleri arası imzalı sapma açısı (°).
+    /// Büyüklük OpeningAngleDeg ile aynı; işaret vektörel dönüş yönünden (sin Δθ).
+    /// </summary>
+    public static double SignedBeamAngleDeg(double fromBeamDirDeg, double toBeamDirDeg)
+    {
+        if (double.IsNaN(fromBeamDirDeg) || double.IsNaN(toBeamDirDeg))
+            return double.NaN;
+
+        double mag = OpeningAngleDeg(fromBeamDirDeg, toBeamDirDeg);
+        if (mag < 1e-9)
+            return 0;
+
+        double fromRad = fromBeamDirDeg / RadToDeg;
+        double toRad = toBeamDirDeg / RadToDeg;
+        double cross = Math.Cos(fromRad) * Math.Sin(toRad) - Math.Sin(fromRad) * Math.Cos(toRad);
+
+        if (Math.Abs(cross) < 1e-12)
+            return SignedTurnAngleDeg(fromBeamDirDeg, toBeamDirDeg);
+
+        return Math.Sign(cross) * mag;
+    }
+
     public static double Normalize360(double deg)
     {
         double d = deg % 360.0;
