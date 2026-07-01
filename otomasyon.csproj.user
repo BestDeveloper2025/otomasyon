@@ -19,6 +19,9 @@
     <Compile Update="UI\FtpUploadDialog.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="UI\HomeEmptyStatePanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Update="UI\ImportedCsvRowEditDialog.cs">
       <SubType>Form</SubType>
     </Compile>

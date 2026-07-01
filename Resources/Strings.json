@@ -1,8 +1,43 @@
 {
   "App.Title": {
-    "en": "DXF Analysis and Recipe Tool",
-    "tr": "DXF Analiz ve Reçete Aracı",
-    "de": "DXF-Analyse- und Rezepttool"
+    "en": "Best Makina — DXF Analysis and Recipe Tool",
+    "tr": "Best Makina — DXF Analiz ve Reçete Aracı",
+    "de": "Best Makina — DXF-Analyse- und Rezepttool"
+  },
+  "Welcome.Title": {
+    "en": "Welcome",
+    "tr": "Hoş geldiniz",
+    "de": "Willkommen"
+  },
+  "Welcome.Subtitle": {
+    "en": "Load a DXF drawing or import an existing recipe CSV to get started.",
+    "tr": "Başlamak için bir DXF çizimi yükleyin veya mevcut bir reçete CSV dosyası içe aktarın.",
+    "de": "Laden Sie eine DXF-Zeichnung oder importieren Sie eine Rezept-CSV, um zu beginnen."
+  },
+  "Welcome.Steps": {
+    "en": "1. Select a DXF file\n2. Set the base edge (L1)\n3. Add to recipe and export CSV / DAT or send via FTP",
+    "tr": "1. DXF dosyası seçin\n2. Taban kenarını belirleyin (L1)\n3. Reçeteye ekleyin; CSV / DAT dışa aktarın veya FTP ile gönderin",
+    "de": "1. DXF-Datei wählen\n2. Basiskante festlegen (L1)\n3. Zum Rezept hinzufügen; CSV/DAT exportieren oder per FTP senden"
+  },
+  "Label.Analysis": {
+    "en": "Shape analysis",
+    "tr": "Şekil analizi",
+    "de": "Formanalyse"
+  },
+  "Label.RecipeEmpty": {
+    "en": "No recipe items yet.\nLoad a DXF and use “Add to Recipe”, or import a CSV file.",
+    "tr": "Henüz reçete satırı yok.\nDXF yükleyip “Reçeteye Ekle” kullanın veya CSV içe aktarın.",
+    "de": "Noch keine Rezeptzeilen.\nDXF laden und „Zum Rezept hinzufügen“ oder CSV importieren."
+  },
+  "Label.AnalysisEmpty": {
+    "en": "Analysis data will appear here after you load a DXF file.",
+    "tr": "DXF yüklendikten sonra analiz verileri burada görünür.",
+    "de": "Analysedaten erscheinen hier nach dem Laden einer DXF-Datei."
+  },
+  "Status.GetStarted": {
+    "en": "Get started: select a DXF file or import CSV — configure machine settings if needed (Settings).",
+    "tr": "Başlamak için DXF seçin veya CSV içe aktarın — gerekirse makine ayarlarını yapın (Ayarlar).",
+    "de": "Start: DXF wählen oder CSV importieren — bei Bedarf Maschineneinstellungen (Einstellungen)."
   },
   "Lang.Label": {
     "en": "Language",

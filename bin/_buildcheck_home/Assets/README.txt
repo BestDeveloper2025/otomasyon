@@ -1,7 +1,7 @@
 Best Makina logo dosyasını bu klasöre koyun.
 
 Varsayılan dosya adı:
-  bestlogo.png
+  bestlogo.jpg
 
 Desteklenen uzantılar: .png, .jpg, .jpeg, .bmp, .webp
 

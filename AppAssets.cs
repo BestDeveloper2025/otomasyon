@@ -3,31 +3,69 @@ namespace otomasyon;
 /// <summary>Assets klasöründeki görseller ve diğer dosyalar.</summary>
 public static class AppAssets
 {
-    public const string LogoFileName = "best-makina-logo.png";
+    public const string LogoFileName = "bestlogo.png";
+
+    private static readonly string[] ImageExtensions = [".png", ".jpg", ".jpeg", ".bmp", ".webp"];
 
     public static string AssetsDirectory => Path.Combine(AppContext.BaseDirectory, "Assets");
 
     public static string? FindLogoPath()
     {
-        if (!Directory.Exists(AssetsDirectory))
-            return null;
+        foreach (string dir in EnumerateAssetDirectories())
+        {
+            string? path = FindLogoInDirectory(dir);
+            if (path is not null)
+                return path;
+        }
 
-        string primary = Path.Combine(AssetsDirectory, LogoFileName);
+        return null;
+    }
+
+    private static IEnumerable<string> EnumerateAssetDirectories()
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (string dir in CollectDirectories())
+        {
+            if (!Directory.Exists(dir))
+                continue;
+
+            string full = Path.GetFullPath(dir);
+            if (seen.Add(full))
+                yield return full;
+        }
+    }
+
+    private static IEnumerable<string> CollectDirectories()
+    {
+        yield return AssetsDirectory;
+
+        string? current = AppContext.BaseDirectory;
+        for (int i = 0; i < 6 && current is not null; i++)
+        {
+            yield return Path.Combine(current, "Assets");
+            current = Directory.GetParent(current)?.FullName;
+        }
+    }
+
+    private static string? FindLogoInDirectory(string directory)
+    {
+        string primary = Path.Combine(directory, LogoFileName);
         if (File.Exists(primary))
             return primary;
 
         string baseName = Path.GetFileNameWithoutExtension(LogoFileName);
-        foreach (string ext in new[] { ".png", ".jpg", ".jpeg", ".bmp", ".webp" })
+        foreach (string ext in ImageExtensions)
         {
-            string candidate = Path.Combine(AssetsDirectory, baseName + ext);
+            string candidate = Path.Combine(directory, baseName + ext);
             if (File.Exists(candidate))
                 return candidate;
         }
 
-        foreach (string file in Directory.EnumerateFiles(AssetsDirectory))
+        foreach (string file in Directory.EnumerateFiles(directory))
         {
             string ext = Path.GetExtension(file).ToLowerInvariant();
-            if (ext is ".png" or ".jpg" or ".jpeg" or ".bmp" or ".webp")
+            if (ImageExtensions.Contains(ext))
                 return file;
         }
 

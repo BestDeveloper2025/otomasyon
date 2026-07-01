@@ -30,6 +30,10 @@ public partial class Form1 : Form, ILocalizable
     private WorldToScreenTransform _lastTransform;
     private bool _hasLastTransform;
 
+    private double _mainCanvasWidthRatio = 0.58;
+    private double _recipeHeightRatio = 0.38;
+    private bool _responsiveLayoutPending;
+
     public Form1()
     {
         InitializeComponent();
@@ -54,6 +58,19 @@ public partial class Form1 : Form, ILocalizable
         AppSettingsManager.SettingsChanged += OnSettingsChanged;
         ApplyLocalization();
         TryLoadLogo();
+        _homeEmptyState.SelectFileRequested += (_, _) => BtnSelectFile_Click(null, EventArgs.Empty);
+        _homeEmptyState.ImportCsvRequested += (_, _) => BtnImportCsv_Click(null, EventArgs.Empty);
+
+        Resize += (_, _) => ScheduleResponsiveLayout();
+        _topBarBody.Resize += (_, _) => ScheduleResponsiveLayout();
+        _splitMain.SplitterMoved += (_, _) =>
+            ResponsiveLayout.SyncHorizontalRatio(_splitMain, ref _mainCanvasWidthRatio);
+        _splitRight.SplitterMoved += (_, _) =>
+            ResponsiveLayout.SyncVerticalRatio(_splitRight, ref _recipeHeightRatio);
+        _lvRecipe.Resize += (_, _) => ResponsiveLayout.ApplyRecipeListColumns(_lvRecipe);
+
+        UpdateHomeUi();
+        ScheduleResponsiveLayout();
     }
 
     private void TryLoadLogo()
@@ -64,9 +81,9 @@ public partial class Form1 : Form, ILocalizable
 
         try
         {
+            _picLogo.Image?.Dispose();
             using var stream = File.OpenRead(path);
             _picLogo.Image = Image.FromStream(stream);
-            _picLogo.Visible = true;
         }
         catch
         {
@@ -305,6 +322,10 @@ public partial class Form1 : Form, ILocalizable
         _btnEditRecipe.Text = L.Get("Btn.EditRecipe");
         _btnClearRecipe.Text = L.Get("Btn.ClearAll");
         _lblRecipeHeader.Text = L.Get("Label.Recipe");
+        _lblRecipeEmpty.Text = L.Get("Label.RecipeEmpty");
+        _lblAnalysisHeader.Text = L.Get("Label.Analysis");
+        _lblAnalysisEmpty.Text = L.Get("Label.AnalysisEmpty");
+        _homeEmptyState.ApplyLocalization();
 
         if (string.IsNullOrWhiteSpace(_currentFilePath))
             _lblFilePath.Text = L.Get("Label.NoFileSelected");
@@ -325,39 +346,106 @@ public partial class Form1 : Form, ILocalizable
         RebuildRecipeList();
         RefreshRecipeUi();
         _drawPanel.Invalidate();
+        UpdateHomeUi();
+    }
+
+    private bool ShouldShowWelcomeState()
+    {
+        bool hasRecipe = (_importedCsv?.LineCount ?? 0) > 0 || _recipeItems.Count > 0;
+        bool hasScene = ContourPathOrderer.HasSimulatableContour(_scene);
+        return !hasRecipe && !hasScene && string.IsNullOrWhiteSpace(_currentFilePath);
+    }
+
+    private void UpdateHomeUi()
+    {
+        bool showWelcome = ShouldShowWelcomeState();
+        _homeEmptyState.Visible = showWelcome;
+        if (showWelcome)
+            _homeEmptyState.BringToFront();
+
+        bool hasRecipe = (_importedCsv?.LineCount ?? 0) > 0 || _recipeItems.Count > 0;
+        _lblRecipeEmpty.Visible = !hasRecipe;
+        _lvRecipe.Visible = hasRecipe;
+
+        bool hasAnalysis = !string.IsNullOrWhiteSpace(_txtCoordinates.Text);
+        _lblAnalysisEmpty.Visible = !hasAnalysis;
+
+        if (showWelcome)
+            _mainCanvasWidthRatio = Math.Max(_mainCanvasWidthRatio, 0.62);
+
+        ScheduleResponsiveLayout();
+    }
+
+    private void ScheduleResponsiveLayout()
+    {
+        if (_responsiveLayoutPending || IsDisposed)
+            return;
+
+        _responsiveLayoutPending = true;
+
+        if (IsHandleCreated)
+            BeginInvoke(ApplyResponsiveLayout);
+        else
+            ApplyResponsiveLayout();
+    }
+
+    private void ApplyResponsiveLayout()
+    {
+        _responsiveLayoutPending = false;
+        if (IsDisposed)
+            return;
+
+        ApplyTopBarLayout();
+        ApplySplitLayout();
+        ResponsiveLayout.ApplyRecipeListColumns(_lvRecipe);
+    }
+
+    private void ApplyTopBarLayout()
+    {
+        int bodyWidth = Math.Max(120, _topBarBody.ClientSize.Width - _topBarBody.Padding.Horizontal);
+        _toolbarFlow.Width = bodyWidth;
+
+        int toolbarHeight = ResponsiveLayout.MeasureWrappedFlowHeight(_toolbarFlow, bodyWidth);
+        int filePathHeight = _lblFilePath.Height;
+        int verticalPadding = _topBarBody.Padding.Vertical + _topPanel.Padding.Vertical;
+        int desired = toolbarHeight + filePathHeight + verticalPadding + 6;
+        _topPanel.Height = Math.Clamp(desired, UiStyles.TopBarHeight, 168);
+    }
+
+    private void ApplySplitLayout()
+    {
+        const int mainPanel1Min = 280;
+        const int mainPanel2Min = 260;
+        const int recipePanelMin = 120;
+        const int analysisPanelMin = 120;
+
+        int mainWidth = _splitMain.ClientSize.Width;
+        if (mainWidth > mainPanel1Min + mainPanel2Min + _splitMain.SplitterWidth)
+        {
+            _splitMain.Panel1MinSize = mainPanel1Min;
+            _splitMain.Panel2MinSize = mainPanel2Min;
+
+            double canvasRatio = ShouldShowWelcomeState()
+                ? Math.Max(_mainCanvasWidthRatio, 0.62)
+                : _mainCanvasWidthRatio;
+
+            ResponsiveLayout.ApplyHorizontalSplit(_splitMain, canvasRatio, mainPanel1Min, mainPanel2Min);
+        }
+
+        int rightHeight = _splitRight.ClientSize.Height;
+        if (rightHeight > recipePanelMin + analysisPanelMin + _splitRight.SplitterWidth)
+        {
+            _splitRight.Panel1MinSize = recipePanelMin;
+            _splitRight.Panel2MinSize = analysisPanelMin;
+            ResponsiveLayout.ApplyVerticalSplit(_splitRight, _recipeHeightRatio, recipePanelMin, analysisPanelMin);
+        }
     }
 
     private void Form1_Load(object? sender, EventArgs e)
-        => ApplyInitialSplitLayout();
+        => ApplyResponsiveLayout();
 
     private void Form1_Shown(object? sender, EventArgs e)
-    {
-        // Tam ekranda bölücü boyutları ilk gösterimde yeniden hesaplanır.
-        ApplyInitialSplitLayout();
-    }
-
-    private void ApplyInitialSplitLayout()
-    {
-        const int panel1Min = 300;
-        const int panel2Min = 280;
-        int w = _splitMain.ClientSize.Width;
-        if (w > panel1Min + panel2Min + _splitMain.SplitterWidth)
-        {
-            _splitMain.Panel1MinSize = panel1Min;
-            _splitMain.Panel2MinSize = panel2Min;
-
-            int splitter = _splitMain.SplitterWidth;
-            int maxDist = w - splitter - panel2Min;
-            int minDist = panel1Min;
-            int desired = (int)Math.Round(w * 0.58);
-            desired = Math.Clamp(desired, minDist, Math.Max(minDist, maxDist));
-            _splitMain.SplitterDistance = desired;
-        }
-
-        int h = _splitRight.ClientSize.Height;
-        if (h > 260)
-            _splitRight.SplitterDistance = Math.Clamp((int)Math.Round(h * 0.38), 140, h - 160);
-    }
+        => ApplyResponsiveLayout();
 
     private void BtnSelectFile_Click(object? sender, EventArgs e)
     {
@@ -445,13 +533,15 @@ public partial class Form1 : Form, ILocalizable
         var s = _scene.Statistics;
         if (!_baseEdgePickMode)
         {
-            _lblResults.Text = L.F("Status.Stats",
-                s.ContourEdgeCount,
-                s.RadiusFeatureCount,
-                s.ArcCount,
-                s.CircleCount,
-                s.VentFeatureCount,
-                s.TrackedEntityCount);
+            _lblResults.Text = ShouldShowWelcomeState()
+                ? L.Get("Status.GetStarted")
+                : L.F("Status.Stats",
+                    s.ContourEdgeCount,
+                    s.RadiusFeatureCount,
+                    s.ArcCount,
+                    s.CircleCount,
+                    s.VentFeatureCount,
+                    s.TrackedEntityCount);
         }
 
         bool canProcess = ContourPathOrderer.HasSimulatableContour(_scene)
@@ -461,6 +551,8 @@ public partial class Form1 : Form, ILocalizable
         _btnSetBaseEdge.Enabled = ContourPathOrderer.HasSimulatableContour(_scene);
         _btnSimulation.Enabled = canProcess;
         _btnAddToRecipe.Enabled = canProcess && !string.IsNullOrWhiteSpace(_currentFilePath);
+
+        UpdateHomeUi();
     }
 
     private void BtnAddToRecipe_Click(object? sender, EventArgs e)
@@ -1067,6 +1159,7 @@ public partial class Form1 : Form, ILocalizable
         _btnSendFtp.Enabled = hasData;
         _btnClearRecipe.Enabled = hasData;
         RefreshRecipeActionButtons();
+        UpdateHomeUi();
     }
 
     private void RefreshRecipeActionButtons()

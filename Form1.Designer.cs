@@ -1,5 +1,7 @@
 ﻿#nullable enable
 
+using otomasyon.UI;
+
 namespace otomasyon
 {
     partial class Form1
@@ -7,6 +9,8 @@ namespace otomasyon
         private System.ComponentModel.IContainer? components = null;
 
         private Panel _topPanel = null!;
+        private Panel _logoPanel = null!;
+        private Panel _toolbarSeparator = null!;
         private PictureBox _picLogo = null!;
         private FlowLayoutPanel _toolbarFlow = null!;
         private Button _btnSelectFile = null!;
@@ -18,15 +22,19 @@ namespace otomasyon
         private Button _btnExportBatchDat = null!;
         private Button _btnSendFtp = null!;
         private Button _btnSettings = null!;
+        private Panel _settingsHost = null!;
+        private Panel _topBarBody = null!;
         private Label _lblFilePath = null!;
 
         private DrawingPanel _drawPanel = null!;
+        private HomeEmptyStatePanel _homeEmptyState = null!;
 
         private SplitContainer _splitMain = null!;
         private SplitContainer _splitRight = null!;
 
         private Panel _recipePanel = null!;
         private Label _lblRecipeHeader = null!;
+        private Label _lblRecipeEmpty = null!;
         private ListView _lvRecipe = null!;
         private FlowLayoutPanel _recipeActions = null!;
         private Button _btnRemoveRecipe = null!;
@@ -34,6 +42,9 @@ namespace otomasyon
         private Button _btnClearRecipe = null!;
 
         private TextBox _txtCoordinates = null!;
+        private Panel _analysisPanel = null!;
+        private Label _lblAnalysisHeader = null!;
+        private Label _lblAnalysisEmpty = null!;
 
         private Panel _bottomPanel = null!;
         private Label _lblResults = null!;
@@ -41,8 +52,11 @@ namespace otomasyon
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && components != null)
-                components.Dispose();
+            if (disposing)
+            {
+                _picLogo.Image?.Dispose();
+                components?.Dispose();
+            }
             base.Dispose(disposing);
         }
 
@@ -65,82 +79,121 @@ namespace otomasyon
             // --- Üst araç çubuğu ---
             _topPanel = new Panel
             {
-                Height = 56,
+                Height = UiStyles.TopBarHeight,
                 Dock = DockStyle.Top,
-                BackColor = Color.FromArgb(248, 249, 251),
-                Padding = new Padding(8, 8, 12, 8)
+                BackColor = UiStyles.TopBarBack,
+                Padding = new Padding(0, 0, 12, 0),
+                MinimumSize = new Size(640, UiStyles.TopBarHeight)
             };
 
-            _toolbarFlow = new FlowLayoutPanel
+            _logoPanel = new Panel
             {
                 Dock = DockStyle.Left,
-                AutoSize = true,
-                AutoSizeMode = AutoSizeMode.GrowAndShrink,
-                FlowDirection = FlowDirection.LeftToRight,
-                WrapContents = false,
-                Padding = new Padding(0)
+                Width = UiStyles.LogoPanelWidth,
+                Padding = new Padding(16, 14, 12, 14),
+                BackColor = UiStyles.TopBarBack
             };
 
             _picLogo = new PictureBox
             {
-                Dock = DockStyle.Left,
-                Width = 140,
+                Dock = DockStyle.Fill,
                 SizeMode = PictureBoxSizeMode.Zoom,
-                BackColor = Color.Transparent,
-                Margin = new Padding(0, 0, 8, 0),
-                Visible = false
+                BackColor = UiStyles.TopBarBack
             };
 
-            _btnSelectFile = CreateToolbarButton("Select File", 100);
-            _btnSetBaseEdge = CreateToolbarButton("Set Base Edge", 120);
+            _logoPanel.Controls.Add(_picLogo);
+
+            _toolbarSeparator = new Panel
+            {
+                Dock = DockStyle.Left,
+                Width = 1,
+                BackColor = UiStyles.Separator
+            };
+
+            _toolbarFlow = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = true,
+                Padding = new Padding(8, 10, 8, 4)
+            };
+
+            _topBarBody = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = UiStyles.TopBarBack,
+                Padding = new Padding(0, 8, 0, 6)
+            };
+
+            _lblFilePath = new Label
+            {
+                Dock = DockStyle.Top,
+                Height = 24,
+                Text = "No file selected yet.",
+                TextAlign = ContentAlignment.MiddleLeft,
+                AutoEllipsis = true,
+                Padding = new Padding(12, 0, 8, 0),
+                ForeColor = UiStyles.MutedText,
+                Font = uiFont
+            };
+
+            _topBarBody.Controls.Add(_lblFilePath);
+            _topBarBody.Controls.Add(_toolbarFlow);
+
+            _btnSelectFile = CreateToolbarButton("Select File", 108);
+            UiStyles.ConfigurePrimaryToolbarButton(_btnSelectFile, 108);
+            _btnSetBaseEdge = CreateToolbarButton("Set Base Edge", 118);
             _btnSetBaseEdge.Enabled = false;
-            _btnAddToRecipe = CreateToolbarButton("Add to Recipe", 120);
+            _btnAddToRecipe = CreateToolbarButton("Add to Recipe", 118);
             _btnAddToRecipe.Enabled = false;
-            _btnSimulation = CreateToolbarButton("Simulation", 110);
+            _btnSimulation = CreateToolbarButton("Simulation", 108);
             _btnSimulation.Enabled = false;
-            _btnImportCsv = CreateToolbarButton("Import CSV", 120);
-            _btnExportBatchCsv = CreateToolbarButton("Batch CSV Export", 130);
+
+            _btnImportCsv = CreateToolbarButton("Import CSV", 118);
+            _btnExportBatchCsv = CreateToolbarButton("Batch CSV Export", 128);
             _btnExportBatchCsv.Enabled = false;
-            _btnExportBatchDat = CreateToolbarButton("Batch DAT Export", 130);
+            _btnExportBatchDat = CreateToolbarButton("Batch DAT Export", 128);
             _btnExportBatchDat.Enabled = false;
-            _btnSendFtp = CreateToolbarButton("Send via FTP", 120);
+            _btnSendFtp = CreateToolbarButton("Send via FTP", 118);
             _btnSendFtp.Enabled = false;
 
             _toolbarFlow.Controls.Add(_btnSelectFile);
+            _toolbarFlow.Controls.Add(_btnImportCsv);
+            _toolbarFlow.Controls.Add(UiStyles.CreateToolbarDivider());
             _toolbarFlow.Controls.Add(_btnSetBaseEdge);
             _toolbarFlow.Controls.Add(_btnAddToRecipe);
             _toolbarFlow.Controls.Add(_btnSimulation);
-            _toolbarFlow.Controls.Add(_btnImportCsv);
+            _toolbarFlow.Controls.Add(UiStyles.CreateToolbarDivider());
             _toolbarFlow.Controls.Add(_btnExportBatchCsv);
             _toolbarFlow.Controls.Add(_btnExportBatchDat);
             _toolbarFlow.Controls.Add(_btnSendFtp);
 
-            _btnSettings = CreateToolbarButton("Settings", 90);
-            _btnSettings.Dock = DockStyle.Right;
-            _btnSettings.Margin = new Padding(8, 0, 0, 0);
+            _btnSettings = CreateToolbarButton("Settings", 96);
 
-            _lblFilePath = new Label
+            _settingsHost = new Panel
             {
-                Dock = DockStyle.Fill,
-                Text = "No file selected yet.",
-                TextAlign = ContentAlignment.MiddleLeft,
-                AutoEllipsis = true,
-                Padding = new Padding(12, 0, 0, 0),
-                ForeColor = Color.FromArgb(70, 70, 70),
-                Font = uiFont
+                Dock = DockStyle.Right,
+                Width = 108,
+                Padding = new Padding(0, 10, 0, 0),
+                BackColor = UiStyles.TopBarBack
             };
+            _btnSettings.Location = new Point(0, 0);
+            _btnSettings.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            _settingsHost.Controls.Add(_btnSettings);
 
-            _topPanel.Controls.Add(_lblFilePath);
-            _topPanel.Controls.Add(_btnSettings);
-            _topPanel.Controls.Add(_toolbarFlow);
-            _topPanel.Controls.Add(_picLogo);
+            _topPanel.Controls.Add(_topBarBody);
+            _topPanel.Controls.Add(_settingsHost);
+            _topPanel.Controls.Add(_toolbarSeparator);
+            _topPanel.Controls.Add(_logoPanel);
 
             // --- Alt durum çubuğu ---
             _bottomPanel = new Panel
             {
                 Height = 44,
                 Dock = DockStyle.Bottom,
-                BackColor = Color.FromArgb(245, 246, 248),
+                BackColor = UiStyles.BottomBarBack,
                 Padding = new Padding(12, 0, 12, 0)
             };
 
@@ -156,11 +209,13 @@ namespace otomasyon
             _lblRecipeCount = new Label
             {
                 Dock = DockStyle.Right,
-                Width = 160,
+                MinimumSize = new Size(140, 0),
+                AutoSize = true,
                 Text = "Recipe: 0 shapes",
                 TextAlign = ContentAlignment.MiddleRight,
-                ForeColor = Color.FromArgb(30, 100, 180),
-                Font = headerFont
+                ForeColor = UiStyles.AccentText,
+                Font = headerFont,
+                Padding = new Padding(8, 0, 0, 0)
             };
 
             _bottomPanel.Controls.Add(_lblResults);
@@ -174,35 +229,49 @@ namespace otomasyon
                 BorderStyle = BorderStyle.FixedSingle
             };
 
+            _homeEmptyState = new HomeEmptyStatePanel();
+
+            _drawPanel.Controls.Add(_homeEmptyState);
+
             // --- Reçete listesi ---
             _recipePanel = new Panel
             {
                 Dock = DockStyle.Fill,
-                Padding = new Padding(8, 8, 8, 4)
+                Padding = new Padding(8, 8, 8, 4),
+                BackColor = UiStyles.CardBack
             };
 
             _lblRecipeHeader = new Label
             {
                 Dock = DockStyle.Top,
                 Height = 28,
-                Text = "Recipe",
-                Font = headerFont,
-                ForeColor = Color.FromArgb(35, 35, 35)
+                Text = "Recipe"
+            };
+            UiStyles.ApplySectionHeader(_lblRecipeHeader);
+
+            _lblRecipeEmpty = new Label
+            {
+                Dock = DockStyle.Fill,
+                Text = "No recipe items yet.",
+                TextAlign = ContentAlignment.TopCenter,
+                ForeColor = UiStyles.MutedText,
+                Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point),
+                Padding = new Padding(12, 28, 12, 0)
             };
 
             _recipeActions = new FlowLayoutPanel
             {
                 Dock = DockStyle.Bottom,
-                Height = 40,
+                Height = UiStyles.RecipeActionsBarHeight,
                 FlowDirection = FlowDirection.LeftToRight,
-                Padding = new Padding(0, 4, 0, 0)
+                Padding = new Padding(0, 6, 0, 0)
             };
 
-            _btnRemoveRecipe = CreateSmallButton("Remove Selected", 120);
+            _btnRemoveRecipe = CreateSmallButton("Remove Selected", 128);
             _btnRemoveRecipe.Enabled = false;
-            _btnEditRecipe = CreateSmallButton("Edit Selected", 110);
+            _btnEditRecipe = CreateSmallButton("Edit Selected", 118);
             _btnEditRecipe.Enabled = false;
-            _btnClearRecipe = CreateSmallButton("Clear All", 110);
+            _btnClearRecipe = CreateSmallButton("Clear All", 108);
             _btnClearRecipe.Enabled = false;
 
             _recipeActions.Controls.Add(_btnRemoveRecipe);
@@ -217,7 +286,8 @@ namespace otomasyon
                 GridLines = true,
                 HideSelection = false,
                 MultiSelect = false,
-                BorderStyle = BorderStyle.FixedSingle,
+                BorderStyle = BorderStyle.None,
+                HeaderStyle = ColumnHeaderStyle.Nonclickable,
                 Font = uiFont
             };
             _lvRecipe.Columns.Add("#", 36, HorizontalAlignment.Right);
@@ -228,10 +298,36 @@ namespace otomasyon
             _lvRecipe.Columns.Add("Source", 72, HorizontalAlignment.Left);
 
             _recipePanel.Controls.Add(_lvRecipe);
+            _recipePanel.Controls.Add(_lblRecipeEmpty);
             _recipePanel.Controls.Add(_recipeActions);
             _recipePanel.Controls.Add(_lblRecipeHeader);
 
             // --- Analiz metni ---
+            _analysisPanel = new Panel
+            {
+                Dock = DockStyle.Fill,
+                Padding = new Padding(8, 8, 8, 8),
+                BackColor = UiStyles.CardBack
+            };
+
+            _lblAnalysisHeader = new Label
+            {
+                Dock = DockStyle.Top,
+                Height = 28,
+                Text = "Shape analysis"
+            };
+            UiStyles.ApplySectionHeader(_lblAnalysisHeader);
+
+            _lblAnalysisEmpty = new Label
+            {
+                Dock = DockStyle.Top,
+                Height = 36,
+                Text = "Analysis data will appear here after you load a DXF file.",
+                ForeColor = UiStyles.MutedText,
+                Font = uiFont,
+                Padding = new Padding(0, 0, 0, 4)
+            };
+
             _txtCoordinates = new TextBox
             {
                 Dock = DockStyle.Fill,
@@ -241,20 +337,22 @@ namespace otomasyon
                 WordWrap = false,
                 BorderStyle = BorderStyle.FixedSingle,
                 Font = new Font("Consolas", 9F, FontStyle.Regular, GraphicsUnit.Point),
-                BackColor = Color.FromArgb(252, 252, 252)
+                BackColor = Color.White
             };
+
+            _analysisPanel.Controls.Add(_txtCoordinates);
+            _analysisPanel.Controls.Add(_lblAnalysisEmpty);
+            _analysisPanel.Controls.Add(_lblAnalysisHeader);
 
             _splitRight = new SplitContainer
             {
                 Dock = DockStyle.Fill,
                 Orientation = Orientation.Horizontal,
                 SplitterWidth = 6,
-                FixedPanel = FixedPanel.Panel1,
-                Panel1MinSize = 120,
-                Panel2MinSize = 120
+                FixedPanel = FixedPanel.None
             };
             _splitRight.Panel1.Controls.Add(_recipePanel);
-            _splitRight.Panel2.Controls.Add(_txtCoordinates);
+            _splitRight.Panel2.Controls.Add(_analysisPanel);
 
             _splitMain = new SplitContainer
             {
@@ -276,28 +374,16 @@ namespace otomasyon
 
         private static Button CreateToolbarButton(string text, int width)
         {
-            return new Button
-            {
-                Text = text,
-                Width = width,
-                Height = 34,
-                Margin = new Padding(0, 0, 8, 0),
-                FlatStyle = FlatStyle.System,
-                Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point)
-            };
+            var button = new Button { Text = text, Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point) };
+            UiStyles.ConfigureToolbarButton(button, width);
+            return button;
         }
 
         private static Button CreateSmallButton(string text, int width)
         {
-            return new Button
-            {
-                Text = text,
-                Width = width,
-                Height = 28,
-                Margin = new Padding(0, 0, 8, 0),
-                FlatStyle = FlatStyle.System,
-                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular, GraphicsUnit.Point)
-            };
+            var button = new Button { Text = text, Font = new Font("Segoe UI", 8.5F, FontStyle.Regular, GraphicsUnit.Point) };
+            UiStyles.ConfigureSmallButton(button, width);
+            return button;
         }
     }
 }
