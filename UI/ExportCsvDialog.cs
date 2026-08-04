@@ -24,10 +24,11 @@ public sealed class ExportCsvDialog : Form, ILocalizable
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterParent;
         ClientSize = new Size(360, 180);
+        UiStyles.ApplyDialogChrome(this);
 
         _lblInfo.Location = new Point(16, 12);
         _lblInfo.Size = new Size(320, 40);
-        _lblInfo.Font = new Font("Segoe UI", 9f);
+        UiStyles.ApplyHintLabel(_lblInfo);
 
         _lblThickness.Location = new Point(16, 62);
         _lblThickness.AutoSize = true;
@@ -50,7 +51,7 @@ public sealed class ExportCsvDialog : Form, ILocalizable
 
         _btnCancel.DialogResult = DialogResult.Cancel;
         DialogUiHelper.ConfigureButton(_btnCancel, 90);
-        DialogUiHelper.ConfigureButton(_btnOk, 100);
+        DialogUiHelper.ConfigurePrimaryButton(_btnOk, 100);
         _btnOk.Click += (_, _) =>
         {
             Options = new CsvFileExporter.ExportOptions

@@ -20,7 +20,7 @@ internal sealed class HomeEmptyStatePanel : Panel, ILocalizable
     {
         Dock = DockStyle.Fill;
         BackColor = UiStyles.EmptyStateBack;
-        Padding = new Padding(24);
+        Padding = new Padding(UiStyles.SpaceXl);
 
         _layout.ColumnCount = 1;
         _layout.RowCount = 4;
@@ -30,23 +30,21 @@ internal sealed class HomeEmptyStatePanel : Panel, ILocalizable
         _layout.Anchor = AnchorStyles.None;
 
         _lblTitle.AutoSize = true;
-        _lblTitle.Font = new Font("Segoe UI", 16F, FontStyle.Bold, GraphicsUnit.Point);
-        _lblTitle.ForeColor = Color.FromArgb(32, 45, 64);
-        _lblTitle.Margin = new Padding(0, 0, 0, 8);
+        UiStyles.ApplyTitleLabel(_lblTitle);
+        _lblTitle.Margin = new Padding(0, 0, 0, UiStyles.SpaceSm);
         _lblTitle.TextAlign = ContentAlignment.MiddleCenter;
         _lblTitle.Anchor = AnchorStyles.None;
 
         _lblSubtitle.AutoSize = true;
-        _lblSubtitle.Font = new Font("Segoe UI", 10F, FontStyle.Regular, GraphicsUnit.Point);
-        _lblSubtitle.ForeColor = UiStyles.MutedText;
-        _lblSubtitle.Margin = new Padding(0, 0, 0, 16);
+        UiStyles.ApplySubtitleLabel(_lblSubtitle);
+        _lblSubtitle.Margin = new Padding(0, 0, 0, UiStyles.SpaceLg);
         _lblSubtitle.MaximumSize = new Size(520, 0);
         _lblSubtitle.TextAlign = ContentAlignment.MiddleCenter;
         _lblSubtitle.Anchor = AnchorStyles.None;
 
         _lblSteps.AutoSize = true;
-        _lblSteps.Font = new Font("Segoe UI", 9.5F, FontStyle.Regular, GraphicsUnit.Point);
-        _lblSteps.ForeColor = Color.FromArgb(90, 98, 110);
+        UiStyles.ApplyMutedLabel(_lblSteps);
+        _lblSteps.Font = UiStyles.FontSubtitle;
         _lblSteps.Margin = new Padding(0, 0, 0, 20);
         _lblSteps.MaximumSize = new Size(480, 0);
         _lblSteps.TextAlign = ContentAlignment.MiddleLeft;
@@ -61,7 +59,7 @@ internal sealed class HomeEmptyStatePanel : Panel, ILocalizable
 
         UiStyles.ConfigurePrimaryToolbarButton(_btnSelectFile, 150);
         UiStyles.ConfigureToolbarButton(_btnImportCsv, 140);
-        _btnSelectFile.Margin = new Padding(0, 0, 12, 0);
+        _btnSelectFile.Margin = new Padding(0, 0, UiStyles.SpaceMd, 0);
         _btnSelectFile.Click += (_, _) => SelectFileRequested?.Invoke(this, EventArgs.Empty);
         _btnImportCsv.Click += (_, _) => ImportCsvRequested?.Invoke(this, EventArgs.Empty);
 

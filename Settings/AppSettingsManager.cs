@@ -18,6 +18,9 @@ public static class AppSettingsManager
     public static ShapeLimits Limits { get; private set; } = new();
     public static FtpSettings Ftp { get; private set; } = new();
 
+    /// <summary>Ayarlar'daki FTP gönderimi anahtarı. Açıkken toolbar ve FTP ayarları görünür.</summary>
+    public static bool EnableFtpDelivery { get; private set; }
+
     public static event EventHandler? MachineDirectionChanged;
     public static event EventHandler? SettingsChanged;
 
@@ -31,6 +34,7 @@ public static class AppSettingsManager
         MachineDirection machineDirection,
         double maxWidthMm,
         double maxHeightMm,
+        bool enableFtpDelivery,
         out string? error)
     {
         error = null;
@@ -46,6 +50,7 @@ public static class AppSettingsManager
         LocalizationManager.SetLanguage(language, save: false);
         MachineDirection = machineDirection;
         Limits = new ShapeLimits { MaxWidthMm = maxWidthMm, MaxHeightMm = maxHeightMm };
+        EnableFtpDelivery = enableFtpDelivery;
         IsConfigured = true;
 
         Persist();
@@ -56,7 +61,7 @@ public static class AppSettingsManager
         SettingsChanged?.Invoke(null, EventArgs.Empty);
         AppLog.UserAction(
             "Makine ayarları kaydedildi",
-            $"Dil={language.ToCode()}, Yön={machineDirection.ToCode()}, MaxGenişlik={maxWidthMm:0.##}mm, MaxYükseklik={maxHeightMm:0.##}mm");
+            $"Dil={language.ToCode()}, Yön={machineDirection.ToCode()}, MaxGenişlik={maxWidthMm:0.##}mm, MaxYükseklik={maxHeightMm:0.##}mm, FtpGönderim={enableFtpDelivery}");
         return true;
     }
 
@@ -124,6 +129,7 @@ public static class AppSettingsManager
                 MaxShapeWidthMm = Limits.MaxWidthMm,
                 MaxShapeHeightMm = Limits.MaxHeightMm,
                 IsConfigured = IsConfigured,
+                EnableFtpDelivery = EnableFtpDelivery,
                 FtpHost = Ftp.Host,
                 FtpPort = Ftp.Port,
                 FtpUsername = Ftp.Username,
@@ -164,6 +170,8 @@ public static class AppSettingsManager
                         };
                     }
 
+                    EnableFtpDelivery = data.EnableFtpDelivery;
+
                     Ftp = new FtpSettings
                     {
                         Host = data.FtpHost ?? string.Empty,
@@ -196,6 +204,7 @@ public static class AppSettingsManager
         public double MaxShapeWidthMm { get; set; }
         public double MaxShapeHeightMm { get; set; }
         public bool IsConfigured { get; set; }
+        public bool EnableFtpDelivery { get; set; }
         public string? FtpHost { get; set; }
         public int FtpPort { get; set; } = FtpSettings.DefaultPort;
         public string? FtpUsername { get; set; }

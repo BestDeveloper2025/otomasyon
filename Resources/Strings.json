@@ -15,9 +15,9 @@
     "de": "Laden Sie eine DXF-Zeichnung oder importieren Sie eine Rezept-CSV, um zu beginnen."
   },
   "Welcome.Steps": {
-    "en": "1. Select a DXF file\n2. Set the base edge (L1)\n3. Add to recipe and export CSV / DAT or send via FTP",
-    "tr": "1. DXF dosyası seçin\n2. Taban kenarını belirleyin (L1)\n3. Reçeteye ekleyin; CSV / DAT dışa aktarın veya FTP ile gönderin",
-    "de": "1. DXF-Datei wählen\n2. Basiskante festlegen (L1)\n3. Zum Rezept hinzufügen; CSV/DAT exportieren oder per FTP senden"
+    "en": "1. Open a DXF file\n2. Set the base edge (L1)\n3. Add to recipe and save as CSV / DAT",
+    "tr": "1. DXF dosyası açın\n2. Taban kenarını belirleyin (L1)\n3. Reçeteye ekleyin; CSV / DAT olarak kaydedin",
+    "de": "1. DXF-Datei öffnen\n2. Basiskante festlegen (L1)\n3. Zum Rezept hinzufügen; als CSV/DAT speichern"
   },
   "Label.Analysis": {
     "en": "Shape analysis",
@@ -94,6 +94,16 @@
     "tr": "FTP ayarları…",
     "de": "FTP-Einstellungen…"
   },
+  "Settings.DeliverySection": {
+    "en": "Delivery methods",
+    "tr": "Gönderim yöntemleri",
+    "de": "Übertragungsmethoden"
+  },
+  "Settings.EnableFtpDelivery": {
+    "en": "FTP send",
+    "tr": "FTP gönderimi",
+    "de": "FTP-Versand"
+  },
   "Settings.FtpHint": {
     "en": "Connection details and target folder for uploading recipe files via FTP.",
     "tr": "Reçete dosyalarını FTP ile göndermek için bağlantı bilgileri ve hedef klasör.",
@@ -155,14 +165,14 @@
     "de": "(*)"
   },
   "Btn.SelectFile": {
-    "en": "Select File",
-    "tr": "Dosya Seç",
-    "de": "Datei wählen"
+    "en": "Open DXF",
+    "tr": "DXF Aç",
+    "de": "DXF öffnen"
   },
   "Btn.AddToRecipe": {
     "en": "Add to Recipe",
     "tr": "Reçeteye Ekle",
-    "de": "Zum Rezept hinzufügen"
+    "de": "Zum Rezept"
   },
   "Btn.Simulation": {
     "en": "Simulation",
@@ -170,29 +180,44 @@
     "de": "Simulation"
   },
   "Btn.ImportCsv": {
-    "en": "Import CSV",
-    "tr": "CSV İçe Aktar",
-    "de": "CSV importieren"
+    "en": "Open CSV",
+    "tr": "CSV Aç",
+    "de": "CSV öffnen"
   },
   "Btn.ExportBatchCsv": {
-    "en": "Batch CSV Export",
-    "tr": "Toplu CSV Çıktı",
-    "de": "CSV-Sammelexport"
+    "en": "Save CSV",
+    "tr": "CSV Kaydet",
+    "de": "CSV speichern"
   },
   "Btn.ExportBatchDat": {
-    "en": "Batch DAT Export",
-    "tr": "Toplu DAT Çıktı",
-    "de": "DAT-Sammelexport"
+    "en": "Save DAT",
+    "tr": "DAT Kaydet",
+    "de": "DAT speichern"
   },
   "Btn.SendFtp": {
-    "en": "Send via FTP",
-    "tr": "FTP ile Gönder",
-    "de": "Per FTP senden"
+    "en": "Send FTP",
+    "tr": "FTP Gönder",
+    "de": "FTP senden"
+  },
+  "Toolbar.Group.File": {
+    "en": "File",
+    "tr": "Dosya",
+    "de": "Datei"
+  },
+  "Toolbar.Group.Shape": {
+    "en": "Shape",
+    "tr": "Şekil",
+    "de": "Form"
+  },
+  "Toolbar.Group.Output": {
+    "en": "Export",
+    "tr": "Çıktı",
+    "de": "Export"
   },
   "Btn.EditRecipe": {
-    "en": "Edit Selected",
-    "tr": "Seçileni Düzenle",
-    "de": "Auswahl bearbeiten"
+    "en": "Edit",
+    "tr": "Düzenle",
+    "de": "Bearbeiten"
   },
   "Btn.SaveRecipeChanges": {
     "en": "Save Changes",
@@ -200,24 +225,29 @@
     "de": "Änderungen speichern"
   },
   "Btn.RemoveSelected": {
-    "en": "Remove Selected",
-    "tr": "Seçileni Kaldır",
-    "de": "Auswahl entfernen"
+    "en": "Remove",
+    "tr": "Kaldır",
+    "de": "Entfernen"
   },
   "Btn.ClearAll": {
-    "en": "Clear All",
-    "tr": "Tümünü Temizle",
-    "de": "Alles löschen"
+    "en": "Clear",
+    "tr": "Temizle",
+    "de": "Löschen"
   },
   "Btn.Settings": {
     "en": "Settings",
     "tr": "Ayarlar",
     "de": "Einstellungen"
   },
+  "Btn.CloseDxf": {
+    "en": "Close drawing",
+    "tr": "Çizimi kapat",
+    "de": "Zeichnung schließen"
+  },
   "Btn.SetBaseEdge": {
-    "en": "Set Base Edge",
-    "tr": "Taban Kenarı Seç",
-    "de": "Basis-Kante wählen"
+    "en": "Base Edge",
+    "tr": "Taban Kenarı",
+    "de": "Basiskante"
   },
   "Btn.Cancel": {
     "en": "Cancel",
@@ -730,9 +760,9 @@
     "de": "Parameter für \"{0}\" wurden aktualisiert."
   },
   "Msg.RecipeUpdatedDetail": {
-    "en": "\"{0}\" recipe parameters were updated in memory.\nUse Batch CSV Export or Send via FTP to write the changes to a file.",
-    "tr": "\"{0}\" reçete parametreleri güncellendi.\nDosyaya yazmak için Toplu CSV Çıktı veya FTP ile Gönder kullanın.",
-    "de": "Rezeptparameter für \"{0}\" wurden im Speicher aktualisiert.\nVerwenden Sie Stapel-CSV-Export oder Per FTP senden, um die Änderungen in eine Datei zu schreiben."
+    "en": "\"{0}\" recipe parameters were updated in memory.\nUse Save CSV or Save DAT to write the changes to a file.",
+    "tr": "\"{0}\" reçete parametreleri güncellendi.\nDosyaya yazmak için CSV Kaydet veya DAT Kaydet kullanın.",
+    "de": "Rezeptparameter für \"{0}\" wurden im Speicher aktualisiert.\nVerwenden Sie CSV speichern oder DAT speichern, um die Änderungen zu schreiben."
   },
   "Msg.ImportedCsvSaved": {
     "en": "Imported CSV file was also saved:\n{0}",
@@ -929,10 +959,25 @@
     "tr": "Şekil ve köşe numaraları (K1, K2, …) doğru mu?\n\nKenar sırası CCW (0,0) referanslıdır. Radiuslar ayrı kenar sayılır.\nHayır derseniz DXF dosyasını kontrol edin.",
     "de": "Sind Eck- und Kantennummern (K1, K2, …) korrekt?\n\nKantenreihenfolge ist CCW (0,0)-Referenz. Radien zählen als eigene Kanten.\nFalls nicht, DXF-Datei prüfen."
   },
+  "Setup.RecipeHint": {
+    "en": "Set glass and quantity first, then adjust edge machining values if needed.",
+    "tr": "Önce cam kalınlığı ve adedi girin; gerekirse kenar işleme değerlerini düzenleyin.",
+    "de": "Zuerst Glasdicke und Menge festlegen; Kantenwerte bei Bedarf anpassen."
+  },
   "Setup.EdgesHint": {
-    "en": "Machining thickness and offset (mm) per edge. All edges including radii:",
-    "tr": "Her kenar için işleme kalınlığı ve offset (mm). Radius dahil tüm kenarlar:",
-    "de": "Bearbeitungsdicke und Offset (mm) pro Kante. Alle Kanten inkl. Radien:"
+    "en": "Edge machining",
+    "tr": "Kenar işleme",
+    "de": "Kantenbearbeitung"
+  },
+  "Setup.EdgesSubHint": {
+    "en": "Thickness and offset (mm) for each edge, including radii.",
+    "tr": "Her kenar için kalınlık ve offset (mm). Radius kenarları dahildir.",
+    "de": "Dicke und Offset (mm) je Kante, inklusive Radien."
+  },
+  "Setup.ApplyThicknessToAll": {
+    "en": "Apply thickness to all",
+    "tr": "Kalınlığı tümüne uygula",
+    "de": "Dicke auf alle"
   },
   "Setup.ColEdge": {
     "en": "Edge",
@@ -950,39 +995,39 @@
     "de": "Offset"
   },
   "Setup.ToolGroup": {
-    "en": "Stone (tool)",
-    "tr": "Taş (takım)",
-    "de": "Stein (Werkzeug)"
+    "en": "Stone tool",
+    "tr": "Taş ayarları",
+    "de": "Steinwerkzeug"
   },
   "Setup.StoneWidth": {
-    "en": "Stone width (mm):",
-    "tr": "Taş genişliği (mm):",
-    "de": "Steinbreite (mm):"
+    "en": "Stone width (mm)",
+    "tr": "Taş genişliği (mm)",
+    "de": "Steinbreite (mm)"
   },
   "Setup.Overlap": {
-    "en": "Overlap (mm):",
-    "tr": "Bindirme (mm):",
-    "de": "Überlappung (mm):"
+    "en": "Overlap (mm)",
+    "tr": "Bindirme (mm)",
+    "de": "Überlappung (mm)"
   },
   "Setup.ToolHint": {
-    "en": "E.g. stone 10 mm, overlap 2 → passes: 10, 8, 6… mm (no gaps between lines).",
-    "tr": "Örn. taş 10 mm, bindirme 2 → geçişler: 10, 8, 6… mm (çizgiler arasında boşluk kalmaz).",
-    "de": "Z.B. Stein 10 mm, Überlappung 2 → Gänge: 10, 8, 6… mm (keine Lücken)."
+    "en": "Example: stone 10 mm, overlap 2 → passes 10, 8, 6… mm.",
+    "tr": "Örnek: taş 10 mm, bindirme 2 → geçişler 10, 8, 6… mm.",
+    "de": "Beispiel: Stein 10 mm, Überlappung 2 → Gänge 10, 8, 6… mm."
   },
   "Setup.CsvGroup": {
-    "en": "CSV output (this shape)",
-    "tr": "CSV çıktısı (bu şekil)",
-    "de": "CSV-Ausgabe (diese Form)"
+    "en": "Glass & quantity",
+    "tr": "Cam ve adet",
+    "de": "Glas & Menge"
   },
   "Setup.GlassThickness": {
-    "en": "Glass thickness (mm):",
-    "tr": "Cam kalınlığı (mm):",
-    "de": "Glasdicke (mm):"
+    "en": "Glass thickness (mm)",
+    "tr": "Cam kalınlığı (mm)",
+    "de": "Glasdicke (mm)"
   },
   "Setup.DesiredQty": {
-    "en": "Desired quantity:",
-    "tr": "İstenilen adet:",
-    "de": "Gewünschte Menge:"
+    "en": "Quantity",
+    "tr": "Adet",
+    "de": "Menge"
   },
   "Setup.EdgeLabel": {
     "en": "L{0} (K{1})",
@@ -995,9 +1040,9 @@
     "de": "L{0} (K{1}, R{2})"
   },
   "Setup.VentsHint": {
-    "en": "Vent stripping (M1…M12)",
-    "tr": "Menfez sıyırma alanları (M1…M12)",
-    "de": "Entlüftungsabschliff (M1…M12)"
+    "en": "Vent stripping",
+    "tr": "Menfez sıyırma",
+    "de": "Entlüftungsabschliff"
   },
   "Setup.ColVent": {
     "en": "Vent",

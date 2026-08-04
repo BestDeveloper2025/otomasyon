@@ -28,13 +28,14 @@ public sealed class ImportedCsvRowEditDialog : Form, ILocalizable
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterParent;
         ClientSize = new Size(480, 560);
+        UiStyles.ApplyDialogChrome(this);
 
         var scroll = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
         var inner = new Panel { Dock = DockStyle.Top, AutoSize = true, Width = 440, Padding = new Padding(12) };
 
         _lblHint.AutoSize = false;
         _lblHint.Size = new Size(420, 36);
-        _lblHint.ForeColor = Color.FromArgb(90, 90, 90);
+        UiStyles.ApplyHintLabel(_lblHint);
         _lblHint.Location = new Point(0, 0);
         inner.Controls.Add(_lblHint);
 
@@ -68,7 +69,8 @@ public sealed class ImportedCsvRowEditDialog : Form, ILocalizable
             {
                 Location = new Point(0, top),
                 AutoSize = true,
-                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold)
+                Font = UiStyles.FontHeader,
+                ForeColor = UiStyles.SectionHeader
             };
             lblEdges.Text = L.Get("Setup.EdgesHint");
             inner.Controls.Add(lblEdges);
@@ -79,21 +81,24 @@ public sealed class ImportedCsvRowEditDialog : Form, ILocalizable
             {
                 Location = new Point(0, 4),
                 AutoSize = true,
-                Font = new Font("Segoe UI", 8.5f, FontStyle.Bold),
+                Font = UiStyles.FontSmallBold,
+                ForeColor = UiStyles.TextMuted,
                 Text = L.Get("Setup.ColEdge")
             });
             edgeHeader.Controls.Add(new Label
             {
                 Location = new Point(150, 4),
                 AutoSize = true,
-                Font = new Font("Segoe UI", 8.5f, FontStyle.Bold),
+                Font = UiStyles.FontSmallBold,
+                ForeColor = UiStyles.TextMuted,
                 Text = L.Get("Setup.ColThickness")
             });
             edgeHeader.Controls.Add(new Label
             {
                 Location = new Point(280, 4),
                 AutoSize = true,
-                Font = new Font("Segoe UI", 8.5f, FontStyle.Bold),
+                Font = UiStyles.FontSmallBold,
+                ForeColor = UiStyles.TextMuted,
                 Text = L.Get("Setup.ColOffset")
             });
             inner.Controls.Add(edgeHeader);
@@ -151,7 +156,8 @@ public sealed class ImportedCsvRowEditDialog : Form, ILocalizable
             {
                 Location = new Point(0, top),
                 AutoSize = true,
-                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
+                Font = UiStyles.FontHeader,
+                ForeColor = UiStyles.SectionHeader,
                 Text = L.Get("Setup.VentsHint")
             };
             inner.Controls.Add(lblVents);
@@ -196,7 +202,7 @@ public sealed class ImportedCsvRowEditDialog : Form, ILocalizable
 
         _btnCancel.DialogResult = DialogResult.Cancel;
         DialogUiHelper.ConfigureButton(_btnCancel, 90);
-        DialogUiHelper.ConfigureButton(_btnOk, 130);
+        DialogUiHelper.ConfigurePrimaryButton(_btnOk, 130);
         _btnOk.DialogResult = DialogResult.None;
         _btnOk.Click += OnOkClick;
 

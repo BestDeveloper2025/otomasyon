@@ -14,6 +14,8 @@ public sealed class SettingsDialog : Form, ILocalizable
     private readonly Label _lblMachine = new();
     private readonly Label _lblMaxWidth = new();
     private readonly Label _lblMaxHeight = new();
+    private readonly Label _lblDeliverySection = new();
+    private readonly CheckBox _chkEnableFtp = new();
     private readonly Button _btnFtpSettings = new();
     private readonly Button _btnCancel = new();
     private readonly Button _btnOk = new();
@@ -24,12 +26,12 @@ public sealed class SettingsDialog : Form, ILocalizable
         MaximizeBox = false;
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterParent;
-        ClientSize = new Size(440, 300);
+        ClientSize = new Size(440, 360);
+        UiStyles.ApplyDialogChrome(this);
 
         _lblHint.Location = new Point(16, 12);
         _lblHint.Size = new Size(400, 32);
-        _lblHint.ForeColor = Color.FromArgb(90, 90, 90);
-        _lblHint.Font = new Font("Segoe UI", 9f);
+        UiStyles.ApplyHintLabel(_lblHint);
 
         _lblLanguage.Location = new Point(16, 52);
         _lblLanguage.AutoSize = true;
@@ -61,15 +63,26 @@ public sealed class SettingsDialog : Form, ILocalizable
         _numMaxHeight.Maximum = 999999;
         _numMaxHeight.Increment = 10;
 
-        _btnFtpSettings.Location = new Point(16, 188);
+        _lblDeliverySection.Location = new Point(16, 192);
+        _lblDeliverySection.AutoSize = true;
+        UiStyles.ApplySectionHeader(_lblDeliverySection);
+
+        _chkEnableFtp.Location = new Point(16, 220);
+        _chkEnableFtp.AutoSize = true;
+        _chkEnableFtp.CheckedChanged += (_, _) => UpdateFtpSettingsButtonVisibility();
+
+        _btnFtpSettings.Location = new Point(16, 252);
         _btnFtpSettings.Size = new Size(394, 32);
+        UiStyles.ConfigureDialogButton(_btnFtpSettings, 394);
+        _btnFtpSettings.Height = UiStyles.SmallButtonHeight;
+        _btnFtpSettings.Margin = Padding.Empty;
         _btnFtpSettings.Click += OnFtpSettingsClick;
 
         var flow = DialogUiHelper.CreateBottomButtonBar();
 
         _btnCancel.DialogResult = DialogResult.Cancel;
         DialogUiHelper.ConfigureButton(_btnCancel, 90);
-        DialogUiHelper.ConfigureButton(_btnOk, 90);
+        DialogUiHelper.ConfigurePrimaryButton(_btnOk, 90);
         _btnOk.Click += OnOkClick;
 
         flow.Controls.Add(_btnCancel);
@@ -77,6 +90,8 @@ public sealed class SettingsDialog : Form, ILocalizable
 
         Controls.Add(flow);
         Controls.Add(_btnFtpSettings);
+        Controls.Add(_chkEnableFtp);
+        Controls.Add(_lblDeliverySection);
         Controls.Add(_numMaxHeight);
         Controls.Add(_lblMaxHeight);
         Controls.Add(_numMaxWidth);
@@ -93,6 +108,7 @@ public sealed class SettingsDialog : Form, ILocalizable
         LocalizationManager.LanguageChanged += (_, _) => { if (!IsDisposed) ApplyLocalization(); };
         ApplyLocalization();
         LoadValues();
+        UpdateFtpSettingsButtonVisibility();
     }
 
     public void ApplyLocalization()
@@ -103,6 +119,8 @@ public sealed class SettingsDialog : Form, ILocalizable
         _lblMachine.Text = RequiredLabel("Settings.MachineDirection");
         _lblMaxWidth.Text = RequiredLabel("Settings.MaxShapeWidth");
         _lblMaxHeight.Text = RequiredLabel("Settings.MaxShapeHeight");
+        _lblDeliverySection.Text = L.Get("Settings.DeliverySection");
+        _chkEnableFtp.Text = L.Get("Settings.EnableFtpDelivery");
         _btnFtpSettings.Text = L.Get("Settings.FtpButton");
         _btnCancel.Text = L.Get("Btn.Cancel");
         _btnOk.Text = L.Get("Btn.Save");
@@ -122,6 +140,12 @@ public sealed class SettingsDialog : Form, ILocalizable
         }
 
         SelectMachineDirection(AppSettingsManager.MachineDirection);
+        _chkEnableFtp.Checked = AppSettingsManager.EnableFtpDelivery;
+    }
+
+    private void UpdateFtpSettingsButtonVisibility()
+    {
+        _btnFtpSettings.Visible = _chkEnableFtp.Checked;
     }
 
     private void OnOkClick(object? sender, EventArgs e)
@@ -153,6 +177,7 @@ public sealed class SettingsDialog : Form, ILocalizable
                 direction,
                 (double)_numMaxWidth.Value,
                 (double)_numMaxHeight.Value,
+                _chkEnableFtp.Checked,
                 out string? error))
         {
             MessageBox.Show(this, error ?? L.Get("Error.LimitsPositive"),

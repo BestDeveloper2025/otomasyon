@@ -2,26 +2,15 @@ namespace otomasyon.UI;
 
 internal static class DialogUiHelper
 {
-    public const int ButtonHeight = 36;
-    public const int ButtonBarHeight = 58;
+    public const int ButtonHeight = UiStyles.DialogButtonHeight;
+    public const int ButtonBarHeight = UiStyles.DialogButtonBarHeight;
 
     public static FlowLayoutPanel CreateBottomButtonBar()
-    {
-        return new FlowLayoutPanel
-        {
-            Dock = DockStyle.Bottom,
-            Height = ButtonBarHeight,
-            FlowDirection = FlowDirection.RightToLeft,
-            Padding = new Padding(12, 10, 12, 10),
-            WrapContents = false
-        };
-    }
+        => UiStyles.CreateDialogButtonBar();
 
     public static void ConfigureButton(Button button, int width)
-    {
-        button.Width = width;
-        button.Height = ButtonHeight;
-        button.AutoSize = false;
-        button.UseVisualStyleBackColor = true;
-    }
+        => UiStyles.ConfigureDialogButton(button, width);
+
+    public static void ConfigurePrimaryButton(Button button, int width)
+        => UiStyles.ConfigureDialogPrimaryButton(button, width);
 }

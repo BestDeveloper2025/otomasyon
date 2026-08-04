@@ -26,28 +26,31 @@ public sealed class FtpRemoteFilesDialog : Form, ILocalizable
         StartPosition = FormStartPosition.CenterParent;
         ClientSize = new Size(520, 420);
         MinimumSize = new Size(420, 320);
+        UiStyles.ApplyDialogChrome(this);
 
         _lblHint.Dock = DockStyle.Top;
         _lblHint.Height = 32;
         _lblHint.Padding = new Padding(12, 8, 12, 0);
-        _lblHint.ForeColor = Color.FromArgb(90, 90, 90);
+        UiStyles.ApplyHintLabel(_lblHint);
 
         _lblPath.Dock = DockStyle.Top;
         _lblPath.Height = 24;
         _lblPath.Padding = new Padding(12, 0, 12, 0);
-        _lblPath.Font = new Font("Segoe UI", 9f, FontStyle.Bold);
+        _lblPath.Font = UiStyles.FontUiBold;
+        _lblPath.ForeColor = UiStyles.TextPrimary;
 
         _lvFiles.Dock = DockStyle.Fill;
         _lvFiles.View = View.Details;
         _lvFiles.FullRowSelect = true;
         _lvFiles.HideSelection = false;
         _lvFiles.MultiSelect = false;
+        _lvFiles.Font = UiStyles.FontUi;
         _lvFiles.Columns.Add("name", 360);
 
         _lblStatus.Dock = DockStyle.Bottom;
         _lblStatus.Height = 24;
         _lblStatus.Padding = new Padding(12, 0, 12, 0);
-        _lblStatus.ForeColor = Color.DimGray;
+        UiStyles.ApplyMutedLabel(_lblStatus);
 
         var bottom = DialogUiHelper.CreateBottomButtonBar();
 

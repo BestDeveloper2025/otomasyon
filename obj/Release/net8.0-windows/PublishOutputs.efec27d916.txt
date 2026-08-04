@@ -1,0 +1,9 @@
+C:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\Release\net8.0-windows\publish\otomasyon.exe
+C:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\Release\net8.0-windows\publish\Assets\.gitkeep
+C:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\Release\net8.0-windows\publish\Assets\bestlogo.png
+C:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\Release\net8.0-windows\publish\Assets\README.txt
+C:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\Release\net8.0-windows\publish\otomasyon.dll
+C:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\Release\net8.0-windows\publish\otomasyon.deps.json
+C:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\Release\net8.0-windows\publish\otomasyon.runtimeconfig.json
+C:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\Release\net8.0-windows\publish\otomasyon.pdb
+C:\Users\Erp2\Desktop\otomasyon\otomasyon\otomasyon\bin\Release\net8.0-windows\publish\netDxf.dll

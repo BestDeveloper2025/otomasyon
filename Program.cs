@@ -18,6 +18,10 @@ namespace otomasyon
 
             Localization.LocalizationManager.Initialize();
             Settings.AppSettingsManager.Initialize();
+
+            using (var splash = new UI.SplashForm())
+                splash.ShowDialog();
+
             Application.Run(new Form1());
             AppLog.Info("Uygulama kapatıldı");
         }

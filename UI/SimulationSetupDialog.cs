@@ -14,6 +14,10 @@ public enum SetupPurpose
 
 public sealed class SimulationSetupDialog : Form, ILocalizable
 {
+    private const int ColThicknessX = 150;
+    private const int ColOffsetX = 290;
+    private const int InputWidth = 110;
+
     private readonly DxfScene _scene;
     private readonly SetupPurpose _purpose;
     private readonly bool _isEditMode;
@@ -26,6 +30,7 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
     private readonly NumericUpDown _numBindirme = new();
     private readonly NumericUpDown _numKalinlik = new();
     private readonly NumericUpDown _numAdet = new();
+    private readonly NumericUpDown _numApplyThickness = new();
     private readonly Dictionary<int, NumericUpDown> _edgeThicknessInputs = new();
     private readonly Dictionary<int, NumericUpDown> _edgeOffsetInputs = new();
     private readonly Dictionary<int, NumericUpDown> _ventStrippingInputs = new();
@@ -34,20 +39,25 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
     private Label _lblConfirm = null!;
     private Button _btnNo = null!;
     private Button _btnYes = null!;
+    private Label? _lblRecipeHint;
     private Label _lblEdgesHint = null!;
-    private Label _lblVentsHint = null!;
-    private Label _lblColVent = null!;
-    private Label _lblColVentThickness = null!;
+    private Label _lblEdgesSubHint = null!;
+    private Label? _lblVentsHint;
+    private Label? _lblColVent;
+    private Label? _lblColVentThickness;
     private Label _lblColEdge = null!;
     private Label _lblColThickness = null!;
     private Label _lblColOffset = null!;
-    private GroupBox _toolPanel = null!;
+    private Button _btnApplyThickness = null!;
+    private Label _lblToolTitle = null!;
     private Label _lblStoneWidth = null!;
     private Label _lblOverlap = null!;
     private Label _lblToolHint = null!;
-    private GroupBox? _exportPanel;
+    private Label? _lblExportTitle;
     private Label? _lblGlassThickness;
     private Label? _lblDesiredQty;
+    private Panel? _exportCard;
+    private Panel _toolCard = null!;
     private Button _btnCancel = null!;
     private Button _btnBack = null!;
     private Button _btnOk = null!;
@@ -72,8 +82,9 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
         MaximizeBox = false;
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterParent;
-        ClientSize = purpose == SetupPurpose.Recipe ? new Size(480, 640) : new Size(480, 560);
-        MinimumSize = new Size(400, 400);
+        ClientSize = purpose == SetupPurpose.Recipe ? new Size(520, 680) : new Size(520, 600);
+        MinimumSize = new Size(460, 420);
+        UiStyles.ApplyDialogChrome(this);
 
         BuildConfirmStep();
         BuildParamsStep();
@@ -141,7 +152,11 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
         _lblConfirm.Text = L.Get("Setup.ConfirmText");
         _btnNo.Text = L.Get("Btn.No");
         _btnYes.Text = L.Get("Btn.Yes");
+        if (_lblRecipeHint is not null)
+            _lblRecipeHint.Text = L.Get("Setup.RecipeHint");
         _lblEdgesHint.Text = L.Get("Setup.EdgesHint");
+        _lblEdgesSubHint.Text = L.Get("Setup.EdgesSubHint");
+        _btnApplyThickness.Text = L.Get("Setup.ApplyThicknessToAll");
         if (_lblVentsHint is not null)
             _lblVentsHint.Text = L.Get("Setup.VentsHint");
         if (_lblColVent is not null)
@@ -151,7 +166,7 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
         _lblColEdge.Text = L.Get("Setup.ColEdge");
         _lblColThickness.Text = L.Get("Setup.ColThickness");
         _lblColOffset.Text = L.Get("Setup.ColOffset");
-        _toolPanel.Text = L.Get("Setup.ToolGroup");
+        _lblToolTitle.Text = L.Get("Setup.ToolGroup");
         _lblStoneWidth.Text = L.Get("Setup.StoneWidth");
         _lblOverlap.Text = L.Get("Setup.Overlap");
         _lblToolHint.Text = L.Get("Setup.ToolHint");
@@ -163,12 +178,20 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
                 ? L.Get("Btn.AddToRecipe")
                 : L.Get("Btn.StartSimulation");
 
-        if (_exportPanel is not null)
-            _exportPanel.Text = L.Get("Setup.CsvGroup");
+        if (_lblExportTitle is not null)
+            _lblExportTitle.Text = L.Get("Setup.CsvGroup");
         if (_lblGlassThickness is not null)
             _lblGlassThickness.Text = L.Get("Setup.GlassThickness");
         if (_lblDesiredQty is not null)
             _lblDesiredQty.Text = L.Get("Setup.DesiredQty");
+
+        int applyW = Math.Max(150, TextRenderer.MeasureText(_btnApplyThickness.Text, _btnApplyThickness.Font).Width + 24);
+        _btnApplyThickness.Width = applyW;
+        DialogUiHelper.ConfigurePrimaryButton(_btnOk, Math.Max(150, TextRenderer.MeasureText(_btnOk.Text, _btnOk.Font).Width + 28));
+        DialogUiHelper.ConfigureButton(_btnCancel, Math.Max(90, TextRenderer.MeasureText(_btnCancel.Text, _btnCancel.Font).Width + 24));
+        DialogUiHelper.ConfigureButton(_btnBack, Math.Max(90, TextRenderer.MeasureText(_btnBack.Text, _btnBack.Font).Width + 24));
+        DialogUiHelper.ConfigurePrimaryButton(_btnYes, Math.Max(120, TextRenderer.MeasureText(_btnYes.Text, _btnYes.Font).Width + 28));
+        DialogUiHelper.ConfigureButton(_btnNo, Math.Max(100, TextRenderer.MeasureText(_btnNo.Text, _btnNo.Font).Width + 24));
 
         RefreshEdgeRowLabels();
     }
@@ -186,12 +209,14 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
     private void BuildConfirmStep()
     {
         _panelConfirm.Dock = DockStyle.Fill;
+        _panelConfirm.BackColor = UiStyles.DialogBack;
+
         _lblConfirm = new Label
         {
-            Dock = DockStyle.Top,
-            Height = 120,
-            Padding = new Padding(12),
-            Font = new Font("Segoe UI", 10f)
+            Dock = DockStyle.Fill,
+            Padding = new Padding(16),
+            Font = UiStyles.FontSubtitle,
+            ForeColor = UiStyles.TextPrimary
         };
 
         var flow = DialogUiHelper.CreateBottomButtonBar();
@@ -199,208 +224,64 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
         _btnNo = new Button { DialogResult = DialogResult.Cancel };
         DialogUiHelper.ConfigureButton(_btnNo, 100);
         _btnYes = new Button();
-        DialogUiHelper.ConfigureButton(_btnYes, 120);
+        DialogUiHelper.ConfigurePrimaryButton(_btnYes, 120);
         _btnYes.Click += (_, _) => ShowParamsStep();
 
         flow.Controls.Add(_btnNo);
         flow.Controls.Add(_btnYes);
-        _panelConfirm.Controls.Add(flow);
         _panelConfirm.Controls.Add(_lblConfirm);
+        _panelConfirm.Controls.Add(flow);
     }
 
     private void BuildParamsStep()
     {
         _panelParams.Dock = DockStyle.Fill;
         _panelParams.Visible = false;
+        _panelParams.BackColor = UiStyles.DialogBack;
 
-        var scroll = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
+        var scroll = new Panel
+        {
+            Dock = DockStyle.Fill,
+            AutoScroll = true,
+            BackColor = UiStyles.DialogBack,
+            Padding = new Padding(12, 12, 12, 4)
+        };
+
+        // TableLayoutPanel AutoSize + Dock.Top WinForms'ta güvenilir çalışır
         var inner = new TableLayoutPanel
         {
             Dock = DockStyle.Top,
             AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
             ColumnCount = 1,
-            Padding = new Padding(12)
+            GrowStyle = TableLayoutPanelGrowStyle.AddRows,
+            Padding = new Padding(0),
+            BackColor = UiStyles.DialogBack
         };
-
-        _lblEdgesHint = new Label
-        {
-            AutoSize = true,
-            Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
-            Margin = new Padding(0, 0, 0, 8)
-        };
-        inner.Controls.Add(_lblEdgesHint);
-
-        var header = new Panel { Width = 400, Height = 22 };
-        _lblColEdge = new Label { Location = new Point(0, 4), AutoSize = true, Font = new Font("Segoe UI", 8.5f, FontStyle.Bold) };
-        _lblColThickness = new Label { Location = new Point(150, 4), AutoSize = true, Font = new Font("Segoe UI", 8.5f, FontStyle.Bold) };
-        _lblColOffset = new Label { Location = new Point(280, 4), AutoSize = true, Font = new Font("Segoe UI", 8.5f, FontStyle.Bold) };
-        header.Controls.Add(_lblColEdge);
-        header.Controls.Add(_lblColThickness);
-        header.Controls.Add(_lblColOffset);
-        inner.Controls.Add(header);
-
-        _edgeFlow.FlowDirection = FlowDirection.TopDown;
-        _edgeFlow.AutoSize = true;
-        _edgeFlow.WrapContents = false;
-        _edgeFlow.Width = 420;
-
-        foreach (var edge in _scene.ContourEdges)
-        {
-            var row = new Panel { Width = 400, Height = 36 };
-            var lblEdge = new Label { Location = new Point(0, 8), AutoSize = true };
-            _edgeRowLabels.Add((lblEdge, edge));
-            row.Controls.Add(lblEdge);
-
-            var num = new NumericUpDown
-            {
-                Location = new Point(150, 4),
-                Width = 110,
-                DecimalPlaces = 2,
-                Maximum = 99999,
-                Minimum = 0,
-                Value = 10
-            };
-            _edgeThicknessInputs[edge.Index] = num;
-            row.Controls.Add(num);
-
-            var numOffset = new NumericUpDown
-            {
-                Location = new Point(280, 4),
-                Width = 110,
-                DecimalPlaces = 2,
-                Maximum = 99999,
-                Minimum = 0,
-                Value = 0
-            };
-            _edgeOffsetInputs[edge.Index] = numOffset;
-            row.Controls.Add(numOffset);
-
-            _edgeFlow.Controls.Add(row);
-        }
-
-        inner.Controls.Add(_edgeFlow);
-
-        if (_scene.VentFeatures.Count > 0)
-        {
-            _lblVentsHint = new Label
-            {
-                AutoSize = true,
-                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
-                Margin = new Padding(0, 12, 0, 8)
-            };
-            inner.Controls.Add(_lblVentsHint);
-
-            var ventHeader = new Panel { Width = 400, Height = 22 };
-            _lblColVent = new Label { Location = new Point(0, 4), AutoSize = true, Font = new Font("Segoe UI", 8.5f, FontStyle.Bold) };
-            _lblColVentThickness = new Label { Location = new Point(200, 4), AutoSize = true, Font = new Font("Segoe UI", 8.5f, FontStyle.Bold) };
-            ventHeader.Controls.Add(_lblColVent);
-            ventHeader.Controls.Add(_lblColVentThickness);
-            inner.Controls.Add(ventHeader);
-
-            _ventFlow.FlowDirection = FlowDirection.TopDown;
-            _ventFlow.AutoSize = true;
-            _ventFlow.WrapContents = false;
-            _ventFlow.Width = 420;
-
-            foreach (var vent in _scene.VentFeatures.OrderBy(v => v.Index))
-            {
-                var row = new Panel { Width = 400, Height = 36 };
-                var lblVent = new Label
-                {
-                    Location = new Point(0, 8),
-                    AutoSize = true,
-                    Text = L.F("Setup.VentLabel", vent.Index)
-                };
-                row.Controls.Add(lblVent);
-
-                var numVent = new NumericUpDown
-                {
-                    Location = new Point(200, 4),
-                    Width = 110,
-                    DecimalPlaces = 2,
-                    Maximum = 99999,
-                    Minimum = 0,
-                    Value = 10
-                };
-                _ventStrippingInputs[vent.Index] = numVent;
-                row.Controls.Add(numVent);
-                _ventFlow.Controls.Add(row);
-            }
-
-            inner.Controls.Add(_ventFlow);
-        }
-
-        _toolPanel = new GroupBox
-        {
-            Dock = DockStyle.Top,
-            Height = 110,
-            Padding = new Padding(12),
-            Margin = new Padding(0, 16, 0, 0)
-        };
-
-        _lblStoneWidth = new Label { Location = new Point(16, 28), AutoSize = true };
-        _numStone.Location = new Point(200, 24);
-        _numStone.Width = 120;
-        _numStone.DecimalPlaces = 2;
-        _numStone.Minimum = 0.01m;
-        _numStone.Maximum = 99999;
-        _numStone.Value = 10;
-        _toolPanel.Controls.Add(_lblStoneWidth);
-        _toolPanel.Controls.Add(_numStone);
-
-        _lblOverlap = new Label { Location = new Point(16, 58), AutoSize = true };
-        _numBindirme.Location = new Point(200, 54);
-        _numBindirme.Width = 120;
-        _numBindirme.DecimalPlaces = 2;
-        _numBindirme.Minimum = 0;
-        _numBindirme.Maximum = 99998;
-        _numBindirme.Value = 2;
-        _toolPanel.Controls.Add(_lblOverlap);
-        _toolPanel.Controls.Add(_numBindirme);
-
-        _lblToolHint = new Label
-        {
-            Location = new Point(16, 82),
-            Size = new Size(420, 32),
-            ForeColor = Color.DimGray,
-            Font = new Font("Segoe UI", 8f)
-        };
-        _toolPanel.Controls.Add(_lblToolHint);
-
-        inner.Controls.Add(_toolPanel);
+        inner.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
 
         if (_purpose == SetupPurpose.Recipe)
         {
-            var defaults = CsvFileExporter.CreateDefaultOptions();
-            _exportPanel = new GroupBox
+            _lblRecipeHint = new Label
             {
-                Dock = DockStyle.Top,
-                Height = 88,
-                Padding = new Padding(12),
-                Margin = new Padding(0, 16, 0, 0)
+                AutoSize = true,
+                MaximumSize = new Size(470, 0),
+                Margin = new Padding(0, 0, 0, 10)
             };
+            UiStyles.ApplyHintLabel(_lblRecipeHint);
+            inner.Controls.Add(_lblRecipeHint);
 
-            _lblGlassThickness = new Label { Location = new Point(16, 28), AutoSize = true };
-            _numKalinlik.Location = new Point(200, 24);
-            _numKalinlik.Width = 120;
-            _numKalinlik.DecimalPlaces = 2;
-            _numKalinlik.Minimum = 1;
-            _numKalinlik.Maximum = 99999;
-            _numKalinlik.Value = (decimal)defaults.KalinlikMm;
-            _exportPanel.Controls.Add(_lblGlassThickness);
-            _exportPanel.Controls.Add(_numKalinlik);
-
-            _lblDesiredQty = new Label { Location = new Point(16, 56), AutoSize = true };
-            _numAdet.Location = new Point(200, 52);
-            _numAdet.Width = 120;
-            _numAdet.Minimum = 1;
-            _numAdet.Maximum = 99999;
-            _numAdet.Value = defaults.IstenilenAdet;
-            _exportPanel.Controls.Add(_lblDesiredQty);
-            _exportPanel.Controls.Add(_numAdet);
-
-            inner.Controls.Add(_exportPanel);
+            _exportCard = BuildExportCard();
+            inner.Controls.Add(_exportCard);
         }
+
+        inner.Controls.Add(BuildEdgesCard());
+
+        if (_scene.VentFeatures.Count > 0)
+            inner.Controls.Add(BuildVentsCard());
+
+        _toolCard = BuildToolCard();
+        inner.Controls.Add(_toolCard);
 
         scroll.Controls.Add(inner);
 
@@ -413,15 +294,284 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
         _btnBack.Click += (_, _) => ShowConfirmStep();
         _btnBack.Visible = _purpose == SetupPurpose.Simulation;
         _btnOk = new Button { DialogResult = DialogResult.None };
-        DialogUiHelper.ConfigureButton(_btnOk, 150);
+        DialogUiHelper.ConfigurePrimaryButton(_btnOk, 150);
         _btnOk.Click += OnStartClick;
 
         bottom.Controls.Add(_btnCancel);
         bottom.Controls.Add(_btnOk);
         bottom.Controls.Add(_btnBack);
 
+        // Önce Fill, sonra Bottom: Bottom son eklenince kenara oturur
         _panelParams.Controls.Add(scroll);
         _panelParams.Controls.Add(bottom);
+    }
+
+    private Panel BuildExportCard()
+    {
+        var card = CreateCardPanel(120);
+
+        _lblExportTitle = new Label
+        {
+            Location = new Point(12, 10),
+            AutoSize = true,
+            Font = UiStyles.FontHeader,
+            ForeColor = UiStyles.SectionHeader
+        };
+        card.Controls.Add(_lblExportTitle);
+
+        var defaults = CsvFileExporter.CreateDefaultOptions();
+
+        _lblGlassThickness = new Label { Location = new Point(12, 42), AutoSize = true };
+        _numKalinlik.Location = new Point(220, 38);
+        _numKalinlik.Width = 140;
+        _numKalinlik.DecimalPlaces = 2;
+        _numKalinlik.Minimum = 1;
+        _numKalinlik.Maximum = 99999;
+        _numKalinlik.Value = (decimal)defaults.KalinlikMm;
+        _numKalinlik.Font = UiStyles.FontUi;
+        card.Controls.Add(_lblGlassThickness);
+        card.Controls.Add(_numKalinlik);
+
+        _lblDesiredQty = new Label { Location = new Point(12, 78), AutoSize = true };
+        _numAdet.Location = new Point(220, 74);
+        _numAdet.Width = 140;
+        _numAdet.DecimalPlaces = 0;
+        _numAdet.Minimum = 1;
+        _numAdet.Maximum = 99999;
+        _numAdet.Value = defaults.IstenilenAdet;
+        _numAdet.Font = UiStyles.FontUi;
+        card.Controls.Add(_lblDesiredQty);
+        card.Controls.Add(_numAdet);
+
+        return card;
+    }
+
+    private Panel BuildEdgesCard()
+    {
+        int edgeCount = Math.Max(1, _scene.ContourEdges.Count);
+        int cardHeight = 118 + edgeCount * 36;
+        var card = CreateCardPanel(cardHeight);
+
+        _lblEdgesHint = new Label
+        {
+            Location = new Point(12, 10),
+            AutoSize = true,
+            Font = UiStyles.FontHeader,
+            ForeColor = UiStyles.SectionHeader
+        };
+        card.Controls.Add(_lblEdgesHint);
+
+        _lblEdgesSubHint = new Label
+        {
+            Location = new Point(12, 34),
+            AutoSize = false,
+            Size = new Size(450, 20),
+            Font = UiStyles.FontUi,
+            ForeColor = UiStyles.TextMuted
+        };
+        card.Controls.Add(_lblEdgesSubHint);
+
+        _numApplyThickness.Location = new Point(12, 58);
+        _numApplyThickness.Width = InputWidth;
+        _numApplyThickness.DecimalPlaces = 2;
+        _numApplyThickness.Minimum = 0;
+        _numApplyThickness.Maximum = 99999;
+        _numApplyThickness.Value = 10;
+        _numApplyThickness.Font = UiStyles.FontUi;
+        card.Controls.Add(_numApplyThickness);
+
+        _btnApplyThickness = new Button { Location = new Point(130, 56) };
+        UiStyles.ConfigureSmallButton(_btnApplyThickness, 170);
+        _btnApplyThickness.Click += (_, _) => ApplyThicknessToAll();
+        card.Controls.Add(_btnApplyThickness);
+
+        var header = new Panel { Location = new Point(12, 92), Size = new Size(460, 22) };
+        _lblColEdge = new Label { Location = new Point(0, 4), AutoSize = true, Font = UiStyles.FontSmallBold, ForeColor = UiStyles.TextMuted };
+        _lblColThickness = new Label { Location = new Point(ColThicknessX, 4), AutoSize = true, Font = UiStyles.FontSmallBold, ForeColor = UiStyles.TextMuted };
+        _lblColOffset = new Label { Location = new Point(ColOffsetX, 4), AutoSize = true, Font = UiStyles.FontSmallBold, ForeColor = UiStyles.TextMuted };
+        header.Controls.Add(_lblColEdge);
+        header.Controls.Add(_lblColThickness);
+        header.Controls.Add(_lblColOffset);
+        card.Controls.Add(header);
+
+        _edgeFlow.Location = new Point(12, 114);
+        _edgeFlow.FlowDirection = FlowDirection.TopDown;
+        _edgeFlow.AutoSize = true;
+        _edgeFlow.WrapContents = false;
+        _edgeFlow.Width = 460;
+
+        int rowIndex = 0;
+        foreach (var edge in _scene.ContourEdges)
+        {
+            var row = CreateDataRow(rowIndex++);
+            var lblEdge = new Label
+            {
+                Location = new Point(4, 8),
+                AutoSize = false,
+                Size = new Size(130, 20),
+                Font = UiStyles.FontUi,
+                ForeColor = UiStyles.TextPrimary
+            };
+            _edgeRowLabels.Add((lblEdge, edge));
+            row.Controls.Add(lblEdge);
+
+            var num = CreateRowNumeric(ColThicknessX, 10);
+            _edgeThicknessInputs[edge.Index] = num;
+            row.Controls.Add(num);
+
+            var numOffset = CreateRowNumeric(ColOffsetX, 0);
+            _edgeOffsetInputs[edge.Index] = numOffset;
+            row.Controls.Add(numOffset);
+
+            _edgeFlow.Controls.Add(row);
+        }
+
+        card.Controls.Add(_edgeFlow);
+        return card;
+    }
+
+    private Panel BuildVentsCard()
+    {
+        int ventCount = Math.Max(1, _scene.VentFeatures.Count);
+        int cardHeight = 70 + ventCount * 36;
+        var card = CreateCardPanel(cardHeight);
+
+        _lblVentsHint = new Label
+        {
+            Location = new Point(12, 10),
+            AutoSize = true,
+            Font = UiStyles.FontHeader,
+            ForeColor = UiStyles.SectionHeader
+        };
+        card.Controls.Add(_lblVentsHint);
+
+        var ventHeader = new Panel { Location = new Point(12, 38), Size = new Size(460, 22) };
+        _lblColVent = new Label { Location = new Point(0, 4), AutoSize = true, Font = UiStyles.FontSmallBold, ForeColor = UiStyles.TextMuted };
+        _lblColVentThickness = new Label { Location = new Point(ColThicknessX, 4), AutoSize = true, Font = UiStyles.FontSmallBold, ForeColor = UiStyles.TextMuted };
+        ventHeader.Controls.Add(_lblColVent);
+        ventHeader.Controls.Add(_lblColVentThickness);
+        card.Controls.Add(ventHeader);
+
+        _ventFlow.Location = new Point(12, 60);
+        _ventFlow.FlowDirection = FlowDirection.TopDown;
+        _ventFlow.AutoSize = true;
+        _ventFlow.WrapContents = false;
+        _ventFlow.Width = 460;
+
+        int rowIndex = 0;
+        foreach (var vent in _scene.VentFeatures.OrderBy(v => v.Index))
+        {
+            var row = CreateDataRow(rowIndex++);
+            var lblVent = new Label
+            {
+                Location = new Point(4, 8),
+                AutoSize = false,
+                Size = new Size(130, 20),
+                Font = UiStyles.FontUi,
+                ForeColor = UiStyles.TextPrimary,
+                Text = L.F("Setup.VentLabel", vent.Index)
+            };
+            row.Controls.Add(lblVent);
+
+            var numVent = CreateRowNumeric(ColThicknessX, 10);
+            _ventStrippingInputs[vent.Index] = numVent;
+            row.Controls.Add(numVent);
+            _ventFlow.Controls.Add(row);
+        }
+
+        card.Controls.Add(_ventFlow);
+        return card;
+    }
+
+    private Panel BuildToolCard()
+    {
+        var card = CreateCardPanel(140);
+
+        _lblToolTitle = new Label
+        {
+            Location = new Point(12, 10),
+            AutoSize = true,
+            Font = UiStyles.FontHeader,
+            ForeColor = UiStyles.SectionHeader
+        };
+        card.Controls.Add(_lblToolTitle);
+
+        _lblStoneWidth = new Label { Location = new Point(12, 42), AutoSize = true };
+        _numStone.Location = new Point(220, 38);
+        _numStone.Width = 140;
+        _numStone.DecimalPlaces = 2;
+        _numStone.Minimum = 0.01m;
+        _numStone.Maximum = 99999;
+        _numStone.Value = 10;
+        _numStone.Font = UiStyles.FontUi;
+        card.Controls.Add(_lblStoneWidth);
+        card.Controls.Add(_numStone);
+
+        _lblOverlap = new Label { Location = new Point(12, 78), AutoSize = true };
+        _numBindirme.Location = new Point(220, 74);
+        _numBindirme.Width = 140;
+        _numBindirme.DecimalPlaces = 2;
+        _numBindirme.Minimum = 0;
+        _numBindirme.Maximum = 99998;
+        _numBindirme.Value = 2;
+        _numBindirme.Font = UiStyles.FontUi;
+        card.Controls.Add(_lblOverlap);
+        card.Controls.Add(_numBindirme);
+
+        _lblToolHint = new Label
+        {
+            Location = new Point(12, 108),
+            Size = new Size(450, 24)
+        };
+        UiStyles.ApplyExampleLabel(_lblToolHint);
+        card.Controls.Add(_lblToolHint);
+
+        return card;
+    }
+
+    private static Panel CreateCardPanel(int height)
+    {
+        return new Panel
+        {
+            Width = 480,
+            Height = height,
+            Margin = new Padding(0, 0, 0, 12),
+            BackColor = UiStyles.CardBack,
+            BorderStyle = BorderStyle.FixedSingle,
+            Padding = new Padding(0)
+        };
+    }
+
+    private static Panel CreateDataRow(int index)
+    {
+        return new Panel
+        {
+            Width = 460,
+            Height = 34,
+            Margin = new Padding(0, 0, 0, 2),
+            BackColor = index % 2 == 0 ? UiStyles.Surface : Color.FromArgb(245, 247, 250)
+        };
+    }
+
+    private static NumericUpDown CreateRowNumeric(int x, decimal value)
+    {
+        return new NumericUpDown
+        {
+            Location = new Point(x, 4),
+            Width = InputWidth,
+            DecimalPlaces = 2,
+            Minimum = 0,
+            Maximum = 99999,
+            Value = value,
+            Font = UiStyles.FontUi
+        };
+    }
+
+    private void ApplyThicknessToAll()
+    {
+        decimal value = _numApplyThickness.Value;
+        foreach (var num in _edgeThicknessInputs.Values)
+            num.Value = ClampDecimal(num, (double)value);
     }
 
     private void ShowConfirmStep()
@@ -437,6 +587,7 @@ public sealed class SimulationSetupDialog : Form, ILocalizable
         Controls.Clear();
         Controls.Add(_panelParams);
         _panelParams.Visible = true;
+        _panelParams.BringToFront();
     }
 
     private void OnStartClick(object? sender, EventArgs e)

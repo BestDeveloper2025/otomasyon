@@ -37,11 +37,11 @@ public sealed class FtpSettingsDialog : Form, ILocalizable
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterParent;
         ClientSize = new Size(440, 400);
+        UiStyles.ApplyDialogChrome(this);
 
         _lblHint.Location = new Point(LabelX, 12);
         _lblHint.Size = new Size(400, 28);
-        _lblHint.ForeColor = Color.FromArgb(90, 90, 90);
-        _lblHint.Font = new Font("Segoe UI", 9f);
+        UiStyles.ApplyHintLabel(_lblHint);
 
         int rowTop = 48;
         PlaceFieldRow(rowTop, _lblHost, _lblHostExample, _txtHost);
@@ -57,6 +57,9 @@ public sealed class FtpSettingsDialog : Form, ILocalizable
 
         _btnBrowseRemote.Location = new Point(FieldX, rowTop + RowHeight - 4);
         _btnBrowseRemote.Size = new Size(FieldWidth, 30);
+        UiStyles.ConfigureDialogButton(_btnBrowseRemote, FieldWidth);
+        _btnBrowseRemote.Height = 30;
+        _btnBrowseRemote.Margin = Padding.Empty;
         _btnBrowseRemote.Click += OnBrowseRemoteClick;
 
         _numPort.Minimum = 1;
@@ -68,7 +71,7 @@ public sealed class FtpSettingsDialog : Form, ILocalizable
 
         _btnCancel.DialogResult = DialogResult.Cancel;
         DialogUiHelper.ConfigureButton(_btnCancel, 90);
-        DialogUiHelper.ConfigureButton(_btnOk, 90);
+        DialogUiHelper.ConfigurePrimaryButton(_btnOk, 90);
         _btnOk.Click += OnOkClick;
 
         flow.Controls.Add(_btnCancel);
@@ -211,8 +214,5 @@ public sealed class FtpSettingsDialog : Form, ILocalizable
     }
 
     private static void StyleExampleLabel(Label label)
-    {
-        label.ForeColor = Color.FromArgb(120, 120, 120);
-        label.Font = new Font("Segoe UI", 8.25f, FontStyle.Italic);
-    }
+        => UiStyles.ApplyExampleLabel(label);
 }

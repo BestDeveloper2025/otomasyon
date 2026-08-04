@@ -20,11 +20,11 @@ public sealed class FtpUploadDialog : Form, ILocalizable
         MinimizeBox = false;
         StartPosition = FormStartPosition.CenterParent;
         ClientSize = new Size(420, 168);
+        UiStyles.ApplyDialogChrome(this);
 
         _lblHint.Location = new Point(16, 12);
         _lblHint.Size = new Size(380, 32);
-        _lblHint.ForeColor = Color.FromArgb(90, 90, 90);
-        _lblHint.Font = new Font("Segoe UI", 9f);
+        UiStyles.ApplyHintLabel(_lblHint);
 
         _lblFileName.Location = new Point(16, 52);
         _lblFileName.AutoSize = true;
@@ -32,8 +32,7 @@ public sealed class FtpUploadDialog : Form, ILocalizable
         _lblFileNameExample.Location = new Point(16, 72);
         _lblFileNameExample.AutoSize = false;
         _lblFileNameExample.Size = new Size(380, 16);
-        _lblFileNameExample.ForeColor = Color.FromArgb(120, 120, 120);
-        _lblFileNameExample.Font = new Font("Segoe UI", 8.25f, FontStyle.Italic);
+        UiStyles.ApplyExampleLabel(_lblFileNameExample);
 
         _txtFileName.Location = new Point(16, 90);
         _txtFileName.Width = 380;
@@ -43,7 +42,7 @@ public sealed class FtpUploadDialog : Form, ILocalizable
 
         _btnCancel.DialogResult = DialogResult.Cancel;
         DialogUiHelper.ConfigureButton(_btnCancel, 90);
-        DialogUiHelper.ConfigureButton(_btnOk, 100);
+        DialogUiHelper.ConfigurePrimaryButton(_btnOk, 100);
         _btnOk.Click += OnOkClick;
 
         flow.Controls.Add(_btnCancel);

@@ -28,6 +28,7 @@ public partial class Form1 : Form, ILocalizable
     private BaseEdgeSelection? _baseEdgeSelection;
     private bool _baseEdgePickMode;
     private int? _highlightEdgeIndex;
+    private readonly ToolTip _toolTips = new();
     private WorldToScreenTransform _lastTransform;
     private bool _hasLastTransform;
 
@@ -41,7 +42,6 @@ public partial class Form1 : Form, ILocalizable
         _btnSelectFile.Click += BtnSelectFile_Click;
         _btnSetBaseEdge.Click += BtnSetBaseEdge_Click;
         _btnAddToRecipe.Click += BtnAddToRecipe_Click;
-        _btnSimulation.Click += BtnSimulation_Click;
         _btnImportCsv.Click += BtnImportCsv_Click;
         _btnExportBatchCsv.Click += BtnExportBatchCsv_Click;
         _btnExportBatchDat.Click += BtnExportBatchDat_Click;
@@ -50,6 +50,7 @@ public partial class Form1 : Form, ILocalizable
         _btnEditRecipe.Click += BtnEditRecipe_Click;
         _btnClearRecipe.Click += BtnClearRecipe_Click;
         _btnSettings.Click += BtnSettings_Click;
+        _btnCloseDxf.Click += BtnCloseDxf_Click;
         _lvRecipe.SelectedIndexChanged += (_, _) => RefreshRecipeActionButtons();
         _lvRecipe.DoubleClick += (_, _) => BtnEditRecipe_Click(null, EventArgs.Empty);
         _drawPanel.Paint += DrawPanel_Paint;
@@ -59,6 +60,7 @@ public partial class Form1 : Form, ILocalizable
         AppSettingsManager.SettingsChanged += OnSettingsChanged;
         ApplyLocalization();
         TryLoadLogo();
+        ApplyDeliveryChannelVisibility();
         _homeEmptyState.SelectFileRequested += (_, _) => BtnSelectFile_Click(null, EventArgs.Empty);
         _homeEmptyState.ImportCsvRequested += (_, _) => BtnImportCsv_Click(null, EventArgs.Empty);
 
@@ -76,6 +78,14 @@ public partial class Form1 : Form, ILocalizable
 
         UpdateHomeUi();
         ScheduleResponsiveLayout();
+    }
+
+    private void ApplyDeliveryChannelVisibility()
+    {
+        bool ftp = AppSettingsManager.EnableFtpDelivery;
+        _btnSendFtp.Visible = ftp;
+        if (!ftp)
+            _btnSendFtp.Enabled = false;
     }
 
     private void TryLoadLogo()
@@ -101,6 +111,7 @@ public partial class Form1 : Form, ILocalizable
         if (IsDisposed)
             return;
 
+        ApplyDeliveryChannelVisibility();
         RefreshResultsUi();
         RefreshRecipeUi();
         RebuildSceneAfterDirectionOrLimitsChange();
@@ -110,6 +121,7 @@ public partial class Form1 : Form, ILocalizable
     {
         using var dlg = new SettingsDialog();
         dlg.ShowDialog(this);
+        ApplyDeliveryChannelVisibility();
         RefreshResultsUi();
         RefreshRecipeUi();
         _drawPanel.Invalidate();
@@ -190,7 +202,7 @@ public partial class Form1 : Form, ILocalizable
 
         _baseEdgePickMode = true;
         _highlightEdgeIndex = null;
-        _btnSetBaseEdge.BackColor = Color.FromArgb(255, 248, 210);
+        _btnSetBaseEdge.BackColor = UiStyles.WarningBack;
         _lblResults.Text = L.Get("Status.PickBaseEdge");
         _drawPanel.Cursor = Cursors.Cross;
         _drawPanel.Invalidate();
@@ -201,7 +213,7 @@ public partial class Form1 : Form, ILocalizable
     {
         _baseEdgePickMode = false;
         _highlightEdgeIndex = null;
-        _btnSetBaseEdge.BackColor = SystemColors.Control;
+        _btnSetBaseEdge.BackColor = UiStyles.Surface;
         _drawPanel.Cursor = Cursors.Default;
         RefreshResultsUi();
     }
@@ -333,11 +345,13 @@ public partial class Form1 : Form, ILocalizable
         _btnSelectFile.Text = L.Get("Btn.SelectFile");
         _btnSetBaseEdge.Text = L.Get("Btn.SetBaseEdge");
         _btnAddToRecipe.Text = L.Get("Btn.AddToRecipe");
-        _btnSimulation.Text = L.Get("Btn.Simulation");
         _btnImportCsv.Text = L.Get("Btn.ImportCsv");
         _btnExportBatchCsv.Text = L.Get("Btn.ExportBatchCsv");
         _btnExportBatchDat.Text = L.Get("Btn.ExportBatchDat");
         _btnSendFtp.Text = L.Get("Btn.SendFtp");
+        _lblToolbarFile.Text = L.Get("Toolbar.Group.File");
+        _lblToolbarShape.Text = L.Get("Toolbar.Group.Shape");
+        _lblToolbarOutput.Text = L.Get("Toolbar.Group.Output");
         _btnRemoveRecipe.Text = L.Get("Btn.RemoveSelected");
         _btnEditRecipe.Text = L.Get("Btn.EditRecipe");
         _btnClearRecipe.Text = L.Get("Btn.ClearAll");
@@ -346,6 +360,12 @@ public partial class Form1 : Form, ILocalizable
         _lblAnalysisHeader.Text = L.Get("Label.Analysis");
         _lblAnalysisEmpty.Text = L.Get("Label.AnalysisEmpty");
         _homeEmptyState.ApplyLocalization();
+
+        FitMainToolbarButtons();
+        FitRecipeActionButtons();
+        UiStyles.FitToolbarButton(_btnSettings, 88);
+        _settingsHost.Width = _btnSettings.Width + 12;
+        _toolTips.SetToolTip(_btnCloseDxf, L.Get("Btn.CloseDxf"));
 
         if (string.IsNullOrWhiteSpace(_currentFilePath))
             _lblFilePath.Text = L.Get("Label.NoFileSelected");
@@ -369,6 +389,25 @@ public partial class Form1 : Form, ILocalizable
         UpdateHomeUi();
     }
 
+    private void FitMainToolbarButtons()
+    {
+        UiStyles.FitToolbarButton(_btnSelectFile, 96);
+        UiStyles.FitToolbarButton(_btnImportCsv, 88);
+        UiStyles.FitToolbarButton(_btnSetBaseEdge, 96);
+        UiStyles.FitToolbarButton(_btnAddToRecipe, 110);
+        UiStyles.FitToolbarButton(_btnExportBatchCsv, 96);
+        UiStyles.FitToolbarButton(_btnExportBatchDat, 96);
+        UiStyles.FitToolbarButton(_btnSendFtp, 96);
+        UiStyles.ConfigurePrimaryToolbarButton(_btnSelectFile, _btnSelectFile.Width);
+    }
+
+    private void FitRecipeActionButtons()
+    {
+        UiStyles.FitSmallButton(_btnEditRecipe, 80);
+        UiStyles.FitSmallButton(_btnRemoveRecipe, 80);
+        UiStyles.FitSmallButton(_btnClearRecipe, 80);
+    }
+
     private bool ShouldShowWelcomeState()
     {
         bool hasRecipe = (_importedCsv?.LineCount ?? 0) > 0 || _recipeItems.Count > 0;
@@ -383,6 +422,15 @@ public partial class Form1 : Form, ILocalizable
         if (showWelcome)
             _homeEmptyState.BringToFront();
 
+        bool hasDxfOpen = !string.IsNullOrWhiteSpace(_currentFilePath)
+            || ContourPathOrderer.HasSimulatableContour(_scene);
+        _btnCloseDxf.Visible = hasDxfOpen;
+        if (hasDxfOpen)
+        {
+            PositionCloseDxfButton();
+            _btnCloseDxf.BringToFront();
+        }
+
         bool hasRecipe = (_importedCsv?.LineCount ?? 0) > 0 || _recipeItems.Count > 0;
         _lblRecipeEmpty.Visible = !hasRecipe;
         _lvRecipe.Visible = hasRecipe;
@@ -394,6 +442,25 @@ public partial class Form1 : Form, ILocalizable
             _mainCanvasWidthRatio = Math.Max(_mainCanvasWidthRatio, 0.62);
 
         ScheduleResponsiveLayout();
+    }
+
+    private void BtnCloseDxf_Click(object? sender, EventArgs e)
+        => ClearCurrentDxf();
+
+    private void ClearCurrentDxf()
+    {
+        ExitBaseEdgePickMode();
+        _currentFilePath = string.Empty;
+        _scene = DxfScene.Empty;
+        _baseEdgeSelection = null;
+        ShapeOrientationContext.UseOriginAnchor = false;
+        _highlightEdgeIndex = null;
+        _hasLastTransform = false;
+        _txtCoordinates.Clear();
+        _lblFilePath.Text = L.Get("Label.NoFileSelected");
+        RefreshResultsUi();
+        _drawPanel.Invalidate();
+        AppLog.UserAction("Açık DXF ekrandan temizlendi");
     }
 
     private void ScheduleResponsiveLayout()
@@ -578,7 +645,6 @@ public partial class Form1 : Form, ILocalizable
             && AppSettingsManager.IsConfigured;
 
         _btnSetBaseEdge.Enabled = ContourPathOrderer.HasSimulatableContour(_scene);
-        _btnSimulation.Enabled = canProcess;
         _btnAddToRecipe.Enabled = canProcess && !string.IsNullOrWhiteSpace(_currentFilePath);
 
         UpdateHomeUi();
@@ -768,31 +834,6 @@ public partial class Form1 : Form, ILocalizable
         return true;
     }
 
-    private void BtnSimulation_Click(object? sender, EventArgs e)
-    {
-        if (!EnsureConfiguredForAction())
-            return;
-
-        if (!TryCreateJobFromCurrentScene(
-                SetupPurpose.Simulation,
-                out SimulationJob? job,
-                out string? error,
-                out _))
-        {
-            if (!string.IsNullOrEmpty(error))
-            {
-                AppLog.Warn("Simülasyon başlatılamadı", error);
-                MessageBox.Show(this, error, L.Get("Title.Simulation"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            return;
-        }
-
-        AppLog.UserAction("Simülasyon açıldı", FormatPathForLog(job!.SourceFilePath));
-        using var sim = new SimulationForm(job!);
-        sim.ShowDialog(this);
-        AppLog.UserAction("Simülasyon penceresi kapatıldı", FormatPathForLog(job.SourceFilePath));
-    }
-
     private bool TryCreateJobFromCurrentScene(
         SetupPurpose purpose,
         out SimulationJob? job,
@@ -907,6 +948,9 @@ public partial class Form1 : Form, ILocalizable
 
     private async void BtnSendFtp_Click(object? sender, EventArgs e)
     {
+        if (!AppSettingsManager.EnableFtpDelivery)
+            return;
+
         if (!HasRecipeExportData())
             return;
 
@@ -1255,7 +1299,7 @@ public partial class Form1 : Form, ILocalizable
         bool hasData = importedCount > 0 || newCount > 0;
         _btnExportBatchCsv.Enabled = hasData;
         _btnExportBatchDat.Enabled = hasData;
-        _btnSendFtp.Enabled = hasData;
+        _btnSendFtp.Enabled = hasData && AppSettingsManager.EnableFtpDelivery;
         _btnClearRecipe.Enabled = hasData;
         RefreshRecipeActionButtons();
         UpdateHomeUi();

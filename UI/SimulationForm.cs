@@ -40,6 +40,7 @@ public sealed class SimulationForm : Form, ILocalizable
         StartPosition = FormStartPosition.CenterScreen;
         ClientSize = new Size(1100, 720);
         MinimumSize = new Size(800, 500);
+        UiStyles.ApplyDialogChrome(this);
 
         BuildUi();
         LocalizationManager.LanguageChanged += (_, _) => { if (!IsDisposed) ApplyLocalization(); };
@@ -62,20 +63,20 @@ public sealed class SimulationForm : Form, ILocalizable
 
     private void BuildUi()
     {
-        var top = new Panel { Dock = DockStyle.Top, Height = 52, BackColor = SystemColors.Control };
+        var top = new Panel { Dock = DockStyle.Top, Height = 52, BackColor = UiStyles.TopBarBack };
 
         _btnPlay.Location = new Point(10, 10);
-        _btnPlay.Size = new Size(90, 32);
+        UiStyles.ConfigurePrimaryToolbarButton(_btnPlay, 90);
         _btnPause.Location = new Point(106, 10);
-        _btnPause.Size = new Size(90, 32);
+        UiStyles.ConfigureToolbarButton(_btnPause, 90);
         _btnStep.Location = new Point(202, 10);
-        _btnStep.Size = new Size(70, 32);
+        UiStyles.ConfigureToolbarButton(_btnStep, 70);
         _btnReset.Location = new Point(278, 10);
-        _btnReset.Size = new Size(80, 32);
+        UiStyles.ConfigureToolbarButton(_btnReset, 80);
         _btnExportCsv.Location = new Point(364, 10);
-        _btnExportCsv.Size = new Size(90, 32);
+        UiStyles.ConfigureToolbarButton(_btnExportCsv, 90);
         _btnExportDat.Location = new Point(460, 10);
-        _btnExportDat.Size = new Size(90, 32);
+        UiStyles.ConfigureToolbarButton(_btnExportDat, 90);
 
         _btnPlay.Click += (_, _) =>
         {
@@ -114,6 +115,8 @@ public sealed class SimulationForm : Form, ILocalizable
 
         _lblSpeed.Location = new Point(526, 16);
         _lblSpeed.AutoSize = true;
+        _lblSpeed.ForeColor = UiStyles.TextSecondary;
+        _lblSpeed.Font = UiStyles.FontUi;
 
         top.Controls.Add(_lblSpeed);
         top.Controls.Add(_trackSpeed);
@@ -127,18 +130,20 @@ public sealed class SimulationForm : Form, ILocalizable
         _lblStatus.Dock = DockStyle.Bottom;
         _lblStatus.Height = 48;
         _lblStatus.Padding = new Padding(12, 10, 12, 8);
-        _lblStatus.Font = new Font("Segoe UI", 9.5f);
-        _lblStatus.BackColor = Color.FromArgb(245, 248, 252);
+        _lblStatus.Font = UiStyles.FontHeader;
+        _lblStatus.ForeColor = UiStyles.TextPrimary;
+        _lblStatus.BackColor = UiStyles.StatusBarBack;
 
         _txtLog.Dock = DockStyle.Fill;
         _txtLog.Multiline = true;
         _txtLog.ReadOnly = true;
         _txtLog.ScrollBars = ScrollBars.Vertical;
-        _txtLog.Font = new Font("Consolas", 9f);
-        _txtLog.BackColor = Color.FromArgb(252, 252, 252);
+        _txtLog.Font = UiStyles.FontMono;
+        _txtLog.BackColor = UiStyles.LogBack;
+        _txtLog.ForeColor = UiStyles.TextPrimary;
 
         _drawPanel.Dock = DockStyle.Fill;
-        _drawPanel.BackColor = Color.White;
+        _drawPanel.BackColor = UiStyles.CanvasBack;
         _drawPanel.BorderStyle = BorderStyle.FixedSingle;
         _drawPanel.Paint += DrawPanel_Paint;
 

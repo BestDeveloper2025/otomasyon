@@ -16,18 +16,21 @@ namespace otomasyon
         private Button _btnSelectFile = null!;
         private Button _btnSetBaseEdge = null!;
         private Button _btnAddToRecipe = null!;
-        private Button _btnSimulation = null!;
         private Button _btnImportCsv = null!;
         private Button _btnExportBatchCsv = null!;
         private Button _btnExportBatchDat = null!;
         private Button _btnSendFtp = null!;
         private Button _btnSettings = null!;
+        private Label _lblToolbarFile = null!;
+        private Label _lblToolbarShape = null!;
+        private Label _lblToolbarOutput = null!;
         private Panel _settingsHost = null!;
         private Panel _topBarBody = null!;
         private Label _lblFilePath = null!;
 
         private DrawingPanel _drawPanel = null!;
         private HomeEmptyStatePanel _homeEmptyState = null!;
+        private Button _btnCloseDxf = null!;
 
         private SplitContainer _splitMain = null!;
         private SplitContainer _splitRight = null!;
@@ -64,17 +67,14 @@ namespace otomasyon
         {
             components = new System.ComponentModel.Container();
 
-            var uiFont = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            var headerFont = new Font("Segoe UI", 9.5F, FontStyle.Bold, GraphicsUnit.Point);
-
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1180, 760);
             MinimumSize = new Size(900, 560);
             Text = "DXF Analysis and Recipe Tool";
             StartPosition = FormStartPosition.CenterScreen;
             WindowState = FormWindowState.Maximized;
-            Font = uiFont;
-            BackColor = Color.White;
+            Font = UiStyles.FontUi;
+            BackColor = UiStyles.Surface;
 
             // --- Üst araç çubuğu ---
             _topPanel = new Panel
@@ -90,7 +90,7 @@ namespace otomasyon
             {
                 Dock = DockStyle.Left,
                 Width = UiStyles.LogoPanelWidth,
-                Padding = new Padding(16, 14, 12, 14),
+                Padding = new Padding(16, 8, 12, 8),
                 BackColor = UiStyles.TopBarBack
             };
 
@@ -136,42 +136,48 @@ namespace otomasyon
                 AutoEllipsis = true,
                 Padding = new Padding(12, 0, 8, 0),
                 ForeColor = UiStyles.MutedText,
-                Font = uiFont
+                Font = UiStyles.FontUi
             };
 
             _topBarBody.Controls.Add(_lblFilePath);
             _topBarBody.Controls.Add(_toolbarFlow);
 
-            _btnSelectFile = CreateToolbarButton("Select File", 108);
-            UiStyles.ConfigurePrimaryToolbarButton(_btnSelectFile, 108);
-            _btnSetBaseEdge = CreateToolbarButton("Set Base Edge", 118);
+            _btnSelectFile = CreateToolbarButton("Open DXF", 96);
+            UiStyles.ConfigurePrimaryToolbarButton(_btnSelectFile, 96);
+            _btnSetBaseEdge = CreateToolbarButton("Base Edge", 100);
             _btnSetBaseEdge.Enabled = false;
             _btnAddToRecipe = CreateToolbarButton("Add to Recipe", 118);
             _btnAddToRecipe.Enabled = false;
-            _btnSimulation = CreateToolbarButton("Simulation", 108);
-            _btnSimulation.Enabled = false;
 
-            _btnImportCsv = CreateToolbarButton("Import CSV", 118);
-            _btnExportBatchCsv = CreateToolbarButton("Batch CSV Export", 128);
+            _btnImportCsv = CreateToolbarButton("Open CSV", 96);
+            _btnExportBatchCsv = CreateToolbarButton("Save CSV", 96);
             _btnExportBatchCsv.Enabled = false;
-            _btnExportBatchDat = CreateToolbarButton("Batch DAT Export", 128);
+            _btnExportBatchDat = CreateToolbarButton("Save DAT", 96);
             _btnExportBatchDat.Enabled = false;
-            _btnSendFtp = CreateToolbarButton("Send via FTP", 118);
+            _btnSendFtp = CreateToolbarButton("Send FTP", 96);
             _btnSendFtp.Enabled = false;
 
+            _lblToolbarFile = UiStyles.CreateToolbarGroupLabel();
+            _lblToolbarShape = UiStyles.CreateToolbarGroupLabel();
+            _lblToolbarOutput = UiStyles.CreateToolbarGroupLabel();
+
+            // Dosya → Şekil → Çıktı
+            _toolbarFlow.Controls.Add(_lblToolbarFile);
             _toolbarFlow.Controls.Add(_btnSelectFile);
             _toolbarFlow.Controls.Add(_btnImportCsv);
             _toolbarFlow.Controls.Add(UiStyles.CreateToolbarDivider());
+            _toolbarFlow.Controls.Add(_lblToolbarShape);
             _toolbarFlow.Controls.Add(_btnSetBaseEdge);
             _toolbarFlow.Controls.Add(_btnAddToRecipe);
-            _toolbarFlow.Controls.Add(_btnSimulation);
             _toolbarFlow.Controls.Add(UiStyles.CreateToolbarDivider());
+            _toolbarFlow.Controls.Add(_lblToolbarOutput);
             _toolbarFlow.Controls.Add(_btnExportBatchCsv);
             _toolbarFlow.Controls.Add(_btnExportBatchDat);
             _toolbarFlow.Controls.Add(_btnSendFtp);
 
             _btnSettings = CreateToolbarButton("Settings", 96);
 
+            // Toolbar ile aynı dikey hizada: topBarBody padding (8) + host padding (10)
             _settingsHost = new Panel
             {
                 Dock = DockStyle.Right,
@@ -182,9 +188,9 @@ namespace otomasyon
             _btnSettings.Location = new Point(0, 0);
             _btnSettings.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             _settingsHost.Controls.Add(_btnSettings);
+            _topBarBody.Controls.Add(_settingsHost);
 
             _topPanel.Controls.Add(_topBarBody);
-            _topPanel.Controls.Add(_settingsHost);
             _topPanel.Controls.Add(_toolbarSeparator);
             _topPanel.Controls.Add(_logoPanel);
 
@@ -202,8 +208,8 @@ namespace otomasyon
                 Dock = DockStyle.Fill,
                 Text = "Contour edges: — | Radius: — | Arc: — | Circle: — | Entity: —",
                 TextAlign = ContentAlignment.MiddleLeft,
-                ForeColor = Color.FromArgb(50, 50, 50),
-                Font = uiFont
+                ForeColor = UiStyles.TextPrimary,
+                Font = UiStyles.FontUi
             };
 
             _lblRecipeCount = new Label
@@ -214,7 +220,7 @@ namespace otomasyon
                 Text = "Recipe: 0 shapes",
                 TextAlign = ContentAlignment.MiddleRight,
                 ForeColor = UiStyles.AccentText,
-                Font = headerFont,
+                Font = UiStyles.FontHeader,
                 Padding = new Padding(8, 0, 0, 0)
             };
 
@@ -225,13 +231,34 @@ namespace otomasyon
             _drawPanel = new DrawingPanel
             {
                 Dock = DockStyle.Fill,
-                BackColor = Color.White,
+                BackColor = UiStyles.CanvasBack,
                 BorderStyle = BorderStyle.FixedSingle
             };
 
             _homeEmptyState = new HomeEmptyStatePanel();
 
+            _btnCloseDxf = new Button
+            {
+                Text = "✕",
+                Size = new Size(30, 30),
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 11F, FontStyle.Bold, GraphicsUnit.Point),
+                ForeColor = UiStyles.TextSecondary,
+                BackColor = UiStyles.Surface,
+                Cursor = Cursors.Hand,
+                TabStop = false,
+                Visible = false
+            };
+            _btnCloseDxf.FlatAppearance.BorderColor = UiStyles.BorderStrong;
+            _btnCloseDxf.FlatAppearance.BorderSize = 1;
+            _btnCloseDxf.FlatAppearance.MouseOverBackColor = Color.FromArgb(255, 235, 235);
+            _btnCloseDxf.FlatAppearance.MouseDownBackColor = Color.FromArgb(255, 210, 210);
+
             _drawPanel.Controls.Add(_homeEmptyState);
+            _drawPanel.Controls.Add(_btnCloseDxf);
+            _drawPanel.Resize += (_, _) => PositionCloseDxfButton();
+            PositionCloseDxfButton();
 
             // --- Reçete listesi ---
             _recipePanel = new Panel
@@ -255,7 +282,7 @@ namespace otomasyon
                 Text = "No recipe items yet.",
                 TextAlign = ContentAlignment.TopCenter,
                 ForeColor = UiStyles.MutedText,
-                Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point),
+                Font = UiStyles.FontUi,
                 Padding = new Padding(12, 28, 12, 0)
             };
 
@@ -267,11 +294,11 @@ namespace otomasyon
                 Padding = new Padding(0, 6, 0, 0)
             };
 
-            _btnRemoveRecipe = CreateSmallButton("Remove Selected", 128);
+            _btnRemoveRecipe = CreateSmallButton("Remove", 80);
             _btnRemoveRecipe.Enabled = false;
-            _btnEditRecipe = CreateSmallButton("Edit Selected", 118);
+            _btnEditRecipe = CreateSmallButton("Edit", 80);
             _btnEditRecipe.Enabled = false;
-            _btnClearRecipe = CreateSmallButton("Clear All", 108);
+            _btnClearRecipe = CreateSmallButton("Clear", 80);
             _btnClearRecipe.Enabled = false;
 
             _recipeActions.Controls.Add(_btnRemoveRecipe);
@@ -288,7 +315,7 @@ namespace otomasyon
                 MultiSelect = false,
                 BorderStyle = BorderStyle.None,
                 HeaderStyle = ColumnHeaderStyle.Nonclickable,
-                Font = uiFont
+                Font = UiStyles.FontUi
             };
             _lvRecipe.Columns.Add("#", 36, HorizontalAlignment.Right);
             _lvRecipe.Columns.Add("File", 160, HorizontalAlignment.Left);
@@ -324,7 +351,7 @@ namespace otomasyon
                 Height = 36,
                 Text = "Analysis data will appear here after you load a DXF file.",
                 ForeColor = UiStyles.MutedText,
-                Font = uiFont,
+                Font = UiStyles.FontUi,
                 Padding = new Padding(0, 0, 0, 4)
             };
 
@@ -336,8 +363,8 @@ namespace otomasyon
                 ScrollBars = ScrollBars.Both,
                 WordWrap = false,
                 BorderStyle = BorderStyle.FixedSingle,
-                Font = new Font("Consolas", 9F, FontStyle.Regular, GraphicsUnit.Point),
-                BackColor = Color.White
+                Font = UiStyles.FontMono,
+                BackColor = UiStyles.LogBack
             };
 
             _analysisPanel.Controls.Add(_txtCoordinates);
@@ -372,16 +399,26 @@ namespace otomasyon
             Shown += Form1_Shown;
         }
 
+        private void PositionCloseDxfButton()
+        {
+            if (_btnCloseDxf is null || _drawPanel is null)
+                return;
+
+            _btnCloseDxf.Location = new Point(
+                Math.Max(8, _drawPanel.ClientSize.Width - _btnCloseDxf.Width - 8),
+                8);
+        }
+
         private static Button CreateToolbarButton(string text, int width)
         {
-            var button = new Button { Text = text, Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point) };
+            var button = new Button { Text = text };
             UiStyles.ConfigureToolbarButton(button, width);
             return button;
         }
 
         private static Button CreateSmallButton(string text, int width)
         {
-            var button = new Button { Text = text, Font = new Font("Segoe UI", 8.5F, FontStyle.Regular, GraphicsUnit.Point) };
+            var button = new Button { Text = text };
             UiStyles.ConfigureSmallButton(button, width);
             return button;
         }
